@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  spring-app:
+    image: my-project:1.0
+    ports:
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
+    restart: unless-stopped
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: agricultural-service-platform
+    ports:
+      - "8806:3306"
