@@ -1,18 +1,43 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { format } from "date-fns"
-import { vi } from "date-fns/locale"
-import { ChevronDown, ChevronUp, Eye, Package, Search, ShoppingBag, Truck } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import {
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Package,
+  Search,
+  ShoppingBag,
+  Truck,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 // Mock data
 const orders = [
@@ -102,44 +127,66 @@ const orders = [
       status: "Đã hủy",
     },
   },
-]
+];
 
 const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "Chờ xác nhận", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300" },
-  processing: { label: "Đang xử lý", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300" },
-  shipping: { label: "Đang giao hàng", color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300" },
-  completed: { label: "Đã giao hàng", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" },
-  cancelled: { label: "Đã hủy", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" },
-}
+  pending: {
+    label: "Chờ xác nhận",
+    color:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+  },
+  processing: {
+    label: "Đang xử lý",
+    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  },
+  shipping: {
+    label: "Đang giao hàng",
+    color:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+  },
+  completed: {
+    label: "Đã giao hàng",
+    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  },
+  cancelled: {
+    label: "Đã hủy",
+    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  },
+};
 
 export default function OrdersPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [openOrderId, setOpenOrderId] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [openOrderId, setOpenOrderId] = useState<string | null>(null);
 
   // Filter orders based on search term and status
   const filteredOrders = orders.filter((order) => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+    const matchesSearch = order.id
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || order.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const toggleOrderDetails = (orderId: string) => {
-    setOpenOrderId(openOrderId === orderId ? null : orderId)
-  }
+    setOpenOrderId(openOrderId === orderId ? null : orderId);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold">Đơn hàng của tôi</h2>
-        <p className="text-sm text-muted-foreground">Xem và theo dõi tất cả đơn hàng của bạn</p>
+        <p className="text-sm text-muted-foreground">
+          Xem và theo dõi tất cả đơn hàng của bạn
+        </p>
       </div>
 
       <Card>
@@ -173,13 +220,17 @@ export default function OrdersPage() {
           {filteredOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10">
               <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-2">Không tìm thấy đơn hàng nào</p>
+              <p className="text-muted-foreground mb-2">
+                Không tìm thấy đơn hàng nào
+              </p>
               <p className="text-sm text-muted-foreground mb-4">
-                {searchTerm || statusFilter !== "all" ? "Thử thay đổi bộ lọc của bạn" : "Bạn chưa có đơn hàng nào"}
+                {searchTerm || statusFilter !== "all"
+                  ? "Thử thay đổi bộ lọc của bạn"
+                  : "Bạn chưa có đơn hàng nào"}
               </p>
               {!searchTerm && statusFilter === "all" && (
                 <Button asChild>
-                  <Link href="/san-pham">Mua sắm ngay</Link>
+                  <Link href="/product">Mua sắm ngay</Link>
                 </Button>
               )}
             </div>
@@ -196,14 +247,18 @@ export default function OrdersPage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">Đơn hàng #{order.id}</h3>
-                        <Badge className={statusMap[order.status].color}>{statusMap[order.status].label}</Badge>
+                        <Badge className={statusMap[order.status].color}>
+                          {statusMap[order.status].label}
+                        </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {format(order.date, "dd MMMM yyyy", { locale: vi })}
                       </p>
                     </div>
                     <div className="flex items-center gap-4 mt-2 md:mt-0">
-                      <p className="font-medium">{formatCurrency(order.total)}</p>
+                      <p className="font-medium">
+                        {formatCurrency(order.total)}
+                      </p>
                       <CollapsibleTrigger asChild>
                         <Button variant="ghost" size="icon">
                           {openOrderId === order.id ? (
@@ -245,8 +300,12 @@ export default function OrdersPage() {
                                     <span>{item.name}</span>
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
-                                <TableCell className="text-right">{item.quantity}</TableCell>
+                                <TableCell className="text-right">
+                                  {formatCurrency(item.price)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {item.quantity}
+                                </TableCell>
                                 <TableCell className="text-right">
                                   {formatCurrency(item.price * item.quantity)}
                                 </TableCell>
@@ -263,36 +322,44 @@ export default function OrdersPage() {
                           </h4>
                           <div className="text-sm space-y-1">
                             <p>
-                              <span className="font-medium">Địa chỉ:</span> {order.shipping.address}
+                              <span className="font-medium">Địa chỉ:</span>{" "}
+                              {order.shipping.address}
                             </p>
                             <p>
-                              <span className="font-medium">Phương thức:</span> {order.shipping.method}
+                              <span className="font-medium">Phương thức:</span>{" "}
+                              {order.shipping.method}
                             </p>
                             {order.shipping.tracking && (
                               <p>
-                                <span className="font-medium">Mã vận đơn:</span> {order.shipping.tracking}
+                                <span className="font-medium">Mã vận đơn:</span>{" "}
+                                {order.shipping.tracking}
                               </p>
                             )}
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-medium mb-2">Thông tin thanh toán</h4>
+                          <h4 className="font-medium mb-2">
+                            Thông tin thanh toán
+                          </h4>
                           <div className="text-sm space-y-1">
                             <p>
-                              <span className="font-medium">Phương thức:</span> {order.payment.method}
+                              <span className="font-medium">Phương thức:</span>{" "}
+                              {order.payment.method}
                             </p>
                             <p>
-                              <span className="font-medium">Trạng thái:</span> {order.payment.status}
+                              <span className="font-medium">Trạng thái:</span>{" "}
+                              {order.payment.status}
                             </p>
                             <p>
-                              <span className="font-medium">Tổng tiền:</span> {formatCurrency(order.total)}
+                              <span className="font-medium">Tổng tiền:</span>{" "}
+                              {formatCurrency(order.total)}
                             </p>
                           </div>
                         </div>
                       </div>
                       <div className="flex justify-end">
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/tai-khoan/don-hang/${order.id}`}>
+                          <Link href={`/account/order/${order.id}`}>
                             <Eye className="mr-2 h-4 w-4" />
                             Xem chi tiết
                           </Link>
@@ -307,5 +374,5 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

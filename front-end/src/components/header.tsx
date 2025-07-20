@@ -1,17 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { ModeToggle } from "@/components/mode-toggle"
-import { Menu, Leaf, Cloud, LineChart, MessageSquare, ShoppingBag, User } from "lucide-react"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ModeToggle } from "@/components/mode-toggle";
+import {
+  Menu,
+  Leaf,
+  Cloud,
+  LineChart,
+  MessageSquare,
+  ShoppingBag,
+  User,
+} from "lucide-react";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function Header() {
-  const [isOpen, setIsOpen] = useState(false)
-  const pathname = usePathname()
+  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   const routes = [
     {
@@ -20,26 +28,26 @@ export default function Header() {
       icon: <Leaf className="h-5 w-5" />,
     },
     {
+      name: "Sản phẩm",
+      path: "/product",
+      icon: <ShoppingBag className="h-5 w-5" />,
+    },
+    {
       name: "Thời tiết",
-      path: "/thoi-tiet",
+      path: "/weather",
       icon: <Cloud className="h-5 w-5" />,
     },
     {
       name: "Giá cả",
-      path: "/gia-ca",
+      path: "/price",
       icon: <LineChart className="h-5 w-5" />,
     },
     {
       name: "Diễn đàn",
-      path: "/dien-dan",
+      path: "/forum",
       icon: <MessageSquare className="h-5 w-5" />,
     },
-    {
-      name: "Sản phẩm",
-      path: "/san-pham",
-      icon: <ShoppingBag className="h-5 w-5" />,
-    },
-  ]
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,7 +63,9 @@ export default function Header() {
             <SheetContent side="left" className="w-[300px] sm:w-[400px]">
               <div className="flex items-center gap-2 py-4">
                 <Leaf className="h-6 w-6 text-green-600 dark:text-green-500" />
-                <span className="text-lg font-bold">Nông Nghiệp Thông Minh</span>
+                <span className="text-lg font-bold">
+                  Nông Nghiệp Thông Minh
+                </span>
               </div>
               <nav className="flex flex-col gap-4 py-4">
                 {routes.map((route) => (
@@ -67,7 +77,7 @@ export default function Header() {
                       "flex items-center gap-2 rounded-lg px-3 py-2 text-lg transition-colors hover:bg-accent",
                       pathname === route.path
                         ? "bg-accent font-medium text-green-600 dark:text-green-500"
-                        : "text-muted-foreground",
+                        : "text-muted-foreground"
                     )}
                   >
                     {route.icon}
@@ -80,8 +90,8 @@ export default function Header() {
                   asChild
                   className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                 >
-                  <Link href="/dang-ky" onClick={() => setIsOpen(false)}>
-                    Đăng nhập / Đăng ký
+                  <Link href="/register" onClick={() => setIsOpen(false)}>
+                    Đăng ký
                   </Link>
                 </Button>
               </div>
@@ -89,7 +99,9 @@ export default function Header() {
           </Sheet>
           <Link href="/" className="flex items-center gap-2">
             <Leaf className="h-6 w-6 text-green-600 dark:text-green-500" />
-            <span className="hidden font-bold sm:inline-block">Nông Nghiệp Thông Minh</span>
+            <span className="hidden font-bold sm:inline-block">
+              Nông Nghiệp Thông Minh
+            </span>
           </Link>
         </div>
         <nav className="hidden lg:flex lg:items-center lg:gap-6">
@@ -99,7 +111,9 @@ export default function Header() {
               href={route.path}
               className={cn(
                 "flex items-center gap-1 text-sm font-medium transition-colors hover:text-green-600 dark:hover:text-green-500",
-                pathname === route.path ? "text-green-600 dark:text-green-500" : "text-muted-foreground",
+                pathname === route.path
+                  ? "text-green-600 dark:text-green-500"
+                  : "text-muted-foreground"
               )}
             >
               {route.icon}
@@ -109,20 +123,34 @@ export default function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <ModeToggle />
-          <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
-            <Link href="/dang-ky">
+          {/* <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="hidden sm:flex"
+          >
+            <Link href="/register">
               <User className="h-5 w-5" />
               <span className="sr-only">Tài khoản</span>
             </Link>
-          </Button>
-          <Button
-            asChild
-            className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex"
-          >
-            <Link href="/dang-ky">Đăng nhập / Đăng ký</Link>
-          </Button>
+          </Button> */}
+          {pathname === "/register" ? (
+            <Button
+              asChild
+              className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
+            >
+              <Link href="/login">Đăng nhập</Link>
+            </Button>
+          ) : (
+            <Button
+              asChild
+              className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
+            >
+              <Link href="/register">Đăng ký</Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>
-  )
+  );
 }

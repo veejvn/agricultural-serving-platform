@@ -1,12 +1,21 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, Package, ShoppingCart, MessageSquare, Bell, Settings, LogOut } from "lucide-react"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  ShoppingCart,
+  MessageSquare,
+  Bell,
+  Settings,
+  LogOut,
+} from "lucide-react";
 
 export function AdminSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const routes = [
     {
@@ -16,47 +25,50 @@ export function AdminSidebar() {
       active: pathname === "/admin",
     },
     {
-      href: "/admin/nguoi-dung",
+      href: "/admin/user",
       icon: Users,
       title: "Người dùng",
-      active: pathname === "/admin/nguoi-dung",
+      active: pathname === "/admin/user",
     },
     {
-      href: "/admin/san-pham",
+      href: "/admin/product",
       icon: Package,
       title: "Sản phẩm",
-      active: pathname === "/admin/san-pham",
+      active: pathname === "/admin/product",
     },
     {
-      href: "/admin/don-hang",
+      href: "/admin/order",
       icon: ShoppingCart,
       title: "Đơn hàng",
-      active: pathname === "/admin/don-hang",
+      active: pathname === "/admin/order",
     },
     {
-      href: "/admin/dien-dan",
+      href: "/admin/forum",
       icon: MessageSquare,
       title: "Diễn đàn",
-      active: pathname === "/admin/dien-dan",
+      active: pathname === "/admin/forum",
     },
     {
-      href: "/admin/thong-bao",
+      href: "/admin/notification",
       icon: Bell,
       title: "Thông báo",
-      active: pathname === "/admin/thong-bao",
+      active: pathname === "/admin/notification",
     },
     {
-      href: "/admin/cai-dat",
+      href: "/admin/setting",
       icon: Settings,
       title: "Cài đặt",
-      active: pathname === "/admin/cai-dat",
+      active: pathname === "/admin/setting",
     },
-  ]
+  ];
 
   return (
     <div className="flex h-full flex-col border-r bg-white dark:bg-gray-950 dark:border-gray-800">
       <div className="p-6">
-        <Link href="/admin" className="flex items-center gap-2 font-bold text-xl">
+        <Link
+          href="/admin"
+          className="flex items-center gap-2 font-bold text-xl"
+        >
           <span className="bg-green-600 text-white p-1 rounded">Admin</span>
           <span>Nông Nghiệp</span>
         </Link>
@@ -71,7 +83,7 @@ export function AdminSidebar() {
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-green-600 dark:hover:text-green-500",
                 route.active
                   ? "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-500"
-                  : "text-gray-500 dark:text-gray-400",
+                  : "text-gray-500 dark:text-gray-400"
               )}
             >
               <route.icon className="h-4 w-4" />
@@ -90,5 +102,5 @@ export function AdminSidebar() {
         </Link>
       </div>
     </div>
-  )
+  );
 }

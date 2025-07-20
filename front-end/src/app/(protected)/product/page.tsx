@@ -1,16 +1,25 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Search, ShoppingCart } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Search, ShoppingCart } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function ProductsPage() {
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">Sản Phẩm Nông Nghiệp</h1>
+        <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
+          Sản Phẩm Nông Nghiệp
+        </h1>
         <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
           Các sản phẩm, công cụ và vật tư nông nghiệp chất lượng cao
         </p>
@@ -19,7 +28,11 @@ export default function ProductsPage() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-          <Input type="search" placeholder="Tìm kiếm sản phẩm..." className="pl-10" />
+          <Input
+            type="search"
+            placeholder="Tìm kiếm sản phẩm..."
+            className="pl-10"
+          />
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -27,7 +40,7 @@ export default function ProductsPage() {
             className="border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-950"
             asChild
           >
-            <Link href="/gio-hang">
+            <Link href="/cart">
               <ShoppingCart className="mr-2 h-4 w-4" />
               Giỏ hàng (0)
             </Link>
@@ -115,15 +128,25 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-function ProductCard({ product, featured = false }: { product: Product; featured?: boolean }) {
+function ProductCard({
+  product,
+  featured = false,
+}: {
+  product: Product;
+  featured?: boolean;
+}) {
   return (
     <Card
-      className={`overflow-hidden transition-all hover:shadow-md ${featured ? "border-green-300 dark:border-green-700" : "border-gray-200 dark:border-gray-800"}`}
+      className={`overflow-hidden transition-all hover:shadow-md ${
+        featured
+          ? "border-green-300 dark:border-green-700"
+          : "border-gray-200 dark:border-gray-800"
+      }`}
     >
-      <Link href={`/san-pham/${product.id}`}>
+      <Link href={`/product/${product.id}`}>
         <div className="relative aspect-square overflow-hidden">
           <Image
             src={product.image || "/placeholder.svg"}
@@ -138,8 +161,12 @@ function ProductCard({ product, featured = false }: { product: Product; featured
           )}
         </div>
         <CardHeader className="p-4 pb-0">
-          <CardTitle className="line-clamp-1 text-lg text-green-800 dark:text-green-300">{product.name}</CardTitle>
-          <CardDescription className="line-clamp-1">{product.description}</CardDescription>
+          <CardTitle className="line-clamp-1 text-lg text-green-800 dark:text-green-300">
+            {product.name}
+          </CardTitle>
+          <CardDescription className="line-clamp-1">
+            {product.description}
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-2">
           <div className="flex items-center justify-between">
@@ -159,7 +186,9 @@ function ProductCard({ product, featured = false }: { product: Product; featured
                 </span>
               )}
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">{product.unit}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {product.unit}
+            </div>
           </div>
         </CardContent>
       </Link>
@@ -170,7 +199,7 @@ function ProductCard({ product, featured = false }: { product: Product; featured
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
 
 // Định dạng giá tiền
@@ -178,19 +207,19 @@ function formatPrice(price: number): string {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
-  }).format(price)
+  }).format(price);
 }
 
 // Dữ liệu mẫu
 interface Product {
-  id: number
-  name: string
-  description: string
-  price: number
-  discount: number
-  unit: string
-  image: string
-  category: string
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  discount: number;
+  unit: string;
+  image: string;
+  category: string;
 }
 
 const products: Product[] = [
@@ -274,4 +303,4 @@ const products: Product[] = [
     image: "/placeholder.svg?height=300&width=300",
     category: "pesticides",
   },
-]
+];

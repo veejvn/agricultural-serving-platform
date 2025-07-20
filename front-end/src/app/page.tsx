@@ -43,7 +43,7 @@ export default function Home() {
                   size="lg"
                   className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                 >
-                  <Link href="/dang-ky">Đăng Ký Ngay</Link>
+                  <Link href="/register">Đăng Ký Ngay</Link>
                 </Button>
                 <Button
                   asChild
@@ -51,7 +51,7 @@ export default function Home() {
                   size="lg"
                   className="border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-950"
                 >
-                  <Link href="/san-pham">Xem Sản Phẩm</Link>
+                  <Link href="/product">Xem Sản Phẩm</Link>
                 </Button>
               </div>
             </div>
@@ -100,7 +100,7 @@ export default function Home() {
                 variant="ghost"
                 className="text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 p-0"
               >
-                <Link href="/thoi-tiet">Xem dự báo</Link>
+                <Link href="/weather">Xem dự báo</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -124,7 +124,7 @@ export default function Home() {
                 variant="ghost"
                 className="text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 p-0"
               >
-                <Link href="/gia-ca">Xem giá cả</Link>
+                <Link href="/price">Xem giá cả</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -148,7 +148,7 @@ export default function Home() {
                 variant="ghost"
                 className="text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 p-0"
               >
-                <Link href="/dien-dan">Tham gia ngay</Link>
+                <Link href="/forum">Tham gia ngay</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -172,7 +172,7 @@ export default function Home() {
                 variant="ghost"
                 className="text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 p-0"
               >
-                <Link href="/san-pham">Khám phá</Link>
+                <Link href="/product">Khám phá</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -376,13 +376,13 @@ export default function Home() {
                 size="lg"
                 className="bg-white text-green-700 hover:bg-green-700 hover:text-white"
               >
-                <Link href="/dang-ky">Đăng Ký Miễn Phí</Link>
+                <Link href="/register">Đăng Ký Miễn Phí</Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-white text-green-700 hover:bg-green-700 hover:text-white"
+                className="bg-white text-green-700 hover:bg-green-700 hover:text-white"
               >
                 <Link href="/lien-he">Liên Hệ Tư Vấn</Link>
               </Button>

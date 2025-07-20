@@ -48,7 +48,7 @@ export default function WeatherWidget() {
           </div>
 
           <Link
-            href="/thoi-tiet"
+            href="/weather"
             className="mt-4 text-sm font-medium text-green-600 hover:underline dark:text-green-500"
           >
             Xem dự báo chi tiết

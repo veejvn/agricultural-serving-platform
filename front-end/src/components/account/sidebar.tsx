@@ -1,57 +1,66 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Bell, CreditCard, Home, Lock, Package, Settings, ShoppingBag, User } from "lucide-react"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Bell,
+  CreditCard,
+  Home,
+  Lock,
+  Package,
+  Settings,
+  ShoppingBag,
+  User,
+} from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const menuItems = [
   {
     title: "Tổng quan",
-    href: "/tai-khoan",
+    href: "/account",
     icon: Home,
   },
   {
     title: "Thông tin cá nhân",
-    href: "/tai-khoan/thong-tin",
+    href: "/account/information",
     icon: User,
   },
   {
     title: "Đổi mật khẩu",
-    href: "/tai-khoan/mat-khau",
+    href: "/account/password",
     icon: Lock,
   },
   {
     title: "Địa chỉ",
-    href: "/tai-khoan/dia-chi",
+    href: "/account/address",
     icon: Package,
   },
   {
     title: "Đơn hàng",
-    href: "/tai-khoan/don-hang",
+    href: "/account/order",
     icon: ShoppingBag,
   },
   {
     title: "Phương thức thanh toán",
-    href: "/tai-khoan/thanh-toan",
+    href: "/account/payment",
     icon: CreditCard,
   },
   {
     title: "Thông báo",
-    href: "/tai-khoan/thong-bao",
+    href: "/account/notification",
     icon: Bell,
   },
   {
     title: "Cài đặt",
-    href: "/tai-khoan/cai-dat",
+    href: "/account/setting",
     icon: Settings,
   },
-]
+];
 
 export function AccountSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <div className="w-full md:w-64 space-y-4">
@@ -64,7 +73,7 @@ export function AccountSidebar() {
               "w-full justify-start",
               pathname === item.href
                 ? "bg-green-50 hover:bg-green-100 text-green-700 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-400"
-                : "",
+                : ""
             )}
             asChild
           >
@@ -76,5 +85,5 @@ export function AccountSidebar() {
         ))}
       </div>
     </div>
-  )
+  );
 }

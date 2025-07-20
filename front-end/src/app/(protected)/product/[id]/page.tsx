@@ -1,42 +1,52 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { ChevronLeft, Minus, Plus, ShoppingCart, Star, Truck } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { useState } from "react"
-import { ProductReviewForm } from "@/components/product-review-form"
-import { ProductReviewsList, type Review } from "@/components/product-reviews-list"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  ChevronLeft,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Star,
+  Truck,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { useState } from "react";
+import { ProductReviewForm } from "@/components/product-review-form";
+import {
+  ProductReviewsList,
+  type Review,
+} from "@/components/product-reviews-list";
 
 // Định dạng giá tiền
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
-  }).format(price)
+  }).format(price);
 }
 
 // Dữ liệu mẫu
 interface Product {
-  id: number
-  name: string
-  description: string
-  price: number
-  discount: number
-  unit: string
-  image: string
-  category: string
-  stock: number
-  rating: number
-  reviews: number
-  specifications: Record<string, string>
-  longDescription: string
-  usage: string
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  discount: number;
+  unit: string;
+  image: string;
+  category: string;
+  stock: number;
+  rating: number;
+  reviews: number;
+  specifications: Record<string, string>;
+  longDescription: string;
+  usage: string;
 }
 
 const products: Product[] = [
@@ -157,7 +167,8 @@ const products: Product[] = [
       "Khoảng cách giữa các đầu nhỏ giọt": "30cm",
       "Lưu lượng nước": "2-4 lít/giờ/đầu nhỏ giọt",
       "Áp lực nước yêu cầu": "0.5-2.5 bar",
-      "Thành phần bộ kit": "Ống PE 16mm, đầu nhỏ giọt, đầu nối, van khóa, bộ lọc",
+      "Thành phần bộ kit":
+        "Ống PE 16mm, đầu nhỏ giọt, đầu nối, van khóa, bộ lọc",
     },
     usage:
       "Lắp đặt ống chính và các nhánh theo sơ đồ. Đặt đầu nhỏ giọt tại vị trí gốc cây. Kết nối với nguồn nước và kiểm tra toàn bộ hệ thống trước khi sử dụng. Vệ sinh bộ lọc định kỳ để đảm bảo hệ thống hoạt động hiệu quả.",
@@ -201,7 +212,8 @@ const products: Product[] = [
     rating: 4.7,
     reviews: 53,
     specifications: {
-      "Thành phần": "Hữu cơ >15%, N:P:K = 3:2:3, vi sinh vật có ích >10^6 CFU/g",
+      "Thành phần":
+        "Hữu cơ >15%, N:P:K = 3:2:3, vi sinh vật có ích >10^6 CFU/g",
       "Dạng phân": "Dạng bột mịn",
       "Xuất xứ": "Việt Nam",
       "Thời hạn sử dụng": "24 tháng kể từ ngày sản xuất",
@@ -234,7 +246,7 @@ const products: Product[] = [
     usage:
       "Pha 10-15g thuốc với 16 lít nước sạch. Phun đều lên toàn bộ cây lúa. Phun phòng khi lúa bắt đầu đẻ nhánh và trước khi lúa trổ bông 7-10 ngày. Phun trị khi phát hiện bệnh. Không phun thuốc khi trời sắp mưa hoặc đang có gió lớn.",
   },
-]
+];
 
 // Dữ liệu mẫu cho đánh giá
 const sampleReviews: Record<number, Review[]> = {
@@ -273,7 +285,8 @@ const sampleReviews: Record<number, Review[]> = {
       productId: 2,
       userName: "Phạm Thị Dung",
       rating: 5,
-      comment: "Phân bón hiệu quả, cây trồng phát triển xanh tốt sau khi bón. Giá cả hợp lý so với chất lượng.",
+      comment:
+        "Phân bón hiệu quả, cây trồng phát triển xanh tốt sau khi bón. Giá cả hợp lý so với chất lượng.",
       date: new Date(2023, 4, 10),
     },
     {
@@ -281,7 +294,8 @@ const sampleReviews: Record<number, Review[]> = {
       productId: 2,
       userName: "Hoàng Văn Em",
       rating: 4,
-      comment: "Sản phẩm tốt, dễ sử dụng. Tuy nhiên, bao bì đôi khi bị rách trong quá trình vận chuyển.",
+      comment:
+        "Sản phẩm tốt, dễ sử dụng. Tuy nhiên, bao bì đôi khi bị rách trong quá trình vận chuyển.",
       date: new Date(2023, 5, 25),
     },
   ],
@@ -302,7 +316,8 @@ const sampleReviews: Record<number, Review[]> = {
       productId: 4,
       userName: "Đặng Văn Hùng",
       rating: 4,
-      comment: "Máy phun thuốc hoạt động tốt, pin trâu. Tuy nhiên, hơi nặng khi sử dụng trong thời gian dài.",
+      comment:
+        "Máy phun thuốc hoạt động tốt, pin trâu. Tuy nhiên, hơi nặng khi sử dụng trong thời gian dài.",
       date: new Date(2023, 2, 12),
     },
     {
@@ -315,60 +330,74 @@ const sampleReviews: Record<number, Review[]> = {
       date: new Date(2023, 3, 5),
     },
   ],
-}
+};
 
 // Lấy sản phẩm theo ID
 function getProductById(id: number): Product | undefined {
-  return products.find((product) => product.id === id)
+  return products.find((product) => product.id === id);
 }
 
 // Lấy sản phẩm liên quan (cùng danh mục)
 function getRelatedProducts(product: Product): Product[] {
-  return products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4)
+  return products
+    .filter((p) => p.category === product.category && p.id !== product.id)
+    .slice(0, 4);
 }
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const productId = Number.parseInt(params.id)
-  const product = getProductById(productId)
+export default function ProductDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const productId = Number.parseInt(params.id);
+  const product = getProductById(productId);
 
   if (!product) {
-    notFound()
+    notFound();
   }
 
   // State cho đánh giá
-  const [reviews, setReviews] = useState<Review[]>(sampleReviews[productId] || [])
-  const [quantity, setQuantity] = useState(1)
+  const [reviews, setReviews] = useState<Review[]>(
+    sampleReviews[productId] || []
+  );
+  const [quantity, setQuantity] = useState(1);
 
   // Xử lý khi có đánh giá mới
   const handleNewReview = (newReview: Review) => {
-    setReviews((prevReviews) => [newReview, ...prevReviews])
-  }
+    setReviews((prevReviews) => [newReview, ...prevReviews]);
+  };
 
   // Tính giá sau khuyến mãi
-  const discountedPrice = product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price
+  const discountedPrice =
+    product.discount > 0
+      ? product.price * (1 - product.discount / 100)
+      : product.price;
 
   // Tăng số lượng
   const increaseQuantity = () => {
     if (quantity < product.stock) {
-      setQuantity(quantity + 1)
+      setQuantity(quantity + 1);
     }
-  }
+  };
 
   // Giảm số lượng
   const decreaseQuantity = () => {
     if (quantity > 1) {
-      setQuantity(quantity - 1)
+      setQuantity(quantity - 1);
     }
-  }
+  };
 
-  const relatedProducts = getRelatedProducts(product)
+  const relatedProducts = getRelatedProducts(product);
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       {/* Breadcrumb */}
       <div className="mb-6">
         <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-          <Link href="/san-pham" className="flex items-center hover:text-green-600 dark:hover:text-green-500">
+          <Link
+            href="/product"
+            className="flex items-center hover:text-green-600 dark:hover:text-green-500"
+          >
             <ChevronLeft className="mr-1 h-4 w-4" />
             Quay lại danh sách sản phẩm
           </Link>
@@ -379,7 +408,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       <div className="grid gap-8 md:grid-cols-2">
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
-          <Image src={product.image || "/placeholder.svg"} alt={product.name} fill className="object-cover" priority />
+          <Image
+            src={product.image || "/placeholder.svg"}
+            alt={product.name}
+            fill
+            className="object-cover"
+            priority
+          />
           {product.discount > 0 && (
             <div className="absolute left-4 top-4 rounded-full bg-red-500 px-3 py-1 text-sm font-medium text-white">
               -{product.discount}%
@@ -389,7 +424,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
         {/* Product Details */}
         <div className="flex flex-col">
-          <h1 className="text-3xl font-bold text-green-800 dark:text-green-300">{product.name}</h1>
+          <h1 className="text-3xl font-bold text-green-800 dark:text-green-300">
+            {product.name}
+          </h1>
 
           <div className="mt-2 flex items-center gap-2">
             <div className="flex items-center">
@@ -409,7 +446,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </span>
           </div>
 
-          <p className="mt-4 text-gray-700 dark:text-gray-300">{product.description}</p>
+          <p className="mt-4 text-gray-700 dark:text-gray-300">
+            {product.description}
+          </p>
 
           <div className="mt-6 flex items-center gap-2">
             {product.discount > 0 ? (
@@ -426,11 +465,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 {formatPrice(product.price)}
               </span>
             )}
-            <span className="ml-2 text-gray-600 dark:text-gray-400">/ {product.unit}</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">
+              / {product.unit}
+            </span>
           </div>
 
           <div className="mt-4 flex items-center gap-2">
-            <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
+            <Badge
+              variant="outline"
+              className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300"
+            >
               {product.category === "seeds" && "Hạt giống"}
               {product.category === "fertilizers" && "Phân bón"}
               {product.category === "pesticides" && "Thuốc BVTV"}
@@ -457,14 +501,18 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 className="flex h-10 w-10 items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                 onClick={decreaseQuantity}
                 disabled={quantity <= 1}
+                aria-label="button"
               >
                 <Minus className="h-4 w-4" />
               </button>
-              <span className="flex h-10 w-12 items-center justify-center text-center">{quantity}</span>
+              <span className="flex h-10 w-12 items-center justify-center text-center">
+                {quantity}
+              </span>
               <button
                 className="flex h-10 w-10 items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                 onClick={increaseQuantity}
                 disabled={quantity >= product.stock}
+                aria-label="button"
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -489,12 +537,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <TabsTrigger value="description">Mô tả chi tiết</TabsTrigger>
             <TabsTrigger value="specifications">Thông số kỹ thuật</TabsTrigger>
             <TabsTrigger value="usage">Hướng dẫn sử dụng</TabsTrigger>
-            <TabsTrigger value="reviews">Đánh giá ({reviews.length})</TabsTrigger>
+            <TabsTrigger value="reviews">
+              Đánh giá ({reviews.length})
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="description" className="mt-4">
             <Card>
               <CardContent className="p-6">
-                <p className="text-gray-700 dark:text-gray-300">{product.longDescription}</p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {product.longDescription}
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -502,13 +554,19 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <Card>
               <CardContent className="p-6">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex flex-col space-y-1">
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{key}</span>
-                      <span className="text-gray-900 dark:text-gray-100">{value}</span>
-                      <Separator className="mt-2" />
-                    </div>
-                  ))}
+                  {Object.entries(product.specifications).map(
+                    ([key, value]) => (
+                      <div key={key} className="flex flex-col space-y-1">
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          {key}
+                        </span>
+                        <span className="text-gray-900 dark:text-gray-100">
+                          {value}
+                        </span>
+                        <Separator className="mt-2" />
+                      </div>
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -516,7 +574,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           <TabsContent value="usage" className="mt-4">
             <Card>
               <CardContent className="p-6">
-                <p className="text-gray-700 dark:text-gray-300">{product.usage}</p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {product.usage}
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -527,7 +587,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-6 sm:flex-row">
                     <div className="flex flex-col items-center">
-                      <span className="text-5xl font-bold text-green-600 dark:text-green-500">{product.rating}</span>
+                      <span className="text-5xl font-bold text-green-600 dark:text-green-500">
+                        {product.rating}
+                      </span>
                       <div className="mt-2 flex">
                         {[...Array(5)].map((_, i) => (
                           <Star
@@ -540,27 +602,39 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                           />
                         ))}
                       </div>
-                      <span className="mt-1 text-sm text-gray-500 dark:text-gray-400">{reviews.length} đánh giá</span>
+                      <span className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {reviews.length} đánh giá
+                      </span>
                     </div>
                     <div className="flex-1">
                       <div className="space-y-2">
                         {[5, 4, 3, 2, 1].map((star) => {
-                          const reviewsWithThisRating = reviews.filter((review) => review.rating === star).length
+                          const reviewsWithThisRating = reviews.filter(
+                            (review) => review.rating === star
+                          ).length;
                           const percentage =
-                            reviews.length > 0 ? Math.floor((reviewsWithThisRating / reviews.length) * 100) : 0
+                            reviews.length > 0
+                              ? Math.floor(
+                                  (reviewsWithThisRating / reviews.length) * 100
+                                )
+                              : 0;
 
                           return (
                             <div key={star} className="flex items-center gap-2">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">{star} sao</span>
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {star} sao
+                              </span>
                               <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                                 <div
                                   className="h-full rounded-full bg-yellow-400"
                                   style={{ width: `${percentage}%` }}
                                 ></div>
                               </div>
-                              <span className="text-sm text-gray-600 dark:text-gray-400">{percentage}%</span>
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {percentage}%
+                              </span>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </div>
@@ -571,13 +645,18 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {/* Form đánh giá */}
               <Card>
                 <CardContent className="p-6">
-                  <ProductReviewForm productId={productId} onReviewSubmitted={handleNewReview} />
+                  <ProductReviewForm
+                    productId={productId}
+                    onReviewSubmitted={handleNewReview}
+                  />
                 </CardContent>
               </Card>
 
               {/* Danh sách đánh giá */}
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-green-800 dark:text-green-300">Đánh giá từ khách hàng</h3>
+                <h3 className="text-xl font-semibold text-green-800 dark:text-green-300">
+                  Đánh giá từ khách hàng
+                </h3>
                 <ProductReviewsList reviews={reviews} />
               </div>
             </div>
@@ -588,10 +667,15 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <div className="mt-16">
-          <h2 className="mb-6 text-2xl font-bold text-green-800 dark:text-green-300">Sản phẩm liên quan</h2>
+          <h2 className="mb-6 text-2xl font-bold text-green-800 dark:text-green-300">
+            Sản phẩm liên quan
+          </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {relatedProducts.map((relatedProduct) => (
-              <Link key={relatedProduct.id} href={`/san-pham/${relatedProduct.id}`}>
+              <Link
+                key={relatedProduct.id}
+                href={`/product/${relatedProduct.id}`}
+              >
                 <Card className="overflow-hidden transition-all hover:shadow-md">
                   <div className="relative aspect-square overflow-hidden">
                     <Image
@@ -618,7 +702,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                         {relatedProduct.discount > 0 ? (
                           <>
                             <span className="text-lg font-bold text-green-600 dark:text-green-500">
-                              {formatPrice(relatedProduct.price * (1 - relatedProduct.discount / 100))}
+                              {formatPrice(
+                                relatedProduct.price *
+                                  (1 - relatedProduct.discount / 100)
+                              )}
                             </span>
                             <span className="text-sm text-gray-500 line-through dark:text-gray-400">
                               {formatPrice(relatedProduct.price)}
@@ -639,5 +726,5 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         </div>
       )}
     </div>
-  )
+  );
 }

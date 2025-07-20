@@ -115,6 +115,7 @@ export function ProductReviewForm({ productId, onReviewSubmitted }: ProductRevie
               onMouseLeave={() => setHoverRating(0)}
               className="rounded-md p-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
               disabled={isSubmitting}
+              aria-label="button"
             >
               <Star
                 className={`h-6 w-6 ${
