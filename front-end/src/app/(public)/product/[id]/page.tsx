@@ -17,11 +17,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useState } from "react";
-import { ProductReviewForm } from "@/components/product-review-form";
+import { ProductReviewForm } from "@/components/product/product-review-form";
 import {
   ProductReviewsList,
   type Review,
-} from "@/components/product-reviews-list";
+} from "@/components/product/product-reviews-list";
 
 // Định dạng giá tiền
 function formatPrice(price: number): string {

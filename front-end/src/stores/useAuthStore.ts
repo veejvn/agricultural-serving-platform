@@ -1,37 +1,47 @@
-import { getLS, setLS } from "@/tools/localStorage.tool";
-import { create } from 'zustand'
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 interface AuthState {
-    isLoggedIn: boolean
-    accessToken: string | null,
-    refreshToken: string | null,
-    redirect: string
-    setTokens: (accessToken: string, refreshToken: string) => void
-    clearTokens: () => void
+  isLoggedIn: boolean;
+  accessToken: string | null;
+  refreshToken: string | null;
+  redirect: string;
+  setTokens: (accessToken: string, refreshToken: string) => void;
+  clearTokens: () => void;
+  setRedirect: (redirect: string) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => {
-    const storedAccessToken: string | null = typeof window !== 'undefined' ? (getLS("accessToken") ?? null) : null
-    const storedRefreshToken: string | null = typeof window !== 'undefined' ? (getLS("refreshToken") ?? null) : null
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      isLoggedIn: false,
+      accessToken: null,
+      refreshToken: null,
+      redirect: "/",
 
-    return {
-        isLoggedIn: !!storedAccessToken,
-        accessToken: storedAccessToken,
-        refreshToken: storedRefreshToken,
-        redirect: "/",
+      setTokens: (accessToken, refreshToken) => {
+        set({
+          isLoggedIn: true,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        });
+      },
 
-        setTokens: (accessToken, refreshToken) => {
-            set({ isLoggedIn: true, accessToken: accessToken, refreshToken: refreshToken})
-            setLS("isLoggedIn", true)
-            setLS("accessToken", accessToken)
-            setLS("refreshToken", refreshToken)
-        },
+      clearTokens: () => {
+        set({
+          isLoggedIn: false,
+          accessToken: null,
+          refreshToken: null,
+        });
+      },
 
-        clearTokens: () => {
-            set({ isLoggedIn: false, accessToken: null, refreshToken: null})
-            setLS("isLoggedIn", false)
-            setLS("accessToken", null)
-            setLS("refreshToken", null)
-        },
+      setRedirect: (redirect) => {
+        set({ redirect: redirect });
+      },
+    }),
+    {
+      name: "auth-storage", // tên key trong localStorage
+      storage: createJSONStorage(() => localStorage),
     }
-})
+  )
+);

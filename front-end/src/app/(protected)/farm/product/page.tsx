@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/common/data-table";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, FileEdit, Trash2, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

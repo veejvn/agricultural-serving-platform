@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/common/mode-toggle";
 import {
   Menu,
   Leaf,
@@ -16,10 +16,20 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/stores/useUserStore";
+import { useAuthStore } from "@/stores/useAuthStore";
+import UserMenu from "@/components/layout/user-menu";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const fetchUser = useUserStore((state) => state.fetchUser)
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+
+  useEffect(() => {
+    if(!isLoggedIn) return;
+    fetchUser();
+  }, [isLoggedIn]);
 
   const routes = [
     {
@@ -134,20 +144,27 @@ export default function Header() {
               <span className="sr-only">Tài khoản</span>
             </Link>
           </Button> */}
-          {pathname === "/register" ? (
-            <Button
-              asChild
-              className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
-            >
-              <Link href="/login">Đăng nhập</Link>
-            </Button>
+          {!isLoggedIn ? (
+            pathname === "/register" ? (
+              <Button
+                asChild
+                className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
+              >
+                <Link href="/login">Đăng nhập</Link>
+              </Button>
+            ) : (
+              <Button
+                asChild
+                className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
+              >
+                <Link href="/register">Đăng ký</Link>
+              </Button>
+            )
+
           ) : (
-            <Button
-              asChild
-              className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
-            >
-              <Link href="/register">Đăng ký</Link>
-            </Button>
+            <div className="mr-2">
+              <UserMenu/>
+            </div>
           )}
         </div>
       </div>

@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { ArrowDown, ArrowUp, Calendar, Download, LineChart, TrendingDown, TrendingUp } from "lucide-react"
-import MarketPriceChart from "@/components/market-price-chart"
+import MarketPriceChart from "@/components/market-price/market-price-chart"
 
 export default function MarketPricePage() {
   return (

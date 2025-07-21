@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { DataTable } from "@/components/data-table"
-import { Button } from "@/components/ui/button"
-import { PlusCircle, FileEdit, Trash2, Eye, CheckCircle } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { DataTable } from "@/components/common/data-table";
+import { Button } from "@/components/ui/button";
+import { PlusCircle, FileEdit, Trash2, Eye, CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminProducts() {
   // Dữ liệu mẫu cho sản phẩm
@@ -98,7 +98,7 @@ export default function AdminProducts() {
       status: "Đã duyệt",
       farmer: "Hoàng Thị Bắp",
     },
-  ]
+  ];
 
   // Định nghĩa cột cho bảng
   const columns = [
@@ -126,7 +126,7 @@ export default function AdminProducts() {
       accessorKey: "status",
       header: "Trạng thái",
       cell: ({ row }) => {
-        const status = row.getValue("status")
+        const status = row.getValue("status");
         return (
           <Badge
             className={
@@ -137,14 +137,14 @@ export default function AdminProducts() {
           >
             {status}
           </Badge>
-        )
+        );
       },
     },
     {
       id: "actions",
       header: "Thao tác",
       cell: ({ row }) => {
-        const status = row.getValue("status")
+        const status = row.getValue("status");
         return (
           <div className="flex space-x-2">
             <Button variant="ghost" size="icon">
@@ -162,10 +162,10 @@ export default function AdminProducts() {
               </Button>
             )}
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -179,5 +179,5 @@ export default function AdminProducts() {
 
       <DataTable columns={columns} data={products} />
     </div>
-  )
+  );
 }

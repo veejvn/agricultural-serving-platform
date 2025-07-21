@@ -1,6 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -9,30 +12,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import Link from "next/link";
-import Image from "next/image";
 import { ErrorMessage, Field, Form, SubmitButton } from "@/components/Form";
-import { RegisterFormData } from "@/types/auth";
-import registerSchema from "@/validations/registerSchema";
-import { useState } from "react";
-import AuthService from "@/services/auth.service";
 import { useToast } from "@/hooks/use-toast";
 import useMessageByApiCode from "@/hooks/useMessageByApiCode";
-import { useAuthStore } from "@/stores/useAuthStore";
-import { useRouter } from "next/navigation";
+import AuthService from "@/services/auth.service";
+import { RegisterFormData } from "@/types/auth";
+import registerSchema from "@/validations/registerSchema";
 
-export default function AuthPage() {
+export default function RegisterPage() {
   const [error, setError] = useState("");
   const { toast } = useToast();
   const getMessage = useMessageByApiCode();
@@ -45,15 +34,15 @@ export default function AuthPage() {
       toast({
         title: "Lỗi!",
         description: getMessage(error.code),
-        variant: "error"
-      })
+        variant: "error",
+      });
       return;
     }
     toast({
-      title: "Thành công",
+      title: "Đăng ký thành công",
       description: getMessage(result.code),
-      variant: "success"
-    })
+      variant: "success",
+    });
     router.push("/");
   };
 
@@ -147,8 +136,8 @@ export default function AuthPage() {
 
                 <ErrorMessage message={error} />
 
-                <SubmitButton loadingText="Creating account...">
-                  Create account
+                <SubmitButton loadingText="Đang tạo tài khoản...">
+                  Tạo tài khoản
                 </SubmitButton>
               </Form>
 
@@ -223,12 +212,12 @@ export default function AuthPage() {
             <CardFooter className="flex flex-col space-y-4">
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Already have an account?{" "}
+                  Bạn đã có tài khoản?{" "}
                   <Link
                     href="/login"
                     className="text-sm text-green-600 hover:underline dark:text-green-500"
                   >
-                    Sign in
+                    Đăng nhập ngay
                   </Link>
                 </p>
               </div>

@@ -17,9 +17,9 @@ import {
   ShoppingBag,
   Users,
 } from "lucide-react";
-import WeatherWidget from "@/components/weather-widget";
-import MarketPriceWidget from "@/components/market-price-widget";
-import ForumPreview from "@/components/forum-preview";
+import WeatherWidget from "@/components/weather/weather-widget";
+import MarketPriceWidget from "@/components/market-price/market-price-widget";
+import ForumPreview from "@/components/forum/forum-preview";
 
 export default function Home() {
   return (

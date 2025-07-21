@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter, useSearchParams } from "next/navigation";

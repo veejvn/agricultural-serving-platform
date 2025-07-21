@@ -1,9 +1,15 @@
-"use client"
+"use client";
 
-import { ChartCard } from "@/components/chart-card"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, BarChart, PieChart, Calendar } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ChartCard } from "@/components/common/chart-card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { TrendingUp, BarChart, PieChart, Calendar } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function FarmerStats() {
   return (
@@ -35,7 +41,9 @@ export default function FarmerStats() {
               chart={
                 <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <PieChart className="h-16 w-16 text-gray-400" />
-                  <span className="ml-2 text-gray-500">Biểu đồ phân bố doanh thu</span>
+                  <span className="ml-2 text-gray-500">
+                    Biểu đồ phân bố doanh thu
+                  </span>
                 </div>
               }
             />
@@ -44,30 +52,48 @@ export default function FarmerStats() {
           <Card>
             <CardHeader>
               <CardTitle>Tổng quan doanh thu</CardTitle>
-              <CardDescription>Thống kê doanh thu theo thời gian</CardDescription>
+              <CardDescription>
+                Thống kê doanh thu theo thời gian
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-gray-500">Hôm nay</div>
+                    <div className="text-sm font-medium text-gray-500">
+                      Hôm nay
+                    </div>
                     <div className="text-2xl font-bold">1,250,000 VNĐ</div>
-                    <div className="text-xs text-green-500">+15% so với hôm qua</div>
+                    <div className="text-xs text-green-500">
+                      +15% so với hôm qua
+                    </div>
                   </div>
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-gray-500">Tuần này</div>
+                    <div className="text-sm font-medium text-gray-500">
+                      Tuần này
+                    </div>
                     <div className="text-2xl font-bold">8,750,000 VNĐ</div>
-                    <div className="text-xs text-green-500">+8% so với tuần trước</div>
+                    <div className="text-xs text-green-500">
+                      +8% so với tuần trước
+                    </div>
                   </div>
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-gray-500">Tháng này</div>
+                    <div className="text-sm font-medium text-gray-500">
+                      Tháng này
+                    </div>
                     <div className="text-2xl font-bold">32,500,000 VNĐ</div>
-                    <div className="text-xs text-green-500">+12% so với tháng trước</div>
+                    <div className="text-xs text-green-500">
+                      +12% so với tháng trước
+                    </div>
                   </div>
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-gray-500">Năm nay</div>
+                    <div className="text-sm font-medium text-gray-500">
+                      Năm nay
+                    </div>
                     <div className="text-2xl font-bold">345,750,000 VNĐ</div>
-                    <div className="text-xs text-green-500">+23% so với năm trước</div>
+                    <div className="text-xs text-green-500">
+                      +23% so với năm trước
+                    </div>
                   </div>
                 </div>
               </div>
@@ -83,7 +109,9 @@ export default function FarmerStats() {
               chart={
                 <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <BarChart className="h-16 w-16 text-gray-400" />
-                  <span className="ml-2 text-gray-500">Biểu đồ sản phẩm bán chạy</span>
+                  <span className="ml-2 text-gray-500">
+                    Biểu đồ sản phẩm bán chạy
+                  </span>
                 </div>
               }
             />
@@ -93,7 +121,9 @@ export default function FarmerStats() {
               chart={
                 <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <PieChart className="h-16 w-16 text-gray-400" />
-                  <span className="ml-2 text-gray-500">Biểu đồ phân bố sản phẩm</span>
+                  <span className="ml-2 text-gray-500">
+                    Biểu đồ phân bố sản phẩm
+                  </span>
                 </div>
               }
             />
@@ -118,7 +148,9 @@ export default function FarmerStats() {
               chart={
                 <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <PieChart className="h-16 w-16 text-gray-400" />
-                  <span className="ml-2 text-gray-500">Biểu đồ trạng thái đơn hàng</span>
+                  <span className="ml-2 text-gray-500">
+                    Biểu đồ trạng thái đơn hàng
+                  </span>
                 </div>
               }
             />
@@ -133,7 +165,9 @@ export default function FarmerStats() {
               chart={
                 <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <TrendingUp className="h-16 w-16 text-gray-400" />
-                  <span className="ml-2 text-gray-500">Biểu đồ khách hàng mới</span>
+                  <span className="ml-2 text-gray-500">
+                    Biểu đồ khách hàng mới
+                  </span>
                 </div>
               }
             />
@@ -143,7 +177,9 @@ export default function FarmerStats() {
               chart={
                 <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <BarChart className="h-16 w-16 text-gray-400" />
-                  <span className="ml-2 text-gray-500">Biểu đồ khách hàng thân thiết</span>
+                  <span className="ml-2 text-gray-500">
+                    Biểu đồ khách hàng thân thiết
+                  </span>
                 </div>
               }
             />
@@ -151,5 +187,5 @@ export default function FarmerStats() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

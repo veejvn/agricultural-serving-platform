@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Cloud, CloudDrizzle, CloudRain, Droplets, Sun, Wind } from "lucide-react"
-import WeatherForecastChart from "@/components/weather-forecast-chart"
+import WeatherForecastChart from "@/components/weather/weather-forecast-chart"
 
 export default function WeatherPage() {
   return (

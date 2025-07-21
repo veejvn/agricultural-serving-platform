@@ -1,6 +1,4 @@
-import Footer from "@/components/footer";
-import Header from "@/components/header";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/contexts/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
 export default function Providers({
@@ -16,11 +14,7 @@ export default function Providers({
         enableSystem
         disableTransitionOnChange
       >
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        {children}
         <Toaster />
       </ThemeProvider>
     </>

@@ -1,15 +1,29 @@
-"use client"
+"use client";
 
-import { StatsCard } from "@/components/stats-card"
-import { ChartCard } from "@/components/chart-card"
-import { Package, ShoppingCart, DollarSign, TrendingUp, BarChart } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { StatsCard } from "@/components/common/stats-card";
+import { ChartCard } from "@/components/common/chart-card";
+import {
+  Package,
+  ShoppingCart,
+  DollarSign,
+  TrendingUp,
+  BarChart,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function FarmerDashboard() {
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Tổng quan trang trại</h1>
+      <h1 className="text-3xl font-bold tracking-tight">
+        Tổng quan trang trại
+      </h1>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatsCard
@@ -52,7 +66,9 @@ export default function FarmerDashboard() {
           chart={
             <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
               <BarChart className="h-16 w-16 text-gray-400" />
-              <span className="ml-2 text-gray-500">Biểu đồ sản phẩm bán chạy</span>
+              <span className="ml-2 text-gray-500">
+                Biểu đồ sản phẩm bán chạy
+              </span>
             </div>
           }
         />
@@ -67,9 +83,27 @@ export default function FarmerDashboard() {
           <CardContent>
             <div className="space-y-4">
               {[
-                { id: "DH010", customer: "Lý Thị K", date: "24/04/2024", total: "2,350,000 VNĐ", status: "Đang xử lý" },
-                { id: "DH009", customer: "Bùi Văn I", date: "23/04/2024", total: "650,000 VNĐ", status: "Đang giao" },
-                { id: "DH008", customer: "Vũ Thị H", date: "22/04/2024", total: "400,000 VNĐ", status: "Đã giao" },
+                {
+                  id: "DH010",
+                  customer: "Lý Thị K",
+                  date: "24/04/2024",
+                  total: "2,350,000 VNĐ",
+                  status: "Đang xử lý",
+                },
+                {
+                  id: "DH009",
+                  customer: "Bùi Văn I",
+                  date: "23/04/2024",
+                  total: "650,000 VNĐ",
+                  status: "Đang giao",
+                },
+                {
+                  id: "DH008",
+                  customer: "Vũ Thị H",
+                  date: "22/04/2024",
+                  total: "400,000 VNĐ",
+                  status: "Đã giao",
+                },
                 {
                   id: "DH007",
                   customer: "Đặng Văn G",
@@ -77,12 +111,23 @@ export default function FarmerDashboard() {
                   total: "1,400,000 VNĐ",
                   status: "Đang xử lý",
                 },
-                { id: "DH006", customer: "Ngô Thị F", date: "20/04/2024", total: "445,000 VNĐ", status: "Đang giao" },
+                {
+                  id: "DH006",
+                  customer: "Ngô Thị F",
+                  date: "20/04/2024",
+                  total: "445,000 VNĐ",
+                  status: "Đang giao",
+                },
               ].map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between"
+                >
                   <div>
                     <div className="font-medium">{order.id}</div>
-                    <div className="text-sm text-gray-500">{order.customer}</div>
+                    <div className="text-sm text-gray-500">
+                      {order.customer}
+                    </div>
                   </div>
                   <div className="text-right">
                     <div>{order.total}</div>
@@ -93,8 +138,8 @@ export default function FarmerDashboard() {
                       order.status === "Đã giao"
                         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
                         : order.status === "Đang giao"
-                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
                     }
                   >
                     {order.status}
@@ -113,20 +158,49 @@ export default function FarmerDashboard() {
           <CardContent>
             <div className="space-y-4">
               {[
-                { name: "Gạo ST25", category: "Lúa gạo", price: "100,000 VNĐ", sales: 256 },
-                { name: "Gạo Nàng Hoa", category: "Lúa gạo", price: "60,000 VNĐ", sales: 187 },
-                { name: "Gạo Tài Nguyên", category: "Lúa gạo", price: "45,000 VNĐ", sales: 154 },
-                { name: "Gạo Nếp Cái Hoa Vàng", category: "Lúa gạo", price: "40,000 VNĐ", sales: 132 },
-                { name: "Gạo Lứt", category: "Lúa gạo", price: "40,000 VNĐ", sales: 98 },
+                {
+                  name: "Gạo ST25",
+                  category: "Lúa gạo",
+                  price: "100,000 VNĐ",
+                  sales: 256,
+                },
+                {
+                  name: "Gạo Nàng Hoa",
+                  category: "Lúa gạo",
+                  price: "60,000 VNĐ",
+                  sales: 187,
+                },
+                {
+                  name: "Gạo Tài Nguyên",
+                  category: "Lúa gạo",
+                  price: "45,000 VNĐ",
+                  sales: 154,
+                },
+                {
+                  name: "Gạo Nếp Cái Hoa Vàng",
+                  category: "Lúa gạo",
+                  price: "40,000 VNĐ",
+                  sales: 132,
+                },
+                {
+                  name: "Gạo Lứt",
+                  category: "Lúa gạo",
+                  price: "40,000 VNĐ",
+                  sales: 98,
+                },
               ].map((product, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div>
                     <div className="font-medium">{product.name}</div>
-                    <div className="text-sm text-gray-500">{product.category}</div>
+                    <div className="text-sm text-gray-500">
+                      {product.category}
+                    </div>
                   </div>
                   <div className="text-right">
                     <div>{product.price}</div>
-                    <div className="text-sm text-gray-500">Đã bán: {product.sales}</div>
+                    <div className="text-sm text-gray-500">
+                      Đã bán: {product.sales}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -135,5 +209,5 @@ export default function FarmerDashboard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

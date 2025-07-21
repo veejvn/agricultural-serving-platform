@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -p 4000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -55,6 +55,7 @@
     "react-day-picker": "8.10.1",
     "react-dom": "^18.0.0",
     "react-hook-form": "latest",
+    "react-icons": "^5.5.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "latest",
     "sonner": "latest",

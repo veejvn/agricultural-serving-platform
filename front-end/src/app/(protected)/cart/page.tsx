@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import CartEmpty from "@/components/cart-empty";
+import CartEmpty from "@/components/product/cart-empty";
 
 export default function CartPage() {
   // Giả lập dữ liệu giỏ hàng

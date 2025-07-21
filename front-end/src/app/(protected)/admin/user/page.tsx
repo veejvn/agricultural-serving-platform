@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { DataTable } from "@/components/data-table"
-import { Button } from "@/components/ui/button"
-import { Eye, UserCog, UserX, UserCheck } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { DataTable } from "@/components/common/data-table";
+import { Button } from "@/components/ui/button";
+import { Eye, UserCog, UserX, UserCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminUsers() {
   // Dữ liệu mẫu cho người dùng
@@ -88,7 +88,7 @@ export default function AdminUsers() {
       status: "Hoạt động",
       registeredDate: "15/02/2024",
     },
-  ]
+  ];
 
   // Định nghĩa cột cho bảng
   const columns = [
@@ -104,23 +104,26 @@ export default function AdminUsers() {
       accessorKey: "role",
       header: "Vai trò",
       cell: ({ row }) => {
-        const role = row.getValue("role")
-        let badgeClass = "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+        const role = row.getValue("role");
+        let badgeClass =
+          "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100";
 
         if (role === "Nông dân") {
-          badgeClass = "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+          badgeClass =
+            "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
         } else if (role === "Doanh nghiệp") {
-          badgeClass = "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100"
+          badgeClass =
+            "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100";
         }
 
-        return <Badge className={badgeClass}>{role}</Badge>
+        return <Badge className={badgeClass}>{role}</Badge>;
       },
     },
     {
       accessorKey: "status",
       header: "Trạng thái",
       cell: ({ row }) => {
-        const status = row.getValue("status")
+        const status = row.getValue("status");
         return (
           <Badge
             className={
@@ -131,7 +134,7 @@ export default function AdminUsers() {
           >
             {status}
           </Badge>
-        )
+        );
       },
     },
     {
@@ -142,7 +145,7 @@ export default function AdminUsers() {
       id: "actions",
       header: "Thao tác",
       cell: ({ row }) => {
-        const status = row.getValue("status")
+        const status = row.getValue("status");
         return (
           <div className="flex space-x-2">
             <Button variant="ghost" size="icon">
@@ -161,10 +164,10 @@ export default function AdminUsers() {
               </Button>
             )}
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -172,5 +175,5 @@ export default function AdminUsers() {
 
       <DataTable columns={columns} data={users} />
     </div>
-  )
+  );
 }

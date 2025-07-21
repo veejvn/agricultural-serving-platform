@@ -1,4 +1,4 @@
-import axios, {type AxiosInstance } from "axios";
+import axios, { type AxiosInstance } from "axios";
 import { useAuthStore } from "@/stores/useAuthStore";
 import _ from "lodash";
 
@@ -7,12 +7,12 @@ const axiosInstance = axios.create({
   //timeout: 20000, // Add timeout
 });
 
-const accessToken = useAuthStore.getState().accessToken;
-const isLoggedIn = useAuthStore.getState().isLoggedIn || false;
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-
+    const { accessToken, isLoggedIn } = useAuthStore.getState();
+    console.log("Access Token:" + accessToken);
+    // console.log("Is LoggedIn:" + isLoggedIn);
     // Add token if user is logged in and has access token
     if (accessToken && isLoggedIn) {
       config.headers.Authorization = `Bearer ${accessToken}`;
@@ -33,16 +33,16 @@ axiosInstance.interceptors.response.use(
   (error) => {
     // Handle authentication errors
     if (error.response?.status === 401 || error.response?.status === 403) {
-      const logout = useAuthStore((state) => state.logout);
-      if (logout) {
-        logout();
+      const clearTokens = useAuthStore.getState().clearTokens;
+      if (clearTokens) {
+        clearTokens();
       }
     }
     return Promise.reject(error);
   }
 );
 
-export async function service(axiosPromise : any, getData = false) {
+export async function service(axiosPromise: any, getData = false) {
   try {
     const response: any = await axiosPromise;
     //console.log(response);

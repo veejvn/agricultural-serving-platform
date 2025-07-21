@@ -1,3 +1,9 @@
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,19 +15,54 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import Link from "next/link";
-import Image from "next/image";
+import { ErrorMessage, Field, Form, SubmitButton } from "@/components/Form";
+import { LoginFormData } from "@/types/auth";
+import loginSchema from "@/validations/loginSchema";
+import { useState } from "react";
+import AuthService from "@/services/auth.service";
+import { useToast } from "@/hooks/use-toast";
+import useMessageByApiCode from "@/hooks/useMessageByApiCode";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/useAuthStore";
 
-export default function AuthPage() {
+export default function LoginPage() {
+  const [error, setError] = useState("");
+  const { toast } = useToast();
+  const getMessage = useMessageByApiCode();
+  const router = useRouter();
+  const redirect = useAuthStore((state) => state.redirect);
+  const setTokens = useAuthStore.getState().setTokens;
+
+  const handleSubmit = async (data: LoginFormData) => {
+    //console.log(data);
+    const [result, error] = await AuthService.login(data);
+    if (error) {
+      //console.log(error);
+      setError(getMessage(error.code));
+      toast({
+        title: "Lỗi!",
+        description: getMessage(error.code),
+        variant: "error",
+      });
+      return;
+    }
+    //console.log(result);
+    if (result.data.accessToken && result.data.refreshToken) {
+      setTokens(result.data.accessToken, result.data.refreshToken);
+      router.push(redirect);
+      toast({
+        description: getMessage(result.code),
+        variant: "success",
+      });
+    } else {
+      router.push("/login");
+      toast({
+        description: getMessage(result.code),
+        variant: "error",
+      });
+    }
+  };
   return (
     <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">
@@ -65,17 +106,29 @@ export default function AuthPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="login-email">Email hoặc số điện thoại</Label>
-                <Input
-                  id="login-email"
+              <Form<LoginFormData> schema={loginSchema} onSubmit={handleSubmit}>
+                <Field
+                  name="email"
+                  label="Email"
                   type="email"
                   placeholder="example@gmail.com"
                 />
-              </div>
-              <div className="space-y-2">
+                <Field
+                  name="password"
+                  label="Mật khẩu"
+                  type="password"
+                  placeholder="••••••••"
+                />
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="login-password">Mật khẩu</Label>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="remember"
+                      className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                    />
+                    <Label htmlFor="remember" className="text-sm">
+                      Ghi nhớ đăng nhập
+                    </Label>
+                  </div>
                   <Link
                     href="/forgot-password"
                     className="text-sm text-green-600 hover:underline dark:text-green-500"
@@ -83,19 +136,15 @@ export default function AuthPage() {
                     Quên mật khẩu?
                   </Link>
                 </div>
-                <Input id="login-password" type="password" />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember" className="text-sm">
-                  Ghi nhớ đăng nhập
-                </Label>
-              </div>
+                <ErrorMessage message={error} />
+
+                <SubmitButton loadingText="Đang đăng nhập...">
+                  Đăng nhập
+                </SubmitButton>
+              </Form>
             </CardContent>
+
             <CardFooter className="flex flex-col space-y-4">
-              <Button className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600">
-                Đăng Nhập
-              </Button>
               <div className="relative flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -106,23 +155,11 @@ export default function AuthPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Button variant="outline">
-                  <Image
-                    src="/placeholder.svg?height=24&width=24"
-                    alt="Google"
-                    width={24}
-                    height={24}
-                    className="mr-2"
-                  />
+                  <FcGoogle />
                   Google
                 </Button>
                 <Button variant="outline">
-                  <Image
-                    src="/placeholder.svg?height=24&width=24"
-                    alt="Facebook"
-                    width={24}
-                    height={24}
-                    className="mr-2"
-                  />
+                  <FaFacebook className="text-blue-500" />
                   Facebook
                 </Button>
               </div>
