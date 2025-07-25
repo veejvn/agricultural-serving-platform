@@ -1,4 +1,3 @@
-
 import ProtectedLayoutClientLayout from "@/components/layout/protected-client-layout";
 import type React from "react";
 

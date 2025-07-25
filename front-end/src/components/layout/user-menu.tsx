@@ -26,6 +26,7 @@ export default function UserMenu() {
     : "You";
   const avatarBackgroundColor = getBackgroundColorClass(displayName || email);
   const refreshToken = useAuthStore((state) => state.refreshToken);
+  const setIsLoggedIn = useAuthStore((state) => state.setIsLoggedIn);
   const clearUser = useUserStore((state) => state.clearUser);
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const router = useRouter();
@@ -43,6 +44,7 @@ export default function UserMenu() {
       });
       return;
     }
+    setIsLoggedIn(false)
     clearTokens();
     clearUser();
     router.push("/login");

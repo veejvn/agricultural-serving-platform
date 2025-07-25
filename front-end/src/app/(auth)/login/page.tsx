@@ -33,6 +33,7 @@ export default function LoginPage() {
   const router = useRouter();
   const redirect = useAuthStore((state) => state.redirect);
   const setTokens = useAuthStore.getState().setTokens;
+  const setIsLoggedIn = useAuthStore.getState().setIsLoggedIn;
 
   const handleSubmit = async (data: LoginFormData) => {
     //console.log(data);
@@ -49,6 +50,7 @@ export default function LoginPage() {
     }
     //console.log(result);
     if (result.data.accessToken && result.data.refreshToken) {
+      setIsLoggedIn(true)
       setTokens(result.data.accessToken, result.data.refreshToken);
       router.push(redirect);
       toast({

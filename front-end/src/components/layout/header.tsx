@@ -26,10 +26,10 @@ export default function Header() {
   const fetchUser = useUserStore((state) => state.fetchUser)
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
-  useEffect(() => {
-    if(!isLoggedIn) return;
-    fetchUser();
-  }, [isLoggedIn]);
+  // useEffect(() => {
+  //   if(!isLoggedIn) return;
+  //   fetchUser();
+  // }, [isLoggedIn]);
 
   const routes = [
     {

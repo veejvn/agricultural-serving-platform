@@ -15,6 +15,10 @@ const AuthService = {
   logout(refreshToken: string) {
     return service(axios.post(getAuthUrl("/logout"), { refreshToken }));
   },
+  refreshToken(refreshToken: string) {
+    console.log("Gọi refreshToken: " + refreshToken);
+    return service(axios.post(getAuthUrl("/refresh-token"), { refreshToken }), true);
+  },
 };
 
 export default AuthService;

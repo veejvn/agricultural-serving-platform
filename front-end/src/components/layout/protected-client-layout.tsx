@@ -4,7 +4,7 @@ import LoadingSpinner from "@/components/common/loading-spinner";
 import { ROUTES } from "@/contants/router.contant";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function ProtectedLayoutClientLayout({
   children,
@@ -12,17 +12,18 @@ export default function ProtectedLayoutClientLayout({
   children: React.ReactNode;
 }) {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const hasHydrated = useAuthStore.persist.hasHydrated; // ✅ Đợi Zustand khởi tạo xong
   const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setIsReady(true);
+    if (!hasHydrated) return; // ❌ Chưa hydrate thì không kiểm tra login
+
     if (!isLoggedIn) {
       router.replace(ROUTES.LOGIN);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, hasHydrated, router]);
 
-  if (!isReady) {
+  if (!hasHydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner />
@@ -31,7 +32,7 @@ export default function ProtectedLayoutClientLayout({
   }
 
   if (!isLoggedIn) {
-    return null;
+    return null; // Đã hydrate nhưng không login, đang redirect
   }
 
   return <>{children}</>;

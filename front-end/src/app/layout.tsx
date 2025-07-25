@@ -5,8 +5,9 @@ import "./globals.css";
 import Providers from "@/app/providers";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import RootClientLayout from "@/components/layout/root-client-layout";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["vietnamese"] });
 
 export const metadata: Metadata = {
   title: "Nông Nghiệp Thông Minh",
@@ -22,11 +23,13 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <RootClientLayout>
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </RootClientLayout>
         </Providers>
       </body>
     </html>
