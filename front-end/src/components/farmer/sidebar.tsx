@@ -57,7 +57,7 @@ export function FarmerSidebar() {
 
   return (
     <div className="flex h-full flex-col border-r bg-white dark:bg-gray-950 dark:border-gray-800">
-      <div className="p-6">
+      {/* <div className="p-6">
         <Link
           href="/farm"
           className="flex items-center gap-2 font-bold text-xl"
@@ -67,7 +67,7 @@ export function FarmerSidebar() {
           </span>
           <span>Nông Nghiệp</span>
         </Link>
-      </div>
+      </div> */}
       <div className="flex-1 overflow-auto py-2">
         <nav className="grid items-start px-4 text-sm font-medium">
           {routes.map((route, index) => (
@@ -87,7 +87,7 @@ export function FarmerSidebar() {
           ))}
         </nav>
       </div>
-      <div className="mt-auto p-4">
+      {/* <div className="mt-auto p-4">
         <Link
           href="/"
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 transition-all hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500"
@@ -95,7 +95,7 @@ export function FarmerSidebar() {
           <LogOut className="h-4 w-4" />
           Đăng xuất
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 }

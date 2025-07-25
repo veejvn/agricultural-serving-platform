@@ -4,26 +4,49 @@ import LoadingSpinner from "@/components/common/loading-spinner";
 import { ROUTES } from "@/contants/router.contant";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export default function ProtectedLayoutClientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Use individual selectors to avoid object recreation
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const hasHydrated = useAuthStore.persist.hasHydrated; // ✅ Đợi Zustand khởi tạo xong
+  const refreshToken = useAuthStore((state) => state.refreshToken);
+
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!hasHydrated) return; // ❌ Chưa hydrate thì không kiểm tra login
+  // Memoized auth check function
+  const checkAuth = useCallback(() => {
+    const isAuthenticated =
+      isLoggedIn && refreshToken && refreshToken.trim() !== "";
 
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       router.replace(ROUTES.LOGIN);
+    } else {
+      setIsChecking(false);
     }
-  }, [isLoggedIn, hasHydrated, router]);
+  }, [isLoggedIn, refreshToken, router]);
 
-  if (!hasHydrated) {
+  // Effect for hydration - only runs once
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  // Effect for auth checking - only when hydrated and auth state changes
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    // Small delay to ensure Zustand store is restored from localStorage
+    const timeoutId = setTimeout(checkAuth, 100);
+    return () => clearTimeout(timeoutId);
+  }, [hasHydrated, checkAuth]);
+
+  // Hiển thị loading khi chưa hydrate hoặc đang kiểm tra auth
+  if (!hasHydrated || isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner />
@@ -31,8 +54,11 @@ export default function ProtectedLayoutClientLayout({
     );
   }
 
-  if (!isLoggedIn) {
-    return null; // Đã hydrate nhưng không login, đang redirect
+  // Kiểm tra lại một lần nữa trước khi render children
+  const isAuthenticated =
+    isLoggedIn && refreshToken && refreshToken.trim() !== "";
+  if (!isAuthenticated) {
+    return null; // Đang redirect hoặc chưa authenticated
   }
 
   return <>{children}</>;

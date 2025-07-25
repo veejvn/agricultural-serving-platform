@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/common/mode-toggle";
 import {
   Menu,
@@ -16,20 +22,13 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useUserStore } from "@/stores/useUserStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import UserMenu from "@/components/layout/user-menu";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const fetchUser = useUserStore((state) => state.fetchUser)
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-
-  // useEffect(() => {
-  //   if(!isLoggedIn) return;
-  //   fetchUser();
-  // }, [isLoggedIn]);
 
   const routes = [
     {
@@ -71,6 +70,9 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle className="sr-only">Menu điều hướng</SheetTitle>
+              </SheetHeader>
               <div className="flex items-center gap-2 py-4">
                 <Leaf className="h-6 w-6 text-green-600 dark:text-green-500" />
                 <span className="text-lg font-bold">
@@ -95,16 +97,18 @@ export default function Header() {
                   </Link>
                 ))}
               </nav>
-              <div className="mt-4 flex flex-col gap-2">
-                <Button
-                  asChild
-                  className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
-                >
-                  <Link href="/register" onClick={() => setIsOpen(false)}>
-                    Đăng ký
-                  </Link>
-                </Button>
-              </div>
+              {!isLoggedIn && (
+                <div className="mt-4 flex flex-col gap-2">
+                  <Button
+                    asChild
+                    className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+                  >
+                    <Link href="/register" onClick={() => setIsOpen(false)}>
+                      Đăng ký
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </SheetContent>
           </Sheet>
           <Link href="/" className="flex items-center gap-2">
@@ -160,10 +164,9 @@ export default function Header() {
                 <Link href="/register">Đăng ký</Link>
               </Button>
             )
-
           ) : (
             <div className="mr-2">
-              <UserMenu/>
+              <UserMenu />
             </div>
           )}
         </div>

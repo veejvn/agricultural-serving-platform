@@ -4,6 +4,7 @@ import { DataTable } from "@/components/common/data-table";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, FileEdit, Trash2, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 export default function FarmerProducts() {
   // Dữ liệu mẫu cho sản phẩm
@@ -161,11 +162,15 @@ export default function FarmerProducts() {
     },
   ];
 
+  const router = useRouter();
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Quản lý sản phẩm</h1>
-        <Button className="flex items-center gap-1">
+        <Button className="flex items-center gap-1"
+          onClick={() => router.push("/farm/product/create")}
+        >
           <PlusCircle className="h-4 w-4" />
           Thêm sản phẩm
         </Button>

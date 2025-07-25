@@ -12,13 +12,21 @@ import AuthService from "@/services/auth.service";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { getBackgroundColorClass } from "@/utils/common/getBackgroundColorClass";
-import { User, ShoppingCart, Package, LogOut, ShoppingBag } from "lucide-react";
+import {
+  User,
+  ShoppingCart,
+  Package,
+  LogOut,
+  ShoppingBag,
+  Tractor,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function UserMenu() {
+  const [isOpen, setIsOpen] = useState(false);
   const user = useUserStore((state) => state.user);
-  const { avatar, displayName, email } = user;
+  const { avatar, displayName, email, roles } = user;
   const fallBack = displayName
     ? displayName[0].toUpperCase()
     : email
@@ -32,8 +40,19 @@ export default function UserMenu() {
   const router = useRouter();
   const { toast } = useToast();
 
+  // Check if user has FARM role
+  const hasFarmRole = roles?.includes("FARMER") || false;
+
   const handleLogout = async () => {
-    if(!refreshToken) return;
+    setIsOpen(false); // Đóng popover trước khi logout
+
+    if (!refreshToken) {
+      setIsLoggedIn(false);
+      clearTokens();
+      clearUser();
+      router.push("/login");
+      return;
+    }
     const [result, error] = await AuthService.logout(refreshToken);
     if (error) {
       //console.log(error);
@@ -44,16 +63,21 @@ export default function UserMenu() {
       });
       return;
     }
-    setIsLoggedIn(false)
+    setIsLoggedIn(false);
     clearTokens();
     clearUser();
     router.push("/login");
   };
 
+  const handleNavigate = (path: string) => {
+    setIsOpen(false); // Đóng popover trước khi navigate
+    router.push(path);
+  };
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Avatar>
+        <Avatar className="cursor-pointer">
           <AvatarImage src={avatar || ""} alt="Avatar" />
           <AvatarFallback className={`${avatarBackgroundColor} select-none`}>
             {fallBack}
@@ -64,21 +88,30 @@ export default function UserMenu() {
         <div className="flex flex-col gap-1">
           <button
             className="flex items-center gap-3 px-4 py-2 rounded-lg text-green-600 hover:bg-zinc-200 transition font-medium"
-            onClick={() => router.push("/account")}
+            onClick={() => handleNavigate("/account")}
           >
             <User className="w-5 h-5 text-green-600" />
             <span>Tài khoản</span>
           </button>
+          {hasFarmRole && (
+            <button
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-green-600 hover:bg-zinc-200 transition font-medium"
+              onClick={() => handleNavigate("/farm")}
+            >
+              <Tractor className="w-5 h-5 text-green-600" />
+              <span>Quản lý trang trại</span>
+            </button>
+          )}
           <button
             className="flex items-center gap-3 px-4 py-2 rounded-lg text-green-600 hover:bg-zinc-200 transition font-medium"
-            onClick={() => router.push("/cart")}
+            onClick={() => handleNavigate("/cart")}
           >
             <ShoppingCart className="w-5 h-5 text-green-600" />
             <span>Giỏ hàng</span>
           </button>
           <button
             className="flex items-center gap-3 px-4 py-2 rounded-lg text-green-600 hover:bg-zinc-200 transition font-medium"
-            onClick={() => router.push("/account/order")}
+            onClick={() => handleNavigate("/account/order")}
           >
             <ShoppingBag className="w-5 h-5 text-green-600" />
             <span>Đơn hàng</span>
