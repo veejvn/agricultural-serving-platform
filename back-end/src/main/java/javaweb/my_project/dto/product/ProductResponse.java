@@ -22,6 +22,7 @@ public class ProductResponse {
     Integer sold;
     Double rating;
     String thumbnail;
+    String unitPrice;
     ProductStatus status;
     Set<ImageResponse> images = new HashSet<>();
     String category;

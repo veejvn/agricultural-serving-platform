@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const { accessToken, isLoggedIn } = useAuthStore.getState();
-    console.log("Access Token:" + accessToken);
+    //console.log("Access Token:" + accessToken);
     // console.log("Is LoggedIn:" + isLoggedIn);
     // Add token if user is logged in and has access token
     if (accessToken && isLoggedIn) {

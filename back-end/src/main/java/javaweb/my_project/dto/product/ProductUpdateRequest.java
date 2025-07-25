@@ -26,6 +26,9 @@ public class ProductUpdateRequest {
     @NotBlank(message = "Thumbnail is required")
     String thumbnail;
 
+    @NotBlank(message = "Unit Price is required")
+    String unitPrice;
+
     Set<String> imagePaths;
 
     @NotBlank(message = "Category is required")

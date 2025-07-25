@@ -37,6 +37,8 @@ public class Product {
 
     String thumbnail;
 
+    String unitPrice;
+
     LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)

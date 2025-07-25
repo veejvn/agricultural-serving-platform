@@ -10,9 +10,12 @@ import lombok.experimental.FieldDefaults;
 public class ProductTagResponse {
     String id;
     String name;
+    String description;
     Integer price;
     Integer sold;
     Double rating;
     String thumbnail;
+    String unitPrice;
+    String categoryId;
     FarmerResponse farmer;
 }

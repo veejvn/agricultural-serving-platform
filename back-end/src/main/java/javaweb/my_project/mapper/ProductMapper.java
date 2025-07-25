@@ -23,6 +23,7 @@ public interface ProductMapper {
     @Mapping(source = "category.name", target = "category")
     ProductResponse toProductResponse(Product product);
 
+    @Mapping(source = "category.id", target = "categoryId")
     ProductTagResponse toProductTagResponse(Product product);
 
     void updateProduct(@MappingTarget Product product, ProductUpdateRequest request);

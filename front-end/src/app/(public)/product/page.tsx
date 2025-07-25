@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,8 +14,71 @@ import { Input } from "@/components/ui/input";
 import { Search, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import ProductService from "@/services/product.service";
+import categoryService from "@/services/category.service";
 
 export default function ProductsPage() {
+  const page = 1;
+  const size = 16;
+  const [isLoading, setIsLoading] = useState(false);
+  const [productsPage, setProductsPage] = useState<{
+    content: IProduct[];
+  } | null>(null);
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setIsLoading(true);
+      const [data, error] = await ProductService.getAllProducts({});
+      if (error) {
+        console.error("Failed to fetch products:", error);
+        setIsLoading(false);
+        return;
+      }
+      console.log("Fetched products:", data);
+      setProductsPage(data);
+      setIsLoading(false);
+    }
+
+    async function fetchCategories() {
+      const [data, error] = await categoryService.getAllCategories();
+      if (error) {
+        console.error("Failed to fetch categories:", error);
+        return;
+      }
+      console.log("Categories:", data);
+      setCategories(data);
+    }
+
+    fetchCategories();
+    fetchProducts();
+  }, []);
+
+  const products = productsPage?.content || [];
+
+  // Lọc sản phẩm theo từ khóa tìm kiếm
+  const searchFilteredProducts = searchQuery
+    ? products.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          product.farmer.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : products;
+
+  // Lọc sản phẩm theo category được chọn
+  const filteredProducts =
+    selectedCategory === "all"
+      ? searchFilteredProducts
+      : searchFilteredProducts.filter(
+          (product) => product.categoryId === selectedCategory
+        );
+
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
@@ -32,7 +97,19 @@ export default function ProductsPage() {
             type="search"
             placeholder="Tìm kiếm sản phẩm..."
             className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setSearchQuery("")}
+            >
+              ✕
+            </Button>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -48,73 +125,112 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="mb-8">
+      <Tabs
+        value={selectedCategory}
+        onValueChange={setSelectedCategory}
+        className="mb-8"
+      >
+        {searchQuery && (
+          <div className="mb-4 rounded-lg bg-blue-50 p-3 dark:bg-blue-950">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              Tìm thấy{" "}
+              <span className="font-semibold">{filteredProducts.length}</span>{" "}
+              sản phẩm cho từ khóa "
+              <span className="font-semibold">{searchQuery}</span>"
+              {selectedCategory !== "all" && (
+                <span>
+                  {" "}
+                  trong danh mục "
+                  <span className="font-semibold">
+                    {categories.find((c) => c.id === selectedCategory)?.name}
+                  </span>
+                  "
+                </span>
+              )}
+            </p>
+          </div>
+        )}
+
         <TabsList className="mb-6 w-full justify-start overflow-auto">
           <TabsTrigger value="all">Tất cả</TabsTrigger>
-          <TabsTrigger value="seeds">Hạt giống</TabsTrigger>
-          <TabsTrigger value="fertilizers">Phân bón</TabsTrigger>
-          <TabsTrigger value="pesticides">Thuốc bảo vệ thực vật</TabsTrigger>
-          <TabsTrigger value="tools">Công cụ & Thiết bị</TabsTrigger>
-          <TabsTrigger value="irrigation">Hệ thống tưới</TabsTrigger>
+          {categories.map((category) => (
+            <TabsTrigger key={category.id} value={category.id}>
+              {category.name}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="all" className="mt-0">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="seeds" className="mt-0">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products
-              .filter((product) => product.category === "seeds")
-              .map((product) => (
+          {isLoading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"
+                />
+              ))}
+            </div>
+          ) : filteredProducts.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
-          </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+                <ShoppingCart className="h-12 w-12 text-gray-400" />
+              </div>
+              <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+                {searchQuery
+                  ? "Không tìm thấy sản phẩm"
+                  : "Chưa có sản phẩm nào"}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                {searchQuery
+                  ? `Không tìm thấy sản phẩm nào phù hợp với từ khóa "${searchQuery}"`
+                  : "Hiện tại chưa có sản phẩm nào trong danh mục này"}
+              </p>
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="fertilizers" className="mt-0">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products
-              .filter((product) => product.category === "fertilizers")
-              .map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="pesticides" className="mt-0">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products
-              .filter((product) => product.category === "pesticides")
-              .map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="tools" className="mt-0">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products
-              .filter((product) => product.category === "tools")
-              .map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="irrigation" className="mt-0">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products
-              .filter((product) => product.category === "irrigation")
-              .map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-          </div>
-        </TabsContent>
+        {categories.map((category) => (
+          <TabsContent key={category.id} value={category.id} className="mt-0">
+            {isLoading ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"
+                  />
+                ))}
+              </div>
+            ) : filteredProducts.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+                  <ShoppingCart className="h-12 w-12 text-gray-400" />
+                </div>
+                <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+                  {searchQuery
+                    ? "Không tìm thấy sản phẩm"
+                    : "Chưa có sản phẩm nào"}
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  {searchQuery
+                    ? `Không tìm thấy sản phẩm nào phù hợp với từ khóa "${searchQuery}" trong danh mục "${category.name}"`
+                    : `Hiện tại chưa có sản phẩm nào trong danh mục "${category.name}"`}
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
 
       <div className="mt-12 rounded-lg bg-green-50 p-6 dark:bg-green-900">
@@ -122,7 +238,7 @@ export default function ProductsPage() {
           Sản phẩm đề xuất cho mùa vụ hiện tại
         </h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.slice(0, 4).map((product) => (
+          {filteredProducts.slice(0, 4).map((product) => (
             <ProductCard key={product.id} product={product} featured />
           ))}
         </div>
@@ -135,28 +251,28 @@ function ProductCard({
   product,
   featured = false,
 }: {
-  product: Product;
+  product: IProduct;
   featured?: boolean;
 }) {
   return (
     <Card
-      className={`overflow-hidden transition-all hover:shadow-md ${
+      className={`flex h-full flex-col overflow-hidden transition-all hover:shadow-md ${
         featured
           ? "border-green-300 dark:border-green-700"
           : "border-gray-200 dark:border-gray-800"
       }`}
     >
-      <Link href={`/product/${product.id}`}>
+      <Link href={`/product/${product.id}`} className="flex flex-1 flex-col">
         <div className="relative aspect-square overflow-hidden">
           <Image
-            src={product.image || "/placeholder.svg"}
+            src={product.thumbnail || "/placeholder.svg"}
             alt={product.name}
             fill
             className="object-cover transition-transform hover:scale-105"
           />
-          {product.discount > 0 && (
-            <div className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-1 text-xs font-medium text-white">
-              -{product.discount}%
+          {product.price > 20000 && (
+            <div className="absolute right-2 top-2 rounded-full bg-green-500 px-2 py-1 text-xs font-medium text-white">
+              Hot
             </div>
           )}
         </div>
@@ -164,31 +280,27 @@ function ProductCard({
           <CardTitle className="line-clamp-1 text-lg text-green-800 dark:text-green-300">
             {product.name}
           </CardTitle>
-          <CardDescription className="line-clamp-1">
+          <CardDescription className="line-clamp-2">
             {product.description}
           </CardDescription>
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Nông trại: {product.farmer.name}
+          </div>
         </CardHeader>
-        <CardContent className="p-4 pt-2">
+        <CardContent className="flex-1 p-4 pt-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {product.discount > 0 ? (
-                <>
-                  <span className="text-lg font-bold text-green-600 dark:text-green-500">
-                    {formatPrice(product.price * (1 - product.discount / 100))}
-                  </span>
-                  <span className="text-sm text-gray-500 line-through dark:text-gray-400">
-                    {formatPrice(product.price)}
-                  </span>
-                </>
-              ) : (
-                <span className="text-lg font-bold text-green-600 dark:text-green-500">
-                  {formatPrice(product.price)}
-                </span>
-              )}
+              <span className="text-lg font-bold text-green-600 dark:text-green-500">
+                {formatPrice(product.price)}
+              </span>
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {product.unit}
+              /{product.unitPrice}
             </div>
+          </div>
+          <div className="mt-2 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+            <span>Đã bán: {product.sold}</span>
+            <span>⭐ {product.rating.toFixed(1)}</span>
           </div>
         </CardContent>
       </Link>
@@ -210,97 +322,33 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
-// Dữ liệu mẫu
-interface Product {
-  id: number;
+// Interface cho dữ liệu category
+interface ICategory {
+  id: string;
+  name: string;
+  parentId: string | null;
+  level: number;
+  children: ICategory[];
+}
+
+// Interface cho dữ liệu sản phẩm
+interface IProduct {
+  id: string;
   name: string;
   description: string;
   price: number;
-  discount: number;
-  unit: string;
-  image: string;
-  category: string;
+  sold: number;
+  rating: number;
+  thumbnail: string;
+  unitPrice: string;
+  categoryId: string;
+  farmer: {
+    id: string;
+    name: string;
+    avatar: string | null;
+    coverImage: string | null;
+    rating: number;
+    description: string | null;
+    status: string;
+  };
 }
-
-const products: Product[] = [
-  {
-    id: 1,
-    name: "Hạt giống lúa ST25",
-    description: "Giống lúa thơm đạt giải gạo ngon nhất thế giới",
-    price: 120000,
-    discount: 0,
-    unit: "1kg",
-    image: "/placeholder.svg?height=300&width=300",
-    category: "seeds",
-  },
-  {
-    id: 2,
-    name: "Phân bón NPK Đầu Trâu",
-    description: "Phân bón tổng hợp cho cây trồng phát triển toàn diện",
-    price: 250000,
-    discount: 10,
-    unit: "Bao 25kg",
-    image: "/placeholder.svg?height=300&width=300",
-    category: "fertilizers",
-  },
-  {
-    id: 3,
-    name: "Thuốc trừ sâu sinh học BT",
-    description: "An toàn cho người sử dụng và môi trường",
-    price: 180000,
-    discount: 0,
-    unit: "Chai 1L",
-    image: "/placeholder.svg?height=300&width=300",
-    category: "pesticides",
-  },
-  {
-    id: 4,
-    name: "Máy phun thuốc điện tử",
-    description: "Tiết kiệm thuốc và thời gian phun",
-    price: 1500000,
-    discount: 15,
-    unit: "Cái",
-    image: "/placeholder.svg?height=300&width=300",
-    category: "tools",
-  },
-  {
-    id: 5,
-    name: "Hệ thống tưới nhỏ giọt",
-    description: "Tiết kiệm nước và tự động hóa tưới tiêu",
-    price: 850000,
-    discount: 0,
-    unit: "Bộ 100m²",
-    image: "/placeholder.svg?height=300&width=300",
-    category: "irrigation",
-  },
-  {
-    id: 6,
-    name: "Hạt giống rau muống",
-    description: "Giống rau phát triển nhanh, năng suất cao",
-    price: 25000,
-    discount: 0,
-    unit: "100g",
-    image: "/placeholder.svg?height=300&width=300",
-    category: "seeds",
-  },
-  {
-    id: 7,
-    name: "Phân hữu cơ vi sinh",
-    description: "Cải tạo đất và bổ sung dinh dưỡng",
-    price: 180000,
-    discount: 5,
-    unit: "Bao 10kg",
-    image: "/placeholder.svg?height=300&width=300",
-    category: "fertilizers",
-  },
-  {
-    id: 8,
-    name: "Thuốc phòng bệnh đạo ôn",
-    description: "Phòng trừ hiệu quả bệnh đạo ôn trên lúa",
-    price: 220000,
-    discount: 0,
-    unit: "Gói 500g",
-    image: "/placeholder.svg?height=300&width=300",
-    category: "pesticides",
-  },
-];

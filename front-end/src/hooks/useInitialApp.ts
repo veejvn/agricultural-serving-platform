@@ -15,7 +15,7 @@ const useInitialApp = () => {
 
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const refreshTokenString = useAuthStore((state) => state.refreshToken);
-  console.log("refreshTokenString: ", refreshTokenString);
+  //console.log("refreshTokenString: ", refreshTokenString);
 
   const fetchUser = useUserStore((state) => state.fetchUser);
 
