@@ -1,13 +1,12 @@
 package javaweb.my_project.dto.product;
 
 import javaweb.my_project.dto.image.ImageResponse;
-import javaweb.my_project.entities.Category;
-import javaweb.my_project.entities.Image;
 import javaweb.my_project.enums.ProductStatus;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,4 +25,5 @@ public class ProductResponse {
     ProductStatus status;
     Set<ImageResponse> images = new HashSet<>();
     String category;
+    LocalDateTime createdAt;
 }

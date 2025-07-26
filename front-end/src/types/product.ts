@@ -7,26 +7,27 @@ export interface ICategory {
   children: ICategory[];
 }
 
+export interface ImageResponse {
+  id: string;
+  path: string;
+  alt: string;
+}
+
 // Interface cho dữ liệu sản phẩm
-export interface IProduct {
+export interface IProductResponese {
   id: string;
   name: string;
   description: string;
   price: number;
+  inventory: number;
   sold: number;
   rating: number;
   thumbnail: string;
   unitPrice: string;
-  categoryId: string;
-  farmer: {
-    id: string;
-    name: string;
-    avatar: string | null;
-    coverImage: string | null;
-    rating: number;
-    description: string | null;
-    status: string;
-  };
+  status: string;
+  images: ImageResponse[];
+  category: string;
+  createdAt: string;
 }
 
 // Interface cho response phân trang
@@ -57,4 +58,30 @@ export interface IProductTag {
     description: string | null;
     status: string;
   };
+}
+
+export interface Review {
+  id: number;
+  userName: string;
+  rating: number;
+  comment: string;
+  date: Date;
+  status: "approved" | "pending" | "rejected";
+  reportCount?: number;
+  moderationNotes?: string;
+}
+
+export interface ProductStats {
+  totalViews: number;
+  totalOrders: number;
+  totalRevenue: number;
+  conversionRate: number;
+  averageRating: number;
+  totalReviews: number;
+  monthlyData: {
+    month: string;
+    views: number;
+    orders: number;
+    revenue: number;
+  }[];
 }

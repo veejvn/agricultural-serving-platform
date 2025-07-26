@@ -29,6 +29,7 @@ import {
   Trash2,
 } from "lucide-react";
 import ProductService from "@/services/product.service";
+import UploadService from "@/services/upload.service";
 import categoryService from "@/services/category.service";
 import { ICategory } from "@/types/product";
 import Image from "next/image";
@@ -50,6 +51,8 @@ export default function AddProductPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [categories, setCategories] = useState<ICategory[]>([]);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const additionalImagesInputRef = useRef<HTMLInputElement>(null);
@@ -169,76 +172,103 @@ export default function AddProductPage() {
     }
   };
 
-  // Convert file to base64 URL
-  const fileToDataURL = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  // Handle thumbnail file selection
+  // Handle thumbnail file selection with upload
   const handleThumbnailChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type.startsWith("image/")) {
-        try {
-          const dataURL = await fileToDataURL(file);
-          setFormData((prev) => ({ ...prev, thumbnail: dataURL }));
-          if (errors.thumbnail) {
-            setErrors((prev) => ({ ...prev, thumbnail: undefined }));
-          }
-        } catch (error) {
-          toast({
-            title: "Lỗi",
-            description: "Không thể đọc file ảnh",
-            variant: "destructive",
-          });
-        }
-      } else {
+      if (!UploadService.isImageFile(file)) {
         toast({
           title: "File không hợp lệ",
           description: "Vui lòng chọn file ảnh (jpg, png, gif, etc.)",
           variant: "destructive",
         });
+        return;
+      }
+
+      setUploadingThumbnail(true);
+      try {
+        const [imageUrl, error] = await UploadService.uploadImage(file);
+
+        if (error) {
+          throw new Error(error.message || "Upload failed");
+        }
+
+        if (imageUrl) {
+          setFormData((prev) => ({ ...prev, thumbnail: imageUrl }));
+          if (errors.thumbnail) {
+            setErrors((prev) => ({ ...prev, thumbnail: undefined }));
+          }
+          toast({
+            title: "Upload thành công",
+            description: "Ảnh đại diện đã được tải lên",
+          });
+        }
+      } catch (error: any) {
+        console.error("Upload thumbnail error:", error);
+        toast({
+          title: "Lỗi upload",
+          description: error.message || "Không thể tải ảnh lên server",
+          variant: "destructive",
+        });
+      } finally {
+        setUploadingThumbnail(false);
       }
     }
   };
 
-  // Handle additional images file selection
+  // Handle additional images file selection with upload
   const handleAdditionalImagesChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter((file) => UploadService.isImageFile(file));
 
-    for (const file of files) {
-      if (file.type.startsWith("image/")) {
-        try {
-          const dataURL = await fileToDataURL(file);
-          if (!formData.imagePaths.includes(dataURL)) {
-            setFormData((prev) => ({
-              ...prev,
-              imagePaths: [...prev.imagePaths, dataURL],
-            }));
-          }
-        } catch (error) {
-          toast({
-            title: "Lỗi",
-            description: `Không thể đọc file ${file.name}`,
-            variant: "destructive",
+    if (imageFiles.length !== files.length) {
+      toast({
+        title: "Một số file không hợp lệ",
+        description: "Chỉ các file ảnh được chấp nhận",
+        variant: "destructive",
+      });
+    }
+
+    if (imageFiles.length === 0) return;
+
+    setUploadingImages(true);
+    try {
+      const [imageUrls, error] = await UploadService.uploadImages(imageFiles);
+
+      if (error) {
+        throw new Error(error.message || "Upload failed");
+      }
+
+      if (imageUrls) {
+        // Thêm các URL mới vào danh sách, loại bỏ duplicate
+        setFormData((prev) => {
+          const newImagePaths = [...prev.imagePaths];
+          imageUrls.forEach((url: string) => {
+            if (!newImagePaths.includes(url)) {
+              newImagePaths.push(url);
+            }
           });
-        }
-      } else {
+          return { ...prev, imagePaths: newImagePaths };
+        });
+
         toast({
-          title: "File không hợp lệ",
-          description: `File ${file.name} không phải là ảnh`,
-          variant: "destructive",
+          title: "Upload thành công",
+          description: `Đã tải lên ${imageUrls.length} ảnh`,
         });
       }
+    } catch (error: any) {
+      console.error("Upload additional images error:", error);
+      toast({
+        title: "Lỗi upload",
+        description: error.message || "Không thể tải ảnh lên server",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImages(false);
     }
 
     // Reset input
@@ -253,28 +283,44 @@ export default function AddProductPage() {
     setDragOver(null);
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find((file) => file.type.startsWith("image/"));
+    const imageFile = files.find((file) => UploadService.isImageFile(file));
 
-    if (imageFile) {
-      try {
-        const dataURL = await fileToDataURL(imageFile);
-        setFormData((prev) => ({ ...prev, thumbnail: dataURL }));
-        if (errors.thumbnail) {
-          setErrors((prev) => ({ ...prev, thumbnail: undefined }));
-        }
-      } catch (error) {
-        toast({
-          title: "Lỗi",
-          description: "Không thể đọc file ảnh",
-          variant: "destructive",
-        });
-      }
-    } else {
+    if (!imageFile) {
       toast({
         title: "File không hợp lệ",
         description: "Vui lòng kéo thả file ảnh",
         variant: "destructive",
       });
+      return;
+    }
+
+    setUploadingThumbnail(true);
+    try {
+      const [imageUrl, error] = await UploadService.uploadImage(imageFile);
+
+      if (error) {
+        throw new Error(error.message || "Upload failed");
+      }
+
+      if (imageUrl) {
+        setFormData((prev) => ({ ...prev, thumbnail: imageUrl }));
+        if (errors.thumbnail) {
+          setErrors((prev) => ({ ...prev, thumbnail: undefined }));
+        }
+        toast({
+          title: "Upload thành công",
+          description: "Ảnh đại diện đã được tải lên",
+        });
+      }
+    } catch (error: any) {
+      console.error("Upload thumbnail error:", error);
+      toast({
+        title: "Lỗi upload",
+        description: error.message || "Không thể tải ảnh lên server",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingThumbnail(false);
     }
   };
 
@@ -284,25 +330,52 @@ export default function AddProductPage() {
     setDragOver(null);
 
     const files = Array.from(e.dataTransfer.files).filter((file) =>
-      file.type.startsWith("image/")
+      UploadService.isImageFile(file)
     );
 
-    for (const file of files) {
-      try {
-        const dataURL = await fileToDataURL(file);
-        if (!formData.imagePaths.includes(dataURL)) {
-          setFormData((prev) => ({
-            ...prev,
-            imagePaths: [...prev.imagePaths, dataURL],
-          }));
-        }
-      } catch (error) {
+    if (files.length === 0) {
+      toast({
+        title: "File không hợp lệ",
+        description: "Vui lòng kéo thả file ảnh",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImages(true);
+    try {
+      const [imageUrls, error] = await UploadService.uploadImages(files);
+
+      if (error) {
+        throw new Error(error.message || "Upload failed");
+      }
+
+      if (imageUrls) {
+        // Thêm các URL mới vào danh sách, loại bỏ duplicate
+        setFormData((prev) => {
+          const newImagePaths = [...prev.imagePaths];
+          imageUrls.forEach((url: string) => {
+            if (!newImagePaths.includes(url)) {
+              newImagePaths.push(url);
+            }
+          });
+          return { ...prev, imagePaths: newImagePaths };
+        });
+
         toast({
-          title: "Lỗi",
-          description: `Không thể đọc file ${file.name}`,
-          variant: "destructive",
+          title: "Upload thành công",
+          description: `Đã tải lên ${imageUrls.length} ảnh`,
         });
       }
+    } catch (error: any) {
+      console.error("Upload additional images error:", error);
+      toast({
+        title: "Lỗi upload",
+        description: error.message || "Không thể tải ảnh lên server",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImages(false);
     }
   };
 
@@ -395,20 +468,20 @@ export default function AddProductPage() {
 
       console.log("Sending product data:", productData);
 
-      // Gọi API tạo sản phẩm
-      // const [result, error] = await ProductService.createProduct(productData);
+      //Gọi API tạo sản phẩm
+      const [result, error] = await ProductService.createProduct(productData);
 
-      // if (error) {
-      //   throw new Error(error.message || "Có lỗi xảy ra khi tạo sản phẩm");
-      // }
+      if (error) {
+        throw new Error(error.message || "Có lỗi xảy ra khi tạo sản phẩm");
+      }
 
-      // if (result) {
-      //   toast({
-      //     title: "Thêm sản phẩm thành công!",
-      //     description: `Sản phẩm "${formData.name}" đã được thêm vào hệ thống`,
-      //   });
-      //   resetForm();
-      // }
+      if (result) {
+        toast({
+          title: "Thêm sản phẩm thành công!",
+          description: `Sản phẩm "${formData.name}" đã được thêm vào hệ thống`,
+        });
+        resetForm();
+      }
     } catch (error: any) {
       console.error("Error creating product:", error);
       toast({
@@ -445,7 +518,7 @@ export default function AddProductPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Tên sản phẩm *</Label>
+                <Label htmlFor="name">Tên sản phẩm <span className="text-red-500">*</span></Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -459,7 +532,7 @@ export default function AddProductPage() {
               </div>
 
               <div>
-                <Label htmlFor="categoryId">Danh mục *</Label>
+                <Label htmlFor="categoryId">Danh mục <span className="text-red-500">*</span></Label>
                 <Select
                   value={formData.categoryId}
                   onValueChange={(value) =>
@@ -480,13 +553,13 @@ export default function AddProductPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {categoriesLoading ? (
-                      <SelectItem value="" disabled>
+                      <SelectItem value="loading" disabled>
                         Đang tải danh mục...
                       </SelectItem>
                     ) : categories.length > 0 ? (
                       renderCategoryTree(categories)
                     ) : (
-                      <SelectItem value="" disabled>
+                      <SelectItem value="no-categories" disabled>
                         Không có danh mục nào
                       </SelectItem>
                     )}
@@ -501,7 +574,7 @@ export default function AddProductPage() {
             </div>
 
             <div>
-              <Label htmlFor="description">Mô tả sản phẩm *</Label>
+              <Label htmlFor="description">Mô tả sản phẩm <span className="text-red-500">*</span></Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -521,7 +594,7 @@ export default function AddProductPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="price">Giá bán (VNĐ) *</Label>
+                <Label htmlFor="price">Giá bán (VNĐ) <span className="text-red-500">*</span></Label>
                 <Input
                   id="price"
                   type="number"
@@ -538,7 +611,7 @@ export default function AddProductPage() {
               </div>
 
               <div>
-                <Label htmlFor="unitPrice">Đơn vị tính</Label>
+                <Label htmlFor="unitPrice">Đơn vị tính <span className="text-red-500">*</span></Label>
                 <Select
                   value={formData.unitPrice}
                   onValueChange={(value) =>
@@ -559,7 +632,7 @@ export default function AddProductPage() {
               </div>
 
               <div>
-                <Label htmlFor="inventory">Số lượng tồn kho *</Label>
+                <Label htmlFor="inventory">Số lượng tồn kho <span className="text-red-500">*</span></Label>
                 <Input
                   id="inventory"
                   type="number"
@@ -592,9 +665,14 @@ export default function AddProductPage() {
           <CardContent className="space-y-6">
             {/* Ảnh đại diện */}
             <div>
-              <Label>Ảnh đại diện *</Label>
+              <Label>Ảnh đại diện <span className="text-red-500">*</span></Label>
               <div className="mt-2">
-                {formData.thumbnail ? (
+                {uploadingThumbnail ? (
+                  <div className="w-40 h-40 border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center bg-blue-50">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <p className="text-sm text-blue-600">Đang tải lên...</p>
+                  </div>
+                ) : formData.thumbnail ? (
                   <div className="relative inline-block">
                     <div className="relative w-40 h-40 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
                       <Image
@@ -671,30 +749,37 @@ export default function AddProductPage() {
 
             {/* Ảnh bổ sung */}
             <div>
-              <Label>Ảnh bổ sung</Label>
+              <Label>Ảnh bổ sung <span className="text-red-500">*</span></Label>
               <div className="mt-2">
-                <div
-                  className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                    dragOver === "additional"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 hover:border-gray-400"
-                  }`}
-                  onClick={() => additionalImagesInputRef.current?.click()}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOver("additional");
-                  }}
-                  onDragLeave={() => setDragOver(null)}
-                  onDrop={handleAdditionalImagesDrop}
-                >
-                  <Plus className="w-8 h-8 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-500 text-center">
-                    Kéo thả nhiều ảnh vào đây hoặc click để chọn
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Hỗ trợ nhiều file ảnh cùng lúc
-                  </p>
-                </div>
+                {uploadingImages ? (
+                  <div className="w-full h-32 border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center bg-blue-50">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <p className="text-sm text-blue-600">Đang tải lên ảnh...</p>
+                  </div>
+                ) : (
+                  <div
+                    className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                      dragOver === "additional"
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                    onClick={() => additionalImagesInputRef.current?.click()}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOver("additional");
+                    }}
+                    onDragLeave={() => setDragOver(null)}
+                    onDrop={handleAdditionalImagesDrop}
+                  >
+                    <Plus className="w-8 h-8 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500 text-center">
+                      Kéo thả nhiều ảnh vào đây hoặc click để chọn
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Hỗ trợ nhiều file ảnh cùng lúc
+                    </p>
+                  </div>
+                )}
 
                 <input
                   ref={additionalImagesInputRef}

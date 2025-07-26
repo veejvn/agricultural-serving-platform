@@ -81,7 +81,7 @@ public class Product {
     @PrePersist
     void onCreate(){
         this.status = ProductStatus.ACTIVE;
-        this.rating = 0.0;
+        this.rating = 5.0;
         this.sold = 0;
         this.createdAt = LocalDateTime.now();
     }
