@@ -5,8 +5,28 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/stores/useUserStore";
 import LoadingSpinner from "@/components/common/loading-spinner";
-
+import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
 import { FarmerSidebar } from "@/components/farmer/sidebar";
+
+function FarmerLayoutContent({ children }: { children: React.ReactNode }) {
+  const { isCollapsed } = useSidebar();
+
+  return (
+    <div className="flex h-full bg-gray-50 dark:bg-gray-900">
+      {/* Sidebar */}
+      <div className="hidden md:flex md:flex-col md:flex-shrink-0">
+        <FarmerSidebar />
+      </div>
+
+      {/* Main content */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <main className="flex-1 overflow-auto bg-white dark:bg-gray-950 p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
 
 export default function FarmerLayout({
   children,
@@ -41,11 +61,8 @@ export default function FarmerLayout({
   }
 
   return (
-    <div className="flex overflow-hidden">
-      <div className="hidden md:flex md:w-54 md:flex-col">
-        <FarmerSidebar />
-      </div>
-      <div className="flex flex-1 flex-col p-6">{children}</div>
-    </div>
+    <SidebarProvider>
+      <FarmerLayoutContent>{children}</FarmerLayoutContent>
+    </SidebarProvider>
   );
 }

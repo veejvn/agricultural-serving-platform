@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import ProductService from "@/services/product.service";
 import type { IProductResponese, Review, ProductStats } from "@/types/product";
@@ -98,10 +98,12 @@ const mockStats: Record<string, ProductStats> = {
 export default function FarmerProductDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { toast } = useToast();
-  const productId = params.id;
+  const router = useRouter();
+  const resolvedParams = use(params);
+  const productId = resolvedParams.id;
 
   // State cho sản phẩm và loading
   const [product, setProduct] = useState<IProductResponese | null>(null);
@@ -193,7 +195,7 @@ export default function FarmerProductDetailPage({
       });
 
       // Redirect về trang danh sách sản phẩm
-      window.location.href = "/farm/product";
+      router.push("/farm/product");
     } catch (error) {
       console.error("Error deleting product:", error);
       toast({
@@ -297,7 +299,7 @@ export default function FarmerProductDetailPage({
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Link href="/farm/product">
             <Button variant="outline" size="sm">
@@ -305,14 +307,6 @@ export default function FarmerProductDetailPage({
               Quay lại
             </Button>
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-green-800 dark:text-green-300">
-              {product.name}
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Tạo ngày {formatDate(product.createdAt)}
-            </p>
-          </div>
         </div>
         <div className="flex gap-2">
           <Link href={`/product/${product.id}`}>
@@ -336,6 +330,14 @@ export default function FarmerProductDetailPage({
             Xóa
           </Button>
         </div>
+      </div>
+      <div className="mb-3">
+        <h1 className="text-2xl font-bold text-green-800 dark:text-green-300">
+          {product.name}
+        </h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Tạo ngày {formatDate(product.createdAt)}
+        </p>
       </div>
 
       {/* Status and Quick Stats */}

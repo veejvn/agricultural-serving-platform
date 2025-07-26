@@ -21,6 +21,7 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
+    @Column(columnDefinition = "TEXT")
     String content;
 
     Double rating;

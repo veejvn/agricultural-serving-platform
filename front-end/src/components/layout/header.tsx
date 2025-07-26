@@ -19,6 +19,7 @@ import {
   MessageSquare,
   ShoppingBag,
   User,
+  Home,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -34,7 +35,7 @@ export default function Header() {
     {
       name: "Trang chủ",
       path: "/",
-      icon: <Leaf className="h-5 w-5" />,
+      icon: <Home className="h-5 w-5" />,
     },
     {
       name: "Sản phẩm",
@@ -60,7 +61,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="lg:hidden">

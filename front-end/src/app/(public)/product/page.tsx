@@ -9,12 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Search, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ProductService from "@/services/product.service";
 import categoryService from "@/services/category.service";
 import { ICategory, IProductTag, IPageResponse } from "@/types/product";
@@ -25,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(0);
@@ -35,6 +35,8 @@ export default function ProductsPage() {
     useState<IPageResponse<IProductTag> | null>(null);
   const [allProducts, setAllProducts] = useState<IProductTag[]>([]); // Lưu trữ tất cả sản phẩm để filter
   const [categories, setCategories] = useState<ICategory[]>([]);
+  const [originalCategories, setOriginalCategories] = useState<ICategory[]>([]);
+  const [allFlatCategories, setAllFlatCategories] = useState<ICategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState("name");
@@ -67,7 +69,28 @@ export default function ProductsPage() {
         return;
       }
       console.log("Categories:", data);
-      setCategories(data);
+
+      // Lưu categories gốc để sử dụng cho hierarchy logic
+      setOriginalCategories(data);
+
+      // Flatten tất cả categories (bao gồm parent và children) để tìm kiếm
+      const flattenCategories = (categories: ICategory[]): ICategory[] => {
+        const result: ICategory[] = [];
+        categories.forEach((category) => {
+          result.push(category);
+          if (category.children && category.children.length > 0) {
+            result.push(...flattenCategories(category.children));
+          }
+        });
+        return result;
+      };
+
+      const allCategories = flattenCategories(data);
+      setAllFlatCategories(allCategories);
+
+      // Chỉ lưu categories level 0 cho dropdown chính
+      const level0Categories = data.filter((cat: ICategory) => cat.level === 0);
+      setCategories(level0Categories);
     }
 
     fetchCategories();
@@ -98,11 +121,18 @@ export default function ProductsPage() {
           );
         }
 
-        // Filter theo category
+        // Filter theo category (bao gồm cả children categories)
         if (selectedCategory !== "all") {
-          filteredProducts = filteredProducts.filter(
-            (product) => product.categoryId === selectedCategory
-          );
+          filteredProducts = filteredProducts.filter((product) => {
+            return (
+              product.categoryId === selectedCategory ||
+              isChildOfCategory(
+                product.categoryId,
+                selectedCategory,
+                originalCategories
+              )
+            );
+          });
         }
 
         // Sắp xếp sản phẩm
@@ -207,7 +237,43 @@ export default function ProductsPage() {
     setCurrentPage(0); // Reset về trang đầu tiên khi thay đổi sắp xếp
   };
 
-  // Hàm tính số lượng sản phẩm theo category
+  // Hàm kiểm tra xem một category có phải là con của category khác không
+  const isChildOfCategory = (
+    childCategoryId: string,
+    parentCategoryId: string,
+    categoriesList: ICategory[]
+  ): boolean => {
+    const findCategory = (
+      categories: ICategory[],
+      id: string
+    ): ICategory | null => {
+      for (const category of categories) {
+        if (category.id === id) return category;
+        if (category.children && category.children.length > 0) {
+          const found = findCategory(category.children, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const childCategory = findCategory(categoriesList, childCategoryId);
+    if (!childCategory) return false;
+
+    // Kiểm tra nếu chính nó là parent category
+    if (childCategoryId === parentCategoryId) return true;
+
+    // Kiểm tra nếu parent category là ancestor
+    let currentParentId = childCategory.parentId;
+    while (currentParentId) {
+      if (currentParentId === parentCategoryId) return true;
+      const parentCategory = findCategory(categoriesList, currentParentId);
+      currentParentId = parentCategory?.parentId || null;
+    }
+
+    return false;
+  };
+
   const getProductCountByCategory = (categoryId: string) => {
     let filteredProducts = allProducts;
 
@@ -223,14 +289,230 @@ export default function ProductsPage() {
       );
     }
 
-    // Filter theo category
+    // Filter theo category (bao gồm cả children categories)
     if (categoryId !== "all") {
-      filteredProducts = filteredProducts.filter(
-        (product) => product.categoryId === categoryId
-      );
+      filteredProducts = filteredProducts.filter((product) => {
+        // Kiểm tra exact match hoặc là child category
+        return (
+          product.categoryId === categoryId ||
+          isChildOfCategory(product.categoryId, categoryId, originalCategories)
+        );
+      });
     }
 
     return filteredProducts.length;
+  };
+
+  // Tìm category hiện tại được chọn để hiển thị
+  const selectedCategoryData =
+    selectedCategory === "all"
+      ? { name: "Tất cả", id: "all" }
+      : allFlatCategories.find((cat) => cat.id === selectedCategory) || {
+          name: "Tất cả",
+          id: "all",
+        };
+
+  // Component Category Selector với navigation qua levels
+  const CategorySelector = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [navigationStack, setNavigationStack] = useState<ICategory[]>([]);
+    const [isNavigating, setIsNavigating] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Đóng dropdown khi click outside
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target as Node)
+        ) {
+          setIsOpen(false);
+          setNavigationStack([]);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+
+    // Lấy categories hiện tại để hiển thị
+    const getCurrentCategories = () => {
+      if (navigationStack.length === 0) {
+        // Level 0 - hiển thị categories gốc
+        return categories;
+      } else {
+        // Hiển thị children của category cuối cùng trong stack
+        const lastCategory = navigationStack[navigationStack.length - 1];
+        return lastCategory.children || [];
+      }
+    };
+
+    // Điều hướng vào category con
+    const navigateToChildren = async (category: ICategory) => {
+      if (category.children && category.children.length > 0) {
+        setIsNavigating(true);
+        // Thêm delay nhỏ để animation mượt hơn
+        setTimeout(() => {
+          setNavigationStack([...navigationStack, category]);
+          setIsNavigating(false);
+        }, 150);
+      }
+    };
+
+    // Quay lại level trước
+    const navigateBack = () => {
+      setIsNavigating(true);
+      setTimeout(() => {
+        setNavigationStack(navigationStack.slice(0, -1));
+        setIsNavigating(false);
+      }, 150);
+    };
+
+    // Chọn category và đóng dropdown
+    const selectCategory = (categoryId: string) => {
+      handleCategoryChange(categoryId);
+      setIsOpen(false);
+      setNavigationStack([]);
+    };
+
+    // Lấy breadcrumb path hiện tại
+    const getBreadcrumbPath = () => {
+      if (navigationStack.length === 0) return "Danh mục sản phẩm";
+      return navigationStack.map((cat) => cat.name).join(" › ");
+    };
+
+    // Lấy level hiện tại
+    const getCurrentLevel = () => navigationStack.length;
+
+    const currentCategories = getCurrentCategories();
+
+    return (
+      <div>
+        {/* Custom Category Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <Button
+            variant="outline"
+            className="w-full sm:w-80 justify-between"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{selectedCategoryData.name}</span>
+              <div className="flex items-center gap-2 ml-2">
+                <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                  {getProductCountByCategory(selectedCategory)}
+                </span>
+                <ChevronRight
+                  className={cn(
+                    "h-4 w-4 transition-transform duration-200",
+                    isOpen ? "rotate-90" : ""
+                  )}
+                />
+              </div>
+            </div>
+          </Button>
+
+          {isOpen && (
+            <div className="absolute top-full left-0 z-50 mt-1 w-full sm:w-96 rounded-md border bg-popover text-popover-foreground shadow-lg">
+              {/* Header với breadcrumb và nút back */}
+              <div className="border-b bg-gray-50 dark:bg-gray-800 p-3 rounded-t-md">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {navigationStack.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={navigateBack}
+                        className="h-7 w-7 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        disabled={isNavigating}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {getBreadcrumbPath()}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {currentCategories.length} danh mục
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content area */}
+              <div className="max-h-80 overflow-y-auto">
+                {isNavigating ? (
+                  <div className="flex items-center justify-center p-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                  </div>
+                ) : (
+                  <div className="p-1">
+                    {/* Option "Tất cả" chỉ hiện ở level 0 */}
+                    {navigationStack.length === 0 && (
+                      <div
+                        className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                        onClick={() => selectCategory("all")}
+                      >
+                        <span className="font-medium">Tất cả sản phẩm</span>
+                        <span className="rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 text-xs font-medium">
+                          {getProductCountByCategory("all")}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Categories hiện tại */}
+                    {currentCategories.map((category) => (
+                      <div
+                        key={category.id}
+                        className="flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded group transition-colors"
+                      >
+                        <div
+                          className="flex-1 cursor-pointer truncate"
+                          onClick={() => selectCategory(category.id)}
+                        >
+                          <span>{category.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 ml-2">
+                          <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                            {getProductCountByCategory(category.id)}
+                          </span>
+                          {category.children &&
+                            category.children.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigateToChildren(category);
+                                }}
+                                className="h-7 w-7 p-0 opacity-60 group-hover:opacity-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                                disabled={isNavigating}
+                              >
+                                <ChevronRight className="h-3 w-3" />
+                              </Button>
+                            )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Thông báo khi không có categories */}
+                    {currentCategories.length === 0 && (
+                      <div className="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        <div className="mb-2">📁</div>
+                        Không có danh mục con
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Component phân trang
@@ -350,6 +632,7 @@ export default function ProductsPage() {
               <SelectItem value="sold">Bán chạy nhất</SelectItem>
             </SelectContent>
           </Select>
+          <CategorySelector />
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -365,105 +648,47 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <Tabs
-        value={selectedCategory}
-        onValueChange={handleCategoryChange}
-        className="mb-8"
-      >
+      <div className="mb-8">
         {getSearchInfo()}
 
-        <TabsList className="mb-6 w-full justify-start overflow-auto">
-          <TabsTrigger value="all">
-            Tất cả
-            <span className="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-              {getProductCountByCategory("all")}
-            </span>
-          </TabsTrigger>
-          {categories.map((category) => (
-            <TabsTrigger key={category.id} value={category.id}>
-              {category.name}
-              <span className="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                {getProductCountByCategory(category.id)}
-              </span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        <TabsContent value="all" className="mt-0">
-          {isLoading || isFiltering ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"
-                />
-              ))}
+        {/* Product Grid */}
+        {isLoading || isFiltering ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"
+              />
+            ))}
+          </div>
+        ) : products.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product: IProductTag) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+              <ShoppingCart className="h-12 w-12 text-gray-400" />
             </div>
-          ) : products.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products.map((product: IProductTag) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-                <ShoppingCart className="h-12 w-12 text-gray-400" />
-              </div>
-              <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
-                {searchQuery
-                  ? "Không tìm thấy sản phẩm"
-                  : "Chưa có sản phẩm nào"}
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                {searchQuery
-                  ? `Không tìm thấy sản phẩm nào phù hợp với từ khóa "${searchQuery}"`
-                  : "Hiện tại chưa có sản phẩm nào trong danh mục này"}
-              </p>
-            </div>
-          )}
-        </TabsContent>
+            <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+              {searchQuery ? "Không tìm thấy sản phẩm" : "Chưa có sản phẩm nào"}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchQuery
+                ? `Không tìm thấy sản phẩm nào phù hợp với từ khóa "${searchQuery}"`
+                : "Hiện tại chưa có sản phẩm nào trong danh mục này"}
+              {selectedCategory !== "all" && selectedCategoryData.name && (
+                <span> trong danh mục "{selectedCategoryData.name}"</span>
+              )}
+            </p>
+          </div>
+        )}
 
         {/* Thêm component phân trang */}
         <PaginationComponent />
-
-        {categories.map((category) => (
-          <TabsContent key={category.id} value={category.id} className="mt-0">
-            {isLoading || isFiltering ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"
-                  />
-                ))}
-              </div>
-            ) : products.length > 0 ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {products.map((product: IProductTag) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-                  <ShoppingCart className="h-12 w-12 text-gray-400" />
-                </div>
-                <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
-                  {searchQuery
-                    ? "Không tìm thấy sản phẩm"
-                    : "Chưa có sản phẩm nào"}
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  {searchQuery
-                    ? `Không tìm thấy sản phẩm nào phù hợp với từ khóa "${searchQuery}" trong danh mục "${category.name}"`
-                    : `Hiện tại chưa có sản phẩm nào trong danh mục "${category.name}"`}
-                </p>
-              </div>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+      </div>
 
       <div className="mt-12 rounded-lg bg-green-50 p-6 dark:bg-green-900">
         <h2 className="mb-4 text-2xl font-bold text-green-800 dark:text-green-300">

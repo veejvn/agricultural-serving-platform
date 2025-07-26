@@ -16,7 +16,10 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
+import { useToast } from "@/hooks/use-toast";
+import ProductService from "@/services/product.service";
+import type { IProductResponese } from "@/types/product";
 import { ProductReviewForm } from "@/components/product/product-review-form";
 import {
   ProductReviewsList,
@@ -31,25 +34,7 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
-// Dữ liệu mẫu
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  discount: number;
-  unit: string;
-  image: string;
-  category: string;
-  stock: number;
-  rating: number;
-  reviews: number;
-  specifications: Record<string, string>;
-  longDescription: string;
-  usage: string;
-}
-
-const products: Product[] = [
+const products = [
   {
     id: 1,
     name: "Hạt giống lúa ST25",
@@ -249,11 +234,11 @@ const products: Product[] = [
 ];
 
 // Dữ liệu mẫu cho đánh giá
-const sampleReviews: Record<number, Review[]> = {
-  1: [
+const sampleReviews: Record<string, Review[]> = {
+  "1": [
     {
-      id: 101,
-      productId: 1,
+      id: "101",
+      productId: "1",
       userName: "Nguyễn Văn An",
       rating: 5,
       comment:
@@ -261,8 +246,8 @@ const sampleReviews: Record<number, Review[]> = {
       date: new Date(2023, 5, 15),
     },
     {
-      id: 102,
-      productId: 1,
+      id: "102",
+      productId: "1",
       userName: "Trần Thị Bình",
       rating: 4,
       comment:
@@ -270,8 +255,8 @@ const sampleReviews: Record<number, Review[]> = {
       date: new Date(2023, 6, 20),
     },
     {
-      id: 103,
-      productId: 1,
+      id: "103",
+      productId: "1",
       userName: "Lê Văn Cường",
       rating: 5,
       comment:
@@ -279,10 +264,10 @@ const sampleReviews: Record<number, Review[]> = {
       date: new Date(2023, 7, 5),
     },
   ],
-  2: [
+  "2": [
     {
-      id: 201,
-      productId: 2,
+      id: "201",
+      productId: "2",
       userName: "Phạm Thị Dung",
       rating: 5,
       comment:
@@ -290,8 +275,8 @@ const sampleReviews: Record<number, Review[]> = {
       date: new Date(2023, 4, 10),
     },
     {
-      id: 202,
-      productId: 2,
+      id: "202",
+      productId: "2",
       userName: "Hoàng Văn Em",
       rating: 4,
       comment:
@@ -299,10 +284,10 @@ const sampleReviews: Record<number, Review[]> = {
       date: new Date(2023, 5, 25),
     },
   ],
-  3: [
+  "3": [
     {
-      id: 301,
-      productId: 3,
+      id: "301",
+      productId: "3",
       userName: "Vũ Thị Giang",
       rating: 5,
       comment:
@@ -310,10 +295,10 @@ const sampleReviews: Record<number, Review[]> = {
       date: new Date(2023, 3, 18),
     },
   ],
-  4: [
+  "4": [
     {
-      id: 401,
-      productId: 4,
+      id: "401",
+      productId: "4",
       userName: "Đặng Văn Hùng",
       rating: 4,
       comment:
@@ -321,8 +306,8 @@ const sampleReviews: Record<number, Review[]> = {
       date: new Date(2023, 2, 12),
     },
     {
-      id: 402,
-      productId: 4,
+      id: "402",
+      productId: "4",
       userName: "Ngô Thị Lan",
       rating: 5,
       comment:
@@ -332,50 +317,92 @@ const sampleReviews: Record<number, Review[]> = {
   ],
 };
 
-// Lấy sản phẩm theo ID
-function getProductById(id: number): Product | undefined {
-  return products.find((product) => product.id === id);
-}
-
-// Lấy sản phẩm liên quan (cùng danh mục)
-function getRelatedProducts(product: Product): Product[] {
-  return products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
-}
-
 export default function ProductDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const productId = Number.parseInt(params.id);
-  const product = getProductById(productId);
+  const { toast } = useToast();
+  const resolvedParams = use(params);
+  const productId = resolvedParams.id;
 
+  // State cho sản phẩm và loading
+  const [product, setProduct] = useState<IProductResponese | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(0);
+
+  // State cho đánh giá (sử dụng sampleReviews)
+  const [reviews, setReviews] = useState<Review[]>(sampleReviews["1"] || []);
+  const [quantity, setQuantity] = useState(1);
+
+  // Load sản phẩm theo ID
+  useEffect(() => {
+    const loadProduct = async () => {
+      setIsLoading(true);
+      try {
+        const [data, error] = await ProductService.getById(productId);
+
+        if (error) {
+          toast({
+            title: "Lỗi",
+            description:
+              "Không thể tải thông tin sản phẩm. " + (error.message || ""),
+            variant: "destructive",
+          });
+          notFound();
+          return;
+        }
+
+        setProduct(data);
+        // Cập nhật selected image khi có dữ liệu
+        setSelectedImage(0);
+      } catch (error) {
+        console.error("Error loading product:", error);
+        toast({
+          title: "Lỗi",
+          description: "Có lỗi xảy ra khi tải sản phẩm",
+          variant: "destructive",
+        });
+        notFound();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (productId) {
+      loadProduct();
+    }
+  }, [productId, toast]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">
+              Đang tải thông tin sản phẩm...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Product not found
   if (!product) {
     notFound();
   }
-
-  // State cho đánh giá
-  const [reviews, setReviews] = useState<Review[]>(
-    sampleReviews[productId] || []
-  );
-  const [quantity, setQuantity] = useState(1);
 
   // Xử lý khi có đánh giá mới
   const handleNewReview = (newReview: Review) => {
     setReviews((prevReviews) => [newReview, ...prevReviews]);
   };
 
-  // Tính giá sau khuyến mãi
-  const discountedPrice =
-    product.discount > 0
-      ? product.price * (1 - product.discount / 100)
-      : product.price;
-
   // Tăng số lượng
   const increaseQuantity = () => {
-    if (quantity < product.stock) {
+    if (quantity < product.inventory) {
       setQuantity(quantity + 1);
     }
   };
@@ -386,8 +413,6 @@ export default function ProductDetailPage({
       setQuantity(quantity - 1);
     }
   };
-
-  const relatedProducts = getRelatedProducts(product);
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -407,17 +432,43 @@ export default function ProductDetailPage({
       {/* Product Info */}
       <div className="grid gap-8 md:grid-cols-2">
         {/* Product Image */}
-        <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
-          <Image
-            src={product.image || "/placeholder.svg"}
-            alt={product.name}
-            fill
-            className="object-cover"
-            priority
-          />
-          {product.discount > 0 && (
-            <div className="absolute left-4 top-4 rounded-full bg-red-500 px-3 py-1 text-sm font-medium text-white">
-              -{product.discount}%
+        <div className="space-y-4">
+          <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
+            <Image
+              src={
+                product.images[selectedImage]?.path ||
+                product.thumbnail ||
+                "/placeholder.svg"
+              }
+              alt={product.images[selectedImage]?.alt || product.name}
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+
+          {/* Additional Images */}
+          {product.images.length > 1 && (
+            <div className="grid grid-cols-4 gap-2">
+              {product.images.map((image, index) => (
+                <button
+                  key={image.id}
+                  onClick={() => setSelectedImage(index)}
+                  className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-colors ${
+                    selectedImage === index
+                      ? "border-green-500"
+                      : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
+                  }`}
+                  aria-label={`Xem hình ảnh ${index + 1} của ${product.name}`}
+                >
+                  <Image
+                    src={image.path || "/placeholder.svg"}
+                    alt={image.alt || `${product.name} ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -442,7 +493,7 @@ export default function ProductDetailPage({
               ))}
             </div>
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              {product.rating} ({reviews.length} đánh giá)
+              {product.rating.toFixed(1)} ({reviews.length} đánh giá)
             </span>
           </div>
 
@@ -451,22 +502,11 @@ export default function ProductDetailPage({
           </p>
 
           <div className="mt-6 flex items-center gap-2">
-            {product.discount > 0 ? (
-              <>
-                <span className="text-3xl font-bold text-green-600 dark:text-green-500">
-                  {formatPrice(discountedPrice)}
-                </span>
-                <span className="text-lg text-gray-500 line-through dark:text-gray-400">
-                  {formatPrice(product.price)}
-                </span>
-              </>
-            ) : (
-              <span className="text-3xl font-bold text-green-600 dark:text-green-500">
-                {formatPrice(product.price)}
-              </span>
-            )}
+            <span className="text-3xl font-bold text-green-600 dark:text-green-500">
+              {formatPrice(product.price)}
+            </span>
             <span className="ml-2 text-gray-600 dark:text-gray-400">
-              / {product.unit}
+              / {product.unitPrice}
             </span>
           </div>
 
@@ -475,22 +515,28 @@ export default function ProductDetailPage({
               variant="outline"
               className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300"
             >
-              {product.category === "seeds" && "Hạt giống"}
-              {product.category === "fertilizers" && "Phân bón"}
-              {product.category === "pesticides" && "Thuốc BVTV"}
-              {product.category === "tools" && "Công cụ & Thiết bị"}
-              {product.category === "irrigation" && "Hệ thống tưới"}
+              {product.category}
             </Badge>
             <Badge
               variant="outline"
               className={
-                product.stock > 0
+                product.inventory > 0
                   ? "bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300"
                   : "bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-300"
               }
             >
-              {product.stock > 0 ? "Còn hàng" : "Hết hàng"}
+              {product.inventory > 0
+                ? `Còn ${product.inventory} ${product.unitPrice}`
+                : "Hết hàng"}
             </Badge>
+            {product.sold > 0 && (
+              <Badge
+                variant="outline"
+                className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+              >
+                Đã bán: {product.sold}
+              </Badge>
+            )}
           </div>
 
           <Separator className="my-6" />
@@ -511,7 +557,7 @@ export default function ProductDetailPage({
               <button
                 className="flex h-10 w-10 items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                 onClick={increaseQuantity}
-                disabled={quantity >= product.stock}
+                disabled={quantity >= product.inventory}
                 aria-label="button"
               >
                 <Plus className="h-4 w-4" />
@@ -545,7 +591,7 @@ export default function ProductDetailPage({
             <Card>
               <CardContent className="p-6">
                 <p className="text-gray-700 dark:text-gray-300">
-                  {product.longDescription}
+                  {product.description}
                 </p>
               </CardContent>
             </Card>
@@ -554,7 +600,7 @@ export default function ProductDetailPage({
             <Card>
               <CardContent className="p-6">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {Object.entries(product.specifications).map(
+                  {Object.entries(products[0].specifications).map(
                     ([key, value]) => (
                       <div key={key} className="flex flex-col space-y-1">
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -575,7 +621,7 @@ export default function ProductDetailPage({
             <Card>
               <CardContent className="p-6">
                 <p className="text-gray-700 dark:text-gray-300">
-                  {product.usage}
+                  {products[0].usage}
                 </p>
               </CardContent>
             </Card>
@@ -665,7 +711,7 @@ export default function ProductDetailPage({
       </div>
 
       {/* Related Products */}
-      {relatedProducts.length > 0 && (
+      {/* {relatedProducts.length > 0 && (
         <div className="mt-16">
           <h2 className="mb-6 text-2xl font-bold text-green-800 dark:text-green-300">
             Sản phẩm liên quan
@@ -724,7 +770,7 @@ export default function ProductDetailPage({
             ))}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

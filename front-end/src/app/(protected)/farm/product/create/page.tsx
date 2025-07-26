@@ -15,6 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -27,12 +32,17 @@ import {
   RotateCcw,
   Camera,
   Trash2,
+  ArrowLeft,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import ProductService from "@/services/product.service";
 import UploadService from "@/services/upload.service";
 import categoryService from "@/services/category.service";
 import { ICategory } from "@/types/product";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface ProductForm {
   name: string;
@@ -48,12 +58,17 @@ interface ProductForm {
 const units = ["kg", "gram", "lạng", "tấn", "quả", "bó", "túi", "hộp"];
 
 export default function AddProductPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [categories, setCategories] = useState<ICategory[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set()
+  );
+  const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const additionalImagesInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,6 +133,9 @@ export default function AddProductPage() {
         }
         if (result) {
           setCategories(result);
+          // Tự động mở rộng các danh mục cấp đầu tiên
+          const rootCategoryIds = result.map((cat: ICategory) => cat.id);
+          setExpandedCategories(new Set(rootCategoryIds));
         }
       } catch (error: any) {
         console.error("Error loading categories:", error);
@@ -134,35 +152,105 @@ export default function AddProductPage() {
     loadCategories();
   }, [toast]);
 
-  // Hàm render categories theo dạng cây
-  const renderCategoryTree = (
+  // Hàm toggle mở/đóng category
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
+
+  // Hàm tìm category theo ID
+  const findCategoryById = (
     categories: ICategory[],
-    level = 0
-  ): React.ReactNode[] => {
-    return categories
-      .map((category) => {
-        const indent = "    ".repeat(level); // Tạo khoảng trắng để thể hiện level
-        let prefix = "";
+    id: string
+  ): ICategory | null => {
+    for (const category of categories) {
+      if (category.id === id) return category;
+      if (category.children) {
+        const found = findCategoryById(category.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
 
-        if (level > 0) {
-          prefix = level === 1 ? "├─ " : "└─ ";
-        }
+  // Hàm render từng category item
+  const renderCategoryItem = (category: ICategory, level: number = 0) => {
+    const hasChildren = category.children && category.children.length > 0;
+    const isExpanded = expandedCategories.has(category.id);
+    const isSelected = formData.categoryId === category.id;
 
-        return [
-          <SelectItem key={category.id} value={category.id}>
-            <span className="font-mono">
-              {indent}
-              {prefix}
-              {category.name}
-            </span>
-          </SelectItem>,
-          // Render children nếu có
-          ...(category.children && category.children.length > 0
-            ? renderCategoryTree(category.children, level + 1)
-            : []),
-        ];
-      })
-      .flat();
+    // Tạo padding class based on level
+    const paddingClass =
+      level === 0
+        ? "pl-2"
+        : level === 1
+        ? "pl-6"
+        : level === 2
+        ? "pl-10"
+        : level === 3
+        ? "pl-14"
+        : "pl-18";
+
+    return (
+      <div key={category.id}>
+        <div
+          className={`flex items-center p-2 hover:bg-gray-100 cursor-pointer ${paddingClass} ${
+            isSelected ? "bg-blue-50 text-blue-700" : ""
+          }`}
+          onClick={() => {
+            handleInputChange("categoryId", category.id);
+            setCategoryPopoverOpen(false);
+          }}
+        >
+          {hasChildren && (
+            <button
+              type="button"
+              title={isExpanded ? "Thu gọn danh mục" : "Mở rộng danh mục"}
+              aria-label={isExpanded ? "Thu gọn danh mục" : "Mở rộng danh mục"}
+              className="mr-2 p-1 hover:bg-gray-200 rounded"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleCategory(category.id);
+              }}
+            >
+              <ChevronDown
+                className={`h-3 w-3 transition-transform ${
+                  isExpanded ? "rotate-0" : "-rotate-90"
+                }`}
+              />
+            </button>
+          )}
+          {!hasChildren && <div className="w-6 mr-2" />}
+          <span className="flex-1 text-sm">{category.name}</span>
+          {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+        </div>
+
+        {hasChildren && isExpanded && (
+          <div>
+            {category.children.map((child) =>
+              renderCategoryItem(child, level + 1)
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Hàm render toàn bộ cây category
+  const renderCategoryTree = () => {
+    return (
+      <div className="max-h-80 w-[512px] overflow-y-auto">
+        {categories.map((category) => renderCategoryItem(category))}
+      </div>
+    );
   };
 
   const handleInputChange = (field: keyof ProductForm, value: string) => {
@@ -496,14 +584,23 @@ export default function AddProductPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Thêm sản phẩm mới
-        </h1>
-        <p className="text-gray-600">
-          Điền thông tin chi tiết để thêm sản phẩm vào cửa hàng
-        </p>
+    <div className="container mx-auto p-6">
+      <div className="flex items-center justify-between mb-2">
+        <Link href="/farm/product">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Quay lại
+          </Button>
+        </Link>
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
+            Thêm sản phẩm mới
+          </h1>
+          <p className="text-gray-600">
+            Điền thông tin chi tiết để thêm sản phẩm vào cửa hàng
+          </p>
+        </div>
+        <div className="w-28"></div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -518,7 +615,9 @@ export default function AddProductPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Tên sản phẩm <span className="text-red-500">*</span></Label>
+                <Label htmlFor="name">
+                  Tên sản phẩm <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -532,39 +631,52 @@ export default function AddProductPage() {
               </div>
 
               <div>
-                <Label htmlFor="categoryId">Danh mục <span className="text-red-500">*</span></Label>
-                <Select
-                  value={formData.categoryId}
-                  onValueChange={(value) =>
-                    handleInputChange("categoryId", value)
-                  }
-                  disabled={categoriesLoading}
+                <Label htmlFor="categoryId">
+                  Danh mục <span className="text-red-500">*</span>
+                </Label>
+                <Popover
+                  open={categoryPopoverOpen}
+                  onOpenChange={setCategoryPopoverOpen}
                 >
-                  <SelectTrigger
-                    className={errors.categoryId ? "border-red-500" : ""}
-                  >
-                    <SelectValue
-                      placeholder={
-                        categoriesLoading
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={`w-full flex items-center justify-between rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                        errors.categoryId ? "border-red-500" : "border-input"
+                      }`}
+                      disabled={categoriesLoading}
+                    >
+                      <span
+                        className={
+                          formData.categoryId
+                            ? "text-foreground"
+                            : "text-muted-foreground"
+                        }
+                      >
+                        {categoriesLoading
                           ? "Đang tải danh mục..."
-                          : "Chọn danh mục"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
+                          : formData.categoryId
+                          ? findCategoryById(categories, formData.categoryId)
+                              ?.name || "Chọn danh mục"
+                          : "Chọn danh mục"}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
                     {categoriesLoading ? (
-                      <SelectItem value="loading" disabled>
+                      <div className="p-4 text-center text-sm text-muted-foreground">
                         Đang tải danh mục...
-                      </SelectItem>
+                      </div>
                     ) : categories.length > 0 ? (
-                      renderCategoryTree(categories)
+                      renderCategoryTree()
                     ) : (
-                      <SelectItem value="no-categories" disabled>
+                      <div className="p-4 text-center text-sm text-muted-foreground">
                         Không có danh mục nào
-                      </SelectItem>
+                      </div>
                     )}
-                  </SelectContent>
-                </Select>
+                  </PopoverContent>
+                </Popover>
                 {errors.categoryId && (
                   <p className="text-sm text-red-500 mt-1">
                     {errors.categoryId}
@@ -574,7 +686,9 @@ export default function AddProductPage() {
             </div>
 
             <div>
-              <Label htmlFor="description">Mô tả sản phẩm <span className="text-red-500">*</span></Label>
+              <Label htmlFor="description">
+                Mô tả sản phẩm <span className="text-red-500">*</span>
+              </Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -594,7 +708,9 @@ export default function AddProductPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="price">Giá bán (VNĐ) <span className="text-red-500">*</span></Label>
+                <Label htmlFor="price">
+                  Giá bán (VNĐ) <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="price"
                   type="number"
@@ -611,7 +727,9 @@ export default function AddProductPage() {
               </div>
 
               <div>
-                <Label htmlFor="unitPrice">Đơn vị tính <span className="text-red-500">*</span></Label>
+                <Label htmlFor="unitPrice">
+                  Đơn vị tính <span className="text-red-500">*</span>
+                </Label>
                 <Select
                   value={formData.unitPrice}
                   onValueChange={(value) =>
@@ -632,7 +750,9 @@ export default function AddProductPage() {
               </div>
 
               <div>
-                <Label htmlFor="inventory">Số lượng tồn kho <span className="text-red-500">*</span></Label>
+                <Label htmlFor="inventory">
+                  Số lượng tồn kho <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="inventory"
                   type="number"
@@ -665,7 +785,9 @@ export default function AddProductPage() {
           <CardContent className="space-y-6">
             {/* Ảnh đại diện */}
             <div>
-              <Label>Ảnh đại diện <span className="text-red-500">*</span></Label>
+              <Label>
+                Ảnh đại diện <span className="text-red-500">*</span>
+              </Label>
               <div className="mt-2">
                 {uploadingThumbnail ? (
                   <div className="w-40 h-40 border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center bg-blue-50">
@@ -749,7 +871,9 @@ export default function AddProductPage() {
 
             {/* Ảnh bổ sung */}
             <div>
-              <Label>Ảnh bổ sung <span className="text-red-500">*</span></Label>
+              <Label>
+                Ảnh bổ sung <span className="text-red-500">*</span>
+              </Label>
               <div className="mt-2">
                 {uploadingImages ? (
                   <div className="w-full h-32 border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center bg-blue-50">

@@ -3,8 +3,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Star } from "lucide-react"
 
 export interface Review {
-  id: number
-  productId: number
+  id: string
+  productId: string
   userName: string
   rating: number
   comment: string

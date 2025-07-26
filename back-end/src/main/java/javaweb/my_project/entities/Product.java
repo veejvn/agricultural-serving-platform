@@ -25,6 +25,7 @@ public class Product {
 
     String name;
 
+    @Column(columnDefinition = "LONGTEXT")
     String description;
 
     Integer price;

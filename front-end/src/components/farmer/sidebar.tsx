@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useSidebar } from "@/contexts/sidebar-context";
 import {
   LayoutDashboard,
   Package,
@@ -11,10 +12,21 @@ import {
   Calendar,
   Settings,
   LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Tractor,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function FarmerSidebar() {
   const pathname = usePathname();
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
   const routes = [
     {
@@ -56,46 +68,86 @@ export function FarmerSidebar() {
   ];
 
   return (
-    <div className="flex h-full flex-col border-r bg-white dark:bg-gray-950 dark:border-gray-800">
-      {/* <div className="p-6">
-        <Link
-          href="/farm"
-          className="flex items-center gap-2 font-bold text-xl"
-        >
-          <span className="bg-green-600 text-white p-1 rounded">
-            Trang Trại
-          </span>
-          <span>Nông Nghiệp</span>
-        </Link>
-      </div> */}
-      <div className="flex-1 overflow-auto py-2">
-        <nav className="grid items-start px-4 text-sm font-medium">
-          {routes.map((route, index) => (
-            <Link
-              key={index}
-              href={route.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-green-600 dark:hover:text-green-500",
-                route.active
-                  ? "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-500"
-                  : "text-gray-500 dark:text-gray-400"
-              )}
+    <TooltipProvider>
+      <div
+        className={cn(
+          "flex h-full flex-col border-r bg-white dark:bg-gray-950 dark:border-gray-800 transition-all duration-300",
+          isCollapsed ? "w-20" : "w-46"
+        )}
+      >
+        {/* Header with toggle button */}
+        <div className="p-4 border-b dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            {!isCollapsed && (
+              <Link
+                href="/farm"
+                className="flex items-center gap-2 font-bold text-lg"
+              >
+                {/* <Tractor className="text-green-600 p-1 rounded text-sm"/> */}
+                <span className="text-green-600">Trang Trại</span>
+              </Link>
+            )}
+            {isCollapsed && (
+              <Link
+                href="/farm"
+                className="flex items-center justify-center w-full"
+              >
+                <Tractor className="text-green-600 p-1 rounded text-sm"/>
+              </Link>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="h-8 w-8 p-0"
             >
-              <route.icon className="h-4 w-4" />
-              {route.title}
-            </Link>
-          ))}
-        </nav>
+              {isCollapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-auto py-2">
+          <nav className="grid items-start px-2 text-sm font-medium">
+            {routes.map((route, index) => {
+              const LinkComponent = (
+                <Link
+                  key={index}
+                  href={route.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-green-600 dark:hover:text-green-500",
+                    route.active
+                      ? "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-500"
+                      : "text-gray-500 dark:text-gray-400",
+                    isCollapsed ? "justify-center" : ""
+                  )}
+                >
+                  <route.icon className="h-4 w-4 flex-shrink-0" />
+                  {!isCollapsed && (
+                    <span className="truncate">{route.title}</span>
+                  )}
+                </Link>
+              );
+
+              if (isCollapsed) {
+                return (
+                  <Tooltip key={index}>
+                    <TooltipTrigger asChild>{LinkComponent}</TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>{route.title}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }
+
+              return LinkComponent;
+            })}
+          </nav>
+        </div>
       </div>
-      {/* <div className="mt-auto p-4">
-        <Link
-          href="/"
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 transition-all hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500"
-        >
-          <LogOut className="h-4 w-4" />
-          Đăng xuất
-        </Link>
-      </div> */}
-    </div>
+    </TooltipProvider>
   );
 }

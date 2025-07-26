@@ -11,10 +11,10 @@ import { Star } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface ProductReviewFormProps {
-  productId: number
+  productId: string
   onReviewSubmitted: (review: {
-    id: number
-    productId: number
+    id: string
+    productId: string
     userName: string
     rating: number
     comment: string
@@ -65,7 +65,7 @@ export function ProductReviewForm({ productId, onReviewSubmitted }: ProductRevie
     // Giả lập gửi đánh giá lên server
     setTimeout(() => {
       const newReview = {
-        id: Date.now(),
+        id: Math.random().toString(36).substring(2, 15), // Giả lập ID ngẫu nhiên
         productId,
         userName,
         rating,
