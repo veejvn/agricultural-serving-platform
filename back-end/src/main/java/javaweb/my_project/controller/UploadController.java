@@ -60,8 +60,8 @@ public class UploadController {
     }
 
     @PostMapping("/video")
-    public ResponseEntity<ApiResponse<String>> uploadVideo(@RequestParam("video") MultipartFile video){
-        if(video.getSize() > 50 * 1024 * 1024){ //MB -> bit
+    public ResponseEntity<ApiResponse<String>> uploadVideo(@RequestParam("video") MultipartFile video) {
+        if (video.getSize() > 50 * 1024 * 1024) { // MB -> bit
             ApiResponse<String> apiResponse = ApiResponse.<String>builder()
                     .success(false)
                     .code("upload-e-03")
