@@ -3,4 +3,6 @@ export const ROUTES = {
     LOGIN: '/login',
     REGISTER: '/register',
     FORGOT_PASSWORD: '/forgot-password',
+    NOT_FOUND: '/not-found',
+    PRODUCT: '/product',
 }

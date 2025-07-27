@@ -10,7 +10,6 @@ export interface ICategory {
 export interface ImageResponse {
   id: string;
   path: string;
-  alt: string;
 }
 
 // Interface cho dữ liệu sản phẩm

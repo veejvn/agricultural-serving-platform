@@ -440,7 +440,7 @@ export default function ProductDetailPage({
                 product.thumbnail ||
                 "/placeholder.svg"
               }
-              alt={product.images[selectedImage]?.alt || product.name}
+              alt={product.name}
               fill
               className="object-contain"
               priority
@@ -463,7 +463,7 @@ export default function ProductDetailPage({
                 >
                   <Image
                     src={image.path || "/placeholder.svg"}
-                    alt={image.alt || `${product.name} ${index + 1}`}
+                    alt={`${product.name} ${index + 1}`}
                     fill
                     className="object-cover"
                   />

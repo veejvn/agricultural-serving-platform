@@ -71,10 +71,12 @@ export default function LoginPage() {
         <div className="hidden lg:block">
           <div className="relative h-[600px] w-full overflow-hidden rounded-xl">
             <Image
-              src="/register-image.png?height=800&width=600"
+              src="/images/authenticate_image.png"
               alt="Nông dân đang chăm sóc cây trồng"
               fill
               className="object-cover"
+              loading="eager"
+              priority
             />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/80 to-transparent p-8 flex flex-col justify-end">
               <h2 className="mb-4 text-3xl font-bold text-white">

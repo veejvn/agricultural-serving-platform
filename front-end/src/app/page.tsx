@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import HeroCarousel from "@/components/common/hero-carousel";
 import {
   Card,
   CardContent,
@@ -20,8 +23,18 @@ import {
 import WeatherWidget from "@/components/weather/weather-widget";
 import MarketPriceWidget from "@/components/market-price/market-price-widget";
 import ForumPreview from "@/components/forum/forum-preview";
+import { useAuthStore } from "@/stores/useAuthStore";
+
+const CAUROUSEL_IMAGES = [
+  "/images/home_carousel_1.jpg",
+  "/images/home_carousel_2.jpg",
+  "/images/home_carousel_3.jpg",
+  "/images/home_carousel_4.jpg",
+  "/images/home_carousel_5.webp",
+];
 
 export default function Home() {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return (
     <div className="flex flex-col gap-8 pb-8">
       {/* Hero Section */}
@@ -38,13 +51,15 @@ export default function Home() {
                 nghiệp chất lượng cao.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
-                >
-                  <Link href="/register">Đăng Ký Ngay</Link>
-                </Button>
+                {!isLoggedIn && (
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+                  >
+                    <Link href="/register">Đăng Ký Ngay</Link>
+                  </Button>
+                )}
                 <Button
                   asChild
                   variant="outline"
@@ -55,14 +70,11 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-            <div className="relative mx-auto max-w-lg lg:max-w-none">
-              <Image
-                src="/placeholder.svg?height=500&width=600"
-                alt="Nông dân đang chăm sóc cây trồng"
-                width={600}
-                height={500}
-                className="rounded-xl shadow-xl"
-                priority
+            <div className="relative mx-auto w-full max-w-2xl lg:max-w-none">
+              <HeroCarousel
+                images={CAUROUSEL_IMAGES}
+                autoPlay={true}
+                autoPlayInterval={5000}
               />
             </div>
           </div>

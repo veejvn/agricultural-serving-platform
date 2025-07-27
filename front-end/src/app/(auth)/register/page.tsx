@@ -52,7 +52,7 @@ export default function RegisterPage() {
         <div className="hidden lg:block">
           <div className="relative h-[600px] w-full overflow-hidden rounded-xl">
             <Image
-              src="/register-image.png?height=800&width=600"
+              src="/images/authenticate_image.png"
               alt="Nông dân đang chăm sóc cây trồng"
               fill
               className="object-cover"

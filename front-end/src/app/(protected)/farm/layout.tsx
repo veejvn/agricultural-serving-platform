@@ -7,6 +7,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import LoadingSpinner from "@/components/common/loading-spinner";
 import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
 import { FarmerSidebar } from "@/components/farmer/sidebar";
+import { ROUTES } from "@/contants/router.contant";
 
 function FarmerLayoutContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
@@ -42,7 +43,7 @@ export default function FarmerLayout({
   useEffect(() => {
     // Only check role if user data is loaded (not null)
     if (user.id !== null && !hasFarmerRole) {
-      router.replace("/not-found");
+      router.replace(ROUTES.NOT_FOUND);
     }
   }, [user.id, hasFarmerRole, router]);
 
