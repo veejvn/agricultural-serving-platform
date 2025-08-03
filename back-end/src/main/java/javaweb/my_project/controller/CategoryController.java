@@ -1,7 +1,6 @@
 package javaweb.my_project.controller;
 
 import jakarta.validation.Valid;
-import javaweb.my_project.dto.account.AccountResponse;
 import javaweb.my_project.dto.api.ApiResponse;
 import javaweb.my_project.dto.category.CategoryRequest;
 import javaweb.my_project.dto.category.CategoryTreeNode;

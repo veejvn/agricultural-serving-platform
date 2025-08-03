@@ -12,14 +12,29 @@ export default function AuthClientLayout({
   children: React.ReactNode;
 }) {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const redirect = useAuthStore((state) => state.redirect);
+  const setRedirect = useAuthStore.getState().setRedirect;
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
     setIsReady(true);
-    if (isLoggedIn) {
-      router.replace(ROUTES.HOME);
+  }, []);
+
+  useEffect(() => {
+    // console.log(
+    //   "AuthClientLayout - isLoggedIn:",
+    //   isLoggedIn,
+    //   "redirect:",
+    //   redirect
+    // );
+    if (isLoggedIn && isReady) {
+      const redirectPath = redirect || ROUTES.HOME;
+      console.log("AuthClientLayout - Navigating to:", redirectPath);
+      setRedirect("/"); // Reset redirect
+      router.replace(redirectPath);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn]); // Chỉ listen vào isLoggedIn
 
   if (!isReady) {
     return (

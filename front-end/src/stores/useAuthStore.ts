@@ -14,11 +14,6 @@ interface AuthState {
   setRedirect: (redirect: string) => void;
 }
 
-// const isLoggedInStored = getLS("isLoggedIn");
-// const accessTokenStored = getLS("accessToken", "");
-// const refreshTokenStored = getLS("refreshToken", "");
-// const redirectStored = getLS("redirect", "/");
-
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({

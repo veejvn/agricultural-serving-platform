@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import useMessageByApiCode from "@/hooks/useMessageByApiCode";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { ROUTES } from "@/contants/router.contant";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
@@ -34,6 +35,7 @@ export default function LoginPage() {
   const redirect = useAuthStore((state) => state.redirect);
   const setTokens = useAuthStore.getState().setTokens;
   const setIsLoggedIn = useAuthStore.getState().setIsLoggedIn;
+  const setRedirect = useAuthStore.getState().setRedirect;
 
   const handleSubmit = async (data: LoginFormData) => {
     //console.log(data);
@@ -50,15 +52,20 @@ export default function LoginPage() {
     }
     //console.log(result);
     if (result.data.accessToken && result.data.refreshToken) {
-      setIsLoggedIn(true)
+      setIsLoggedIn(true);
       setTokens(result.data.accessToken, result.data.refreshToken);
-      router.push(redirect);
+
       toast({
         description: getMessage(result.code),
         variant: "success",
       });
+
+      // Navigate to redirect page and then reset redirect
+      // const redirectPath = redirect || "/";
+      // console.log("Navigating to:", redirectPath);
+      // router.push(redirectPath);
     } else {
-      router.push("/login");
+      router.push(ROUTES.LOGIN);
       toast({
         description: getMessage(result.code),
         variant: "error",

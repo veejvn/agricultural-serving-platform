@@ -1,8 +1,6 @@
 package javaweb.my_project.controller;
 
 import jakarta.validation.Valid;
-import javaweb.my_project.dto.account.AccountRequest;
-import javaweb.my_project.dto.account.AccountResponse;
 import javaweb.my_project.dto.api.ApiResponse;
 import javaweb.my_project.dto.order.ChangeOrderStatusRequest;
 import javaweb.my_project.dto.order.OrderRequest;
@@ -23,8 +21,8 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<OrderResponse>> create(@RequestBody @Valid OrderRequest request){
-        ApiResponse<OrderResponse> apiResponse =  ApiResponse.<OrderResponse>builder()
+    public ResponseEntity<ApiResponse<OrderResponse>> create(@RequestBody @Valid OrderRequest request) {
+        ApiResponse<OrderResponse> apiResponse = ApiResponse.<OrderResponse>builder()
                 .code("order-s-01")
                 .message("Create order successfully")
                 .data(orderService.create(request))
@@ -33,8 +31,8 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAll(){
-        ApiResponse<List<OrderResponse>> apiResponse =  ApiResponse.<List<OrderResponse>>builder()
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAll() {
+        ApiResponse<List<OrderResponse>> apiResponse = ApiResponse.<List<OrderResponse>>builder()
                 .code("order-s-02")
                 .message("Get all order successfully")
                 .data(orderService.getAll())
@@ -44,8 +42,8 @@ public class OrderController {
 
     @GetMapping("/farmer")
     @PreAuthorize("hasRole('FARMER')")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllByFarmer(){
-        ApiResponse<List<OrderResponse>> apiResponse =  ApiResponse.<List<OrderResponse>>builder()
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllByFarmer() {
+        ApiResponse<List<OrderResponse>> apiResponse = ApiResponse.<List<OrderResponse>>builder()
                 .code("order-s-03")
                 .message("Get all order by farmer successfully")
                 .data(orderService.getAllByFarmer())
@@ -54,8 +52,9 @@ public class OrderController {
     }
 
     @PostMapping("/consumer/change-status")
-    public ResponseEntity<ApiResponse<OrderResponse>> consumerChangeStatus(@RequestBody @Valid ChangeOrderStatusRequest request){
-        ApiResponse<OrderResponse> apiResponse =  ApiResponse.<OrderResponse>builder()
+    public ResponseEntity<ApiResponse<OrderResponse>> consumerChangeStatus(
+            @RequestBody @Valid ChangeOrderStatusRequest request) {
+        ApiResponse<OrderResponse> apiResponse = ApiResponse.<OrderResponse>builder()
                 .code("order-s-04")
                 .message("Change order status successfully")
                 .data(orderService.consumerChangeStatus(request))
@@ -64,8 +63,9 @@ public class OrderController {
     }
 
     @PostMapping("/farmer/change-status")
-    public ResponseEntity<ApiResponse<OrderResponse>> farmerChangeStatus(@RequestBody @Valid ChangeOrderStatusRequest request){
-        ApiResponse<OrderResponse> apiResponse =  ApiResponse.<OrderResponse>builder()
+    public ResponseEntity<ApiResponse<OrderResponse>> farmerChangeStatus(
+            @RequestBody @Valid ChangeOrderStatusRequest request) {
+        ApiResponse<OrderResponse> apiResponse = ApiResponse.<OrderResponse>builder()
                 .code("order-s-05")
                 .message("Change order status successfully")
                 .data(orderService.farmerChangeStatus(request))
