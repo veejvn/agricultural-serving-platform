@@ -1,6 +1,5 @@
 package javaweb.my_project.dto.account;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;

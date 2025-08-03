@@ -33,19 +33,13 @@ export default function CartPage() {
 
   // Filter out invalid items
   const validCartItems = cartItems.filter((item) => {
-    const isValid =
-      item && item.id && item.product && item.product.id;
+    const isValid = item && item.id && item.product && item.product.id;
     return isValid;
   });
 
   console.log("CartPage - validCartItems:", validCartItems);
 
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
-
-  // Fetch cart items on component mount
-  useEffect(() => {
-    fetchCartItems();
-  }, [fetchCartItems]);
 
   // Handle quantity update
   const handleQuantityUpdate = async (
@@ -135,9 +129,7 @@ export default function CartPage() {
                     >
                       <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
                         <Image
-                          src={
-                            item.product?.thumbnail || "/placeholder.svg"
-                          }
+                          src={item.product?.thumbnail || "/placeholder.svg"}
                           alt={item.product?.name || "Product"}
                           fill
                           className="object-cover"
@@ -146,12 +138,10 @@ export default function CartPage() {
                       <div className="flex flex-1 flex-col justify-between">
                         <div>
                           <h3 className="font-medium text-green-800 dark:text-green-300">
-                            {item.product?.name ||
-                              "Không có tên sản phẩm"}
+                            {item.product?.name || "Không có tên sản phẩm"}
                           </h3>
                           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            {item.product?.description ||
-                              "Không có mô tả"}
+                            {item.product?.description || "Không có mô tả"}
                           </p>
                           <div className="mt-1">
                             <span className="font-medium text-green-600 dark:text-green-500">

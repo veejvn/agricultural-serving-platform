@@ -25,12 +25,12 @@ public class AddressService {
     SecurityUtil securityUtil;
     AddressMapper addressMapper;
 
-    public AddressResponse create(AddressRequest request){
+    public AddressResponse create(AddressRequest request) {
         Account account = securityUtil.getAccount();
-        //Nếu địa chỉ được tạo lần đầu tiên, đặt nó là mặc định
-        if(!addressRepository.existsByAccountId(account.getId())){
+        // Nếu địa chỉ được tạo lần đầu tiên, đặt nó là mặc định
+        if (!addressRepository.existsByAccountId(account.getId())) {
             request.setIsDefault(true);
-        }else if(request.getIsDefault()){
+        } else if (request.getIsDefault()) {
             setDefaultAddressIsFalse(account.getId());
         }
         Address address = addressMapper.toAddress(request);
@@ -39,48 +39,46 @@ public class AddressService {
         return addressMapper.toAddressResponse(address);
     }
 
-    public AddressResponse get(String id){
+    public AddressResponse get(String id) {
 
-        if(isAddressCreator(id, securityUtil.getAccountId())){
+        if (isAddressCreator(id, securityUtil.getAccountId())) {
             throw new AppException(HttpStatus.FORBIDDEN, "You are not the creator of this address", "address-e-04");
         }
 
         Address address = addressRepository.findById(id)
                 .orElseThrow(
-                        () -> new AppException(HttpStatus.NOT_FOUND,"Address not found", "address-e-01")
-                );
+                        () -> new AppException(HttpStatus.NOT_FOUND, "Address not found", "address-e-01"));
 
         return addressMapper.toAddressResponse(address);
     }
 
-    public List<AddressResponse> getAll(){
+    public List<AddressResponse> getAll() {
 
-         List<Address> addresses = addressRepository.findAllByAccount(securityUtil.getAccount());
+        List<Address> addresses = addressRepository.findAllByAccount(securityUtil.getAccount());
         return addressMapper.toListAddressResponse(addresses);
     }
 
-    public AddressResponse update(String id, AddressRequest request){
+    public AddressResponse update(String id, AddressRequest request) {
 
-        if(isAddressCreator(id, securityUtil.getAccountId())){
+        if (isAddressCreator(id, securityUtil.getAccountId())) {
             throw new AppException(HttpStatus.FORBIDDEN, "You are not the creator of this address", "address-e-04");
         }
 
-        if(request.getIsDefault())
+        if (request.getIsDefault())
             setDefaultAddressIsFalse(securityUtil.getAccountId());
 
         Address address = addressRepository.findById(id)
                 .orElseThrow(
-                        () -> new AppException(HttpStatus.NOT_FOUND,"Update address not found.", "address-e-02")
-                );
+                        () -> new AppException(HttpStatus.NOT_FOUND, "Update address not found.", "address-e-02"));
         addressMapper.updateAddress(address, request);
         addressRepository.save(address);
 
         return addressMapper.toAddressResponse(address);
     }
 
-    public AddressResponse updateIsDefault(String id){
+    public AddressResponse updateIsDefault(String id) {
 
-        if(isAddressCreator(id, securityUtil.getAccountId())){
+        if (isAddressCreator(id, securityUtil.getAccountId())) {
             throw new AppException(HttpStatus.FORBIDDEN, "You are not the creator of this address", "address-e-04");
         }
 
@@ -88,28 +86,28 @@ public class AddressService {
 
         Address addressUpdateDefault = addressRepository.findById(id)
                 .orElseThrow(
-                        () -> new AppException(HttpStatus.NOT_FOUND,"Default update address not found", "address-e-03")
-                );
+                        () -> new AppException(HttpStatus.NOT_FOUND, "Default update address not found",
+                                "address-e-03"));
         addressUpdateDefault.setIsDefault(true);
         addressRepository.save(addressUpdateDefault);
 
         return addressMapper.toAddressResponse(addressUpdateDefault);
     }
 
-    public void delete(String id){
+    public void delete(String id) {
 
-        if(isAddressCreator(id, securityUtil.getAccountId())){
+        if (isAddressCreator(id, securityUtil.getAccountId())) {
             throw new AppException(HttpStatus.FORBIDDEN, "You are not the creator of this address", "address-e-04");
         }
 
         addressRepository.deleteById(id);
     }
 
-    public void setDefaultAddressIsFalse(String id){
+    public void setDefaultAddressIsFalse(String id) {
 
         Optional<Address> optionalDefaultAddress = addressRepository.findByAccountIdAndIsDefaultTrue(id);
 
-        if(optionalDefaultAddress.isPresent()){
+        if (optionalDefaultAddress.isPresent()) {
             Address addressDefault = optionalDefaultAddress.get();
             addressDefault.setIsDefault(false);
             addressRepository.save(addressDefault);

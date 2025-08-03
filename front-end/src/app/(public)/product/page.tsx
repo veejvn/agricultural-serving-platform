@@ -18,8 +18,11 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { ProductCard } from "@/components/product/product-card";
+import { useCart } from "@/hooks/useCart";
 
 export default function ProductsPage() {
+  const { totalItems, fetchCartItems } = useCart();
+
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(12); // Số sản phẩm trên mỗi trang
   const [isLoading, setIsLoading] = useState(false);
@@ -635,7 +638,7 @@ export default function ProductsPage() {
           >
             <Link href="/cart">
               <ShoppingCart className="mr-2 h-4 w-4" />
-              Giỏ hàng (0)
+              Giỏ hàng ({totalItems})
             </Link>
           </Button>
         </div>

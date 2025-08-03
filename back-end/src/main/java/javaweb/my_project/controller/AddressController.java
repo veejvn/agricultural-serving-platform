@@ -20,7 +20,7 @@ public class AddressController {
     private final AddressService addressService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<AddressResponse>> create(@RequestBody @Valid AddressRequest request){
+    public ResponseEntity<ApiResponse<AddressResponse>> create(@RequestBody @Valid AddressRequest request) {
         ApiResponse<AddressResponse> apiResponse = ApiResponse.<AddressResponse>builder()
                 .code("address-s-01")
                 .message("Create address successfully")
@@ -30,7 +30,7 @@ public class AddressController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<AddressResponse>> get(@PathVariable String id){
+    public ResponseEntity<ApiResponse<AddressResponse>> get(@PathVariable String id) {
         ApiResponse<AddressResponse> apiResponse = ApiResponse.<AddressResponse>builder()
                 .code("address-s-02")
                 .message("Get address successfully")
@@ -40,7 +40,7 @@ public class AddressController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AddressResponse>>> getAll(){
+    public ResponseEntity<ApiResponse<List<AddressResponse>>> getAll() {
         ApiResponse<List<AddressResponse>> apiResponse = ApiResponse.<List<AddressResponse>>builder()
                 .code("address-s-03")
                 .message("Get addresses successfully")
@@ -50,7 +50,8 @@ public class AddressController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<AddressResponse>> update(@PathVariable String id, @RequestBody @Valid AddressRequest request){
+    public ResponseEntity<ApiResponse<AddressResponse>> update(@PathVariable String id,
+            @RequestBody @Valid AddressRequest request) {
         ApiResponse<AddressResponse> apiResponse = ApiResponse.<AddressResponse>builder()
                 .code("address-s-04")
                 .message("Update address successfully")
@@ -60,7 +61,7 @@ public class AddressController {
     }
 
     @GetMapping("/isDefault/{id}")
-    public ResponseEntity<ApiResponse<AddressResponse>> updateIsDefault(@PathVariable String id){
+    public ResponseEntity<ApiResponse<AddressResponse>> updateIsDefault(@PathVariable String id) {
         ApiResponse<AddressResponse> apiResponse = ApiResponse.<AddressResponse>builder()
                 .code("address-s-05")
                 .message("Update default address successfully")
@@ -70,7 +71,7 @@ public class AddressController {
     }
 
     @DeleteMapping("/{id}")
-    ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id){
+    ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         addressService.delete(id);
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .code("address-s-06")

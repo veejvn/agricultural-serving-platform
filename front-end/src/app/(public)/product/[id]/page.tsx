@@ -18,6 +18,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useState, useEffect, use } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/hooks/useCart";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useRouter, usePathname } from "next/navigation";
+import { ROUTES } from "@/contants/router.contant";
 import ProductService from "@/services/product.service";
 import type { IProductResponese } from "@/types/product";
 import { ProductReviewForm } from "@/components/product/product-review-form";
@@ -323,6 +327,11 @@ export default function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { toast } = useToast();
+  const { addToCart } = useCart();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const setRedirect = useAuthStore.getState().setRedirect;
+  const router = useRouter();
+  const pathname = usePathname();
   const resolvedParams = use(params);
   const productId = resolvedParams.id;
 
@@ -330,6 +339,7 @@ export default function ProductDetailPage({
   const [product, setProduct] = useState<IProductResponese | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   // State cho đánh giá (sử dụng sampleReviews)
   const [reviews, setReviews] = useState<Review[]>(sampleReviews["1"] || []);
@@ -411,6 +421,43 @@ export default function ProductDetailPage({
   const decreaseQuantity = () => {
     if (quantity > 1) {
       setQuantity(quantity - 1);
+    }
+  };
+
+  // Xử lý thêm vào giỏ hàng
+  const handleAddToCart = async () => {
+    // Kiểm tra đăng nhập
+    if (!isLoggedIn) {
+      setRedirect(pathname);
+      toast({
+        title: "Cần đăng nhập",
+        description: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng",
+        variant: "destructive",
+      });
+      router.push(ROUTES.LOGIN);
+      return;
+    }
+
+    // Kiểm tra số lượng tồn kho
+    if (quantity > product.inventory) {
+      toast({
+        title: "Lỗi",
+        description: "Số lượng yêu cầu vượt quá số lượng tồn kho",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      await addToCart(product.id, quantity);
+      // Toast success đã được xử lý trong useCart hook
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      // Toast error đã được xử lý trong useCart hook
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
@@ -563,9 +610,13 @@ export default function ProductDetailPage({
                 <Plus className="h-4 w-4" />
               </button>
             </div>
-            <Button className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600">
+            <Button
+              className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+              onClick={handleAddToCart}
+              disabled={isAddingToCart || product.inventory === 0}
+            >
               <ShoppingCart className="mr-2 h-4 w-4" />
-              Thêm vào giỏ hàng
+              {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ hàng"}
             </Button>
           </div>
 
@@ -672,8 +723,12 @@ export default function ProductDetailPage({
                               </span>
                               <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                                 <div
-                                  className="h-full rounded-full bg-yellow-400"
-                                  style={{ width: `${percentage}%` }}
+                                  className="h-full rounded-full bg-yellow-400 transition-all duration-300"
+                                  style={
+                                    {
+                                      width: `${percentage}%`,
+                                    } as React.CSSProperties
+                                  }
                                 ></div>
                               </div>
                               <span className="text-sm text-gray-600 dark:text-gray-400">

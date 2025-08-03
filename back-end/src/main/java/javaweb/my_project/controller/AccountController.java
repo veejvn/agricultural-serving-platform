@@ -24,8 +24,8 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<AccountResponse>> getAccount(){
-        ApiResponse<AccountResponse> apiResponse =  ApiResponse.<AccountResponse>builder()
+    public ResponseEntity<ApiResponse<AccountResponse>> getAccount() {
+        ApiResponse<AccountResponse> apiResponse = ApiResponse.<AccountResponse>builder()
                 .code("account-s-01")
                 .message("Get account successfully")
                 .data(accountService.getAccount())
@@ -34,8 +34,8 @@ public class AccountController {
     }
 
     @PutMapping
-    public ResponseEntity<ApiResponse<AccountResponse>> updateAccount(@RequestBody @Valid AccountRequest request){
-        ApiResponse<AccountResponse> apiResponse =  ApiResponse.<AccountResponse>builder()
+    public ResponseEntity<ApiResponse<AccountResponse>> updateAccount(@RequestBody @Valid AccountRequest request) {
+        ApiResponse<AccountResponse> apiResponse = ApiResponse.<AccountResponse>builder()
                 .code("account-s-02")
                 .message("Update account successfully")
                 .data(accountService.updateAccount(request))
@@ -44,8 +44,9 @@ public class AccountController {
     }
 
     @PostMapping("/upgradeToFarmer")
-    public ResponseEntity<ApiResponse<FarmerResponse>> upgradeToFarmer(@RequestBody @Valid UpgradeToFarmerRequest request){
-        ApiResponse<FarmerResponse> apiResponse =  ApiResponse.<FarmerResponse>builder()
+    public ResponseEntity<ApiResponse<FarmerResponse>> upgradeToFarmer(
+            @RequestBody @Valid UpgradeToFarmerRequest request) {
+        ApiResponse<FarmerResponse> apiResponse = ApiResponse.<FarmerResponse>builder()
                 .code("account-s-02")
                 .message("Update account to farmer successfully")
                 .data(accountService.upgradeToFarmer(request))
@@ -54,9 +55,9 @@ public class AccountController {
     }
 
     @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> delete(@RequestBody @Valid DeleteAccountRequest request){
+    public ResponseEntity<ApiResponse<Void>> delete(@RequestBody @Valid DeleteAccountRequest request) {
         accountService.delete(request);
-        ApiResponse<Void> apiResponse =  ApiResponse.<Void>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .code("account-s-03")
                 .message("Delete account successfully")
                 .build();
@@ -65,7 +66,7 @@ public class AccountController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<AccountResponse>>> getAllAccount(){
+    public ResponseEntity<ApiResponse<List<AccountResponse>>> getAllAccount() {
         ApiResponse<List<AccountResponse>> apiResponse = ApiResponse.<List<AccountResponse>>builder()
                 .code("address-s-04")
                 .message("Get all user successfully")

@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/hooks/useCart";
 import useMessageByApiCode from "@/hooks/useMessageByApiCode";
 import AuthService from "@/services/auth.service";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -21,10 +22,11 @@ import {
   Tractor,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
+  const { totalItems, fetchCartItems } = useCart();
   const user = useUserStore((state) => state.user);
   const { avatar, displayName, email, roles } = user;
   const fallBack = displayName
@@ -106,7 +108,14 @@ export default function UserMenu() {
             className="flex items-center gap-3 px-4 py-2 rounded-lg text-green-600 hover:bg-zinc-200 transition font-medium"
             onClick={() => handleNavigate("/cart")}
           >
-            <ShoppingCart className="w-5 h-5 text-green-600" />
+            <div className="relative">
+              <ShoppingCart className="w-5 h-5 text-green-600" />
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full size-4 flex items-center justify-center">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
+            </div>
             <span>Giỏ hàng</span>
           </button>
           <button

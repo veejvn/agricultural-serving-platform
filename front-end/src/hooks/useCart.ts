@@ -1,9 +1,11 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useCartStore } from "@/stores/useCartStore";
 import CartItemService from "@/services/cartItem.service";
 import { useToast } from "@/hooks/use-toast";
 
 export const useCart = () => {
+  const hasFetchedRef = useRef(false);
+
   const {
     items,
     isLoading,
@@ -56,6 +58,15 @@ export const useCart = () => {
       setLoading(false);
     }
   }, [setItems, setLoading, setError, toast]);
+
+  // Auto-fetch cart items when hook is first used
+  useEffect(() => {
+    // Only fetch if we haven't fetched before and not currently loading
+    if (!hasFetchedRef.current && !isLoading) {
+      hasFetchedRef.current = true;
+      fetchCartItems();
+    }
+  }, [fetchCartItems, isLoading]);
 
   // Update quantity
   const updateQuantity = useCallback(
@@ -118,7 +129,7 @@ export const useCart = () => {
           toast({
             title: "Thành công",
             description: "Đã xóa sản phẩm khỏi giỏ hàng",
-            variant: "default",
+            variant: "success",
           });
         }
       } catch (err) {
@@ -152,7 +163,7 @@ export const useCart = () => {
         toast({
           title: "Thành công",
           description: "Đã xóa toàn bộ giỏ hàng",
-          variant: "default",
+          variant: "success",
         });
       }
     } catch (err) {
@@ -188,8 +199,8 @@ export const useCart = () => {
           await fetchCartItems();
           toast({
             title: "Thành công",
-            description: "Đã thêm sản phẩm vào giỏ hàng",
-            variant: "default",
+            description: `Đã thêm ${quantity} sản phẩm vào giỏ hàng`,
+            variant: "success",
           });
         }
       } catch (err) {

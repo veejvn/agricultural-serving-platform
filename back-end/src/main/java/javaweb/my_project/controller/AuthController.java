@@ -39,7 +39,7 @@ public class AuthController {
     SecurityUtil securityUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid AuthRegisterRequest request){
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid AuthRegisterRequest request) {
         authService.register(request);
         String verificationCode = UUID.randomUUID().toString();
         codeUtil.save(verificationCode, request, 3);
@@ -52,7 +52,7 @@ public class AuthController {
     }
 
     @GetMapping("/register/verify/{verificationCode}")
-    public RedirectView verifyRegister(@PathVariable String verificationCode){
+    public RedirectView verifyRegister(@PathVariable String verificationCode) {
         AuthRegisterRequest request = codeUtil.get(verificationCode);
         AuthResponse authResponse = authService.verifyRegister(request);
         codeUtil.remove(verificationCode);
@@ -65,9 +65,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody @Valid AuthLoginRequest request){
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody @Valid AuthLoginRequest request) {
         AuthResponse authResponse = authService.login(request);
-        ApiResponse<AuthResponse> apiResponse =  ApiResponse.<AuthResponse>builder()
+        ApiResponse<AuthResponse> apiResponse = ApiResponse.<AuthResponse>builder()
                 .data(authResponse)
                 .code("auth-s-03")
                 .message("Login successfully")
@@ -76,9 +76,9 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestBody @Valid AuthRefreshTokenRequest request){
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestBody @Valid AuthRefreshTokenRequest request) {
         AuthResponse authResponse = authService.refreshToken(request);
-        ApiResponse<AuthResponse> apiResponse =  ApiResponse.<AuthResponse>builder()
+        ApiResponse<AuthResponse> apiResponse = ApiResponse.<AuthResponse>builder()
                 .data(authResponse)
                 .code("auth-s-04")
                 .message("Refresh new access token successfully")
@@ -122,7 +122,8 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password/verify")
-    public ResponseEntity<ApiResponse<AuthResponse>> verifyForgotPassword(@RequestBody @Valid AuthVerifyForgotPasswordRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyForgotPassword(
+            @RequestBody @Valid AuthVerifyForgotPasswordRequest request) {
         String email = forgotPasswordCodeUtil.get(CommonUtil.getForgotPasswordKey(request.getCode()));
         AuthResponse authResponse = authService.verifyForgotPassword(email, request);
         ApiResponse<AuthResponse> apiResponse = ApiResponse.<AuthResponse>builder()
@@ -137,7 +138,7 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<AuthAccountInfoResponse>> getInfo() {
         String accountId = securityUtil.getAccountId();
-        ApiResponse<AuthAccountInfoResponse> apiResponse =  ApiResponse.<AuthAccountInfoResponse>builder()
+        ApiResponse<AuthAccountInfoResponse> apiResponse = ApiResponse.<AuthAccountInfoResponse>builder()
                 .data(authService.getAccountInfo(accountId))
                 .code("auth-s-10")
                 .message("Get user info successfully")
