@@ -91,6 +91,10 @@ export default function AddressPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
 
+  const [editingAddress, setEditingAddress] = useState<IAddressResponse | null>(
+    null
+  );
+
   // Address data state
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("");
@@ -189,6 +193,36 @@ export default function AddressPage() {
     }
   }, [selectedProvince, selectedDistrict]);
 
+  // Handle edit address data loading
+  useEffect(() => {
+    if (editingAddress) {
+      // Reset wards first
+      setAvailableWards([]);
+
+      // Set province first
+      setSelectedProvince(editingAddress.province);
+    }
+  }, [editingAddress]);
+
+  // Set district after province is set
+  useEffect(() => {
+    if (editingAddress && selectedProvince === editingAddress.province) {
+      setSelectedDistrict(editingAddress.district);
+    }
+  }, [editingAddress, selectedProvince]);
+
+  // Set ward after district is set and wards are loaded
+  useEffect(() => {
+    if (
+      editingAddress &&
+      selectedProvince === editingAddress.province &&
+      selectedDistrict === editingAddress.district &&
+      availableWards.length > 0
+    ) {
+      setSelectedWard(editingAddress.ward);
+    }
+  }, [editingAddress, selectedProvince, selectedDistrict, availableWards]);
+
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressFormSchema),
     defaultValues: {
@@ -259,7 +293,6 @@ export default function AddressPage() {
   }
 
   function handleEdit(address: IAddressResponse) {
-    // API trả về data với code thay vì name, nên không cần convert
     form.reset({
       fullName: address.receiverName,
       phone: address.receiverPhone,
@@ -270,9 +303,8 @@ export default function AddressPage() {
       isDefault: address.isDefault,
     });
 
-    setSelectedProvince(address.province);
-    setSelectedDistrict(address.district);
-    setSelectedWard(address.ward);
+    // Set the editing address to trigger the useEffect
+    setEditingAddress(address);
     setEditingAddressId(address.id);
     setIsEditDialogOpen(true);
   }
@@ -294,6 +326,7 @@ export default function AddressPage() {
 
   // Handle ward change
   function handleWardChange(wardCode: string) {
+    setSelectedWard(wardCode);
     form.setValue("wardCode", wardCode);
   }
 
@@ -380,6 +413,7 @@ export default function AddressPage() {
     setSelectedDistrict("");
     setSelectedWard("");
     setEditingAddressId(null);
+    setEditingAddress(null);
   }
 
   // Handle dialog close
@@ -635,7 +669,7 @@ export default function AddressPage() {
                               <SelectValue placeholder="Chọn tỉnh/thành phố" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="max-h-70">
                             {provinces.map((province) => (
                               <SelectItem
                                 key={province.code}
@@ -665,7 +699,7 @@ export default function AddressPage() {
                               <SelectValue placeholder="Chọn quận/huyện" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="max-h-70">
                             {availableDistricts.map((district) => (
                               <SelectItem
                                 key={district.code}
@@ -695,7 +729,7 @@ export default function AddressPage() {
                               <SelectValue placeholder="Chọn phường/xã" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="max-h-70">
                             {availableWards.map((ward) => (
                               <SelectItem key={ward.code} value={ward.code}>
                                 {ward.name}

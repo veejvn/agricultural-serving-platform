@@ -43,6 +43,16 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PatchMapping
+    public ResponseEntity<ApiResponse<AccountResponse>> patchAccount(@RequestBody AccountRequest request) {
+        ApiResponse<AccountResponse> apiResponse = ApiResponse.<AccountResponse>builder()
+                .code("account-s-02")
+                .message("Update account successfully")
+                .data(accountService.patchAccount(request))
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
     @PostMapping("/upgradeToFarmer")
     public ResponseEntity<ApiResponse<FarmerResponse>> upgradeToFarmer(
             @RequestBody @Valid UpgradeToFarmerRequest request) {

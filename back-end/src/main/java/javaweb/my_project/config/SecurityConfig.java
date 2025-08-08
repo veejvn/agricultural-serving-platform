@@ -46,7 +46,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList("*"));
 
         // Cho phép tất cả các phương thức HTTP
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH","OPTIONS"));
 
         // Cho phép tất cả các headers
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));

@@ -88,6 +88,30 @@ export default function UserMenu() {
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2 bg-white rounded-xl shadow-lg border border-zinc-300">
         <div className="flex flex-col gap-1">
+          {/* User Info Section */}
+          <div className="px-4 py-3 border-b border-zinc-200 mb-2">
+            <div className="flex items-center gap-3">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={avatar || ""} alt="Avatar" />
+                <AvatarFallback
+                  className={`${avatarBackgroundColor} select-none text-sm`}
+                >
+                  {fallBack}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="font-medium text-gray-900 text-sm truncate">
+                  {displayName || email}
+                </span>
+                {displayName && (
+                  <span className="text-xs text-gray-500 truncate">
+                    {email}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <button
             className="flex items-center gap-3 px-4 py-2 rounded-lg text-green-600 hover:bg-zinc-200 transition font-medium"
             onClick={() => handleNavigate("/account")}

@@ -30,22 +30,43 @@ public class AccountService {
     private final FarmerRepository farmerRepository;
     private final FarmerMapper farmerMapper;
 
-    public AccountResponse getAccount(){
-        Account account =  securityUtil.getAccount();
+    public AccountResponse getAccount() {
+        Account account = securityUtil.getAccount();
         return accountMapper.toAccountResponse(account);
     }
 
-    public AccountResponse updateAccount(AccountRequest request){
+    public AccountResponse updateAccount(AccountRequest request) {
         Account account = securityUtil.getAccount();
         accountMapper.updateAccount(account, request);
         accountRepository.save(account);
         return accountMapper.toAccountResponse(account);
     }
 
-    public FarmerResponse upgradeToFarmer(UpgradeToFarmerRequest request){
+    public AccountResponse patchAccount(AccountRequest request) {
         Account account = securityUtil.getAccount();
-        if(account.getRoles().contains(Role.FARMER)){
-            throw new AppException(HttpStatus.CONFLICT, "Account already has role FARMER", "user-e-01");
+
+        // Only update fields that are not null
+        if (request.getDisplayName() != null) {
+            account.setDisplayName(request.getDisplayName());
+        }
+        if (request.getPhone() != null) {
+            account.setPhone(request.getPhone());
+        }
+        if (request.getAvatar() != null) {
+            account.setAvatar(request.getAvatar());
+        }
+        if (request.getDob() != null) {
+            account.setDob(request.getDob());
+        }
+
+        accountRepository.save(account);
+        return accountMapper.toAccountResponse(account);
+    }
+
+    public FarmerResponse upgradeToFarmer(UpgradeToFarmerRequest request) {
+        Account account = securityUtil.getAccount();
+        if (account.getRoles().contains(Role.FARMER)) {
+            throw new AppException(HttpStatus.CONFLICT, "Account already has role FARMER", "role-e-01");
         }
         account.getRoles().add(Role.FARMER);
         accountRepository.save(account);
@@ -57,11 +78,11 @@ public class AccountService {
         return farmerMapper.toFarmerResponse(farmer);
     }
 
-    public void delete(DeleteAccountRequest request){
+    public void delete(DeleteAccountRequest request) {
         accountRepository.deleteById(request.getId());
     }
 
-    public List<AccountResponse> getAllAccount(){
+    public List<AccountResponse> getAllAccount() {
         List<Account> accounts = accountRepository.findAll();
         return accountMapper.toListAccountResponse(accounts);
     }

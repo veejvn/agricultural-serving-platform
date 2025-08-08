@@ -43,11 +43,11 @@ export default function LoginPage() {
     if (error) {
       //console.log(error);
       setError(getMessage(error.code));
-      toast({
-        title: "Lỗi!",
-        description: getMessage(error.code),
-        variant: "error",
-      });
+      // toast({
+      //   title: "Lỗi!",
+      //   description: getMessage(error.code),
+      //   variant: "error",
+      // });
       return;
     }
     //console.log(result);
@@ -66,10 +66,11 @@ export default function LoginPage() {
       // router.push(redirectPath);
     } else {
       router.push(ROUTES.LOGIN);
-      toast({
-        description: getMessage(result.code),
-        variant: "error",
-      });
+      setError(getMessage(result.code));
+      // toast({
+      //   description: getMessage(result.code),
+      //   variant: "error",
+      // });
     }
   };
   return (

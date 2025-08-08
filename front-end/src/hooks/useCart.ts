@@ -24,11 +24,6 @@ export const useCart = () => {
 
   const { toast } = useToast();
 
-  // Debug: Log when items change
-  useEffect(() => {
-    console.log("useCart - items changed:", items);
-  }, [items]);
-
   // Fetch cart items from API
   const fetchCartItems = useCallback(async () => {
     setLoading(true);
@@ -36,8 +31,6 @@ export const useCart = () => {
 
     try {
       const [result, error] = await CartItemService.getCartItems();
-      console.log("useCart - fetchCartItems result:", result);
-      console.log("useCart - fetchCartItems error:", error);
 
       if (error) {
         setError(error.message);
@@ -47,12 +40,10 @@ export const useCart = () => {
           variant: "destructive",
         });
       } else {
-        console.log("useCart - Setting items to store:", result || []);
         setItems(result || []);
         // Don't log items here as it's from previous render
       }
     } catch (err) {
-      console.error("useCart - fetchCartItems catch error:", err);
       setError("Có lỗi xảy ra khi tải giỏ hàng");
     } finally {
       setLoading(false);

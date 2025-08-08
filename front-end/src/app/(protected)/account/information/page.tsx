@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { Camera, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +34,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import AccountService from "@/services/account.service";
+import UploadService from "@/services/upload.service";
 import { IAccountResponse } from "@/types/account";
+import useMessageByApiCode from "@/hooks/useMessageByApiCode";
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, {
@@ -53,8 +56,11 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [accountData, setAccountData] = useState<IAccountResponse | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const getMessageByApiCode = useMessageByApiCode();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -78,11 +84,19 @@ export default function ProfilePage() {
       const [data, error] = await AccountService.getAccount();
 
       if (error) {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tải thông tin tài khoản",
-          variant: "destructive",
-        });
+        if (error.code) {
+          toast({
+            title: "Lỗi",
+            description: getMessageByApiCode(error.code),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Lỗi",
+            description: "Không thể tải thông tin tài khoản",
+            variant: "destructive",
+          });
+        }
         console.error("Error loading account data:", error);
         return;
       }
@@ -109,25 +123,128 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!UploadService.isImageFile(file)) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn file ảnh (JPG, PNG, GIF, WebP)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Lỗi",
+        description: "File ảnh không được vượt quá 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+
+      // Upload image first
+      const [uploadResult, uploadError] = await UploadService.uploadImage(file);
+
+      if (uploadError) {
+        toast({
+          title: "Lỗi",
+          description: "Không thể tải lên ảnh đại diện",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (uploadResult) {
+        // Update account with new avatar using PATCH (partial update)
+        const [updateResult, updateError] = await AccountService.patchAccount({
+          avatar: uploadResult,
+        });
+
+        if (updateError) {
+          if (updateError.code) {
+            toast({
+              title: "Lỗi",
+              description: getMessageByApiCode(updateError.code),
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Lỗi",
+              description: "Không thể cập nhật ảnh đại diện",
+              variant: "destructive",
+            });
+          }
+          return;
+        }
+
+        if (updateResult) {
+          setAccountData(updateResult);
+          toast({
+            title: "Thành công",
+            description: getMessageByApiCode("account-s-02"),
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast({
+        title: "Lỗi",
+        description: "Có lỗi xảy ra khi tải lên ảnh đại diện",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
   async function onSubmit(data: ProfileFormValues) {
     try {
       setIsLoading(true);
 
+      // Use PATCH instead of PUT to avoid losing avatar
       const updateData = {
         displayName: data.displayName,
         phone: data.phone,
         dob: data.dob,
-        // Don't include email in update request since it's usually readonly
+        // No need to include avatar with PATCH - it will be preserved
       };
 
-      const [result, error] = await AccountService.updateAccount(updateData);
+      const [result, error] = await AccountService.patchAccount(updateData);
 
       if (error) {
-        toast({
-          title: "Lỗi",
-          description: error.message || "Có lỗi xảy ra khi cập nhật thông tin",
-          variant: "error",
-        });
+        if (error.code) {
+          toast({
+            title: "Lỗi",
+            description: getMessageByApiCode(error.code),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Lỗi",
+            description:
+              error.message || "Có lỗi xảy ra khi cập nhật thông tin",
+            variant: "destructive",
+          });
+        }
         console.error("Error updating account:", error);
         return;
       }
@@ -136,8 +253,7 @@ export default function ProfilePage() {
         setAccountData(result);
         toast({
           title: "Thành công",
-          description: "Thông tin cá nhân đã được cập nhật thành công",
-          variant: "success",
+          description: getMessageByApiCode("account-s-02"),
         });
       }
     } catch (error) {
@@ -145,7 +261,7 @@ export default function ProfilePage() {
       toast({
         title: "Lỗi",
         description: "Có lỗi xảy ra khi cập nhật thông tin",
-        variant: "error",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -175,89 +291,148 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Thông tin cơ bản</CardTitle>
-            <CardDescription>
-              Thông tin này sẽ được hiển thị công khai, vì vậy hãy cẩn thận với
-              những gì bạn chia sẻ.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="displayName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Họ và tên</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Nguyễn Văn A" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Ảnh đại diện</CardTitle>
+              <CardDescription>
+                Cập nhật ảnh đại diện của bạn. Kích thước tối đa 5MB.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-6">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center">
+                    {accountData?.avatar ? (
+                      <img
+                        src={accountData.avatar}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-muted-foreground">
+                        <Camera className="h-8 w-8" />
+                      </div>
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="example@example.com"
-                            {...field}
-                            disabled
-                            className="bg-muted"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Email không thể thay đổi
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Số điện thoại</FormLabel>
-                        <FormControl>
-                          <Input placeholder="0987654321" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dob"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ngày sinh</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  </div>
+                  {isUploadingAvatar && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent"></div>
+                    </div>
+                  )}
                 </div>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Đang cập nhật..." : "Cập nhật thông tin"}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                <div className="flex flex-col space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={triggerFileUpload}
+                    disabled={isUploadingAvatar}
+                    className="w-fit"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {isUploadingAvatar ? "Đang tải lên..." : "Thay đổi ảnh"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG, GIF hoặc WebP. Tối đa 5MB.
+                  </p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                  aria-label="Upload avatar image"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Thông tin cơ bản</CardTitle>
+              <CardDescription>
+                Thông tin này sẽ được hiển thị công khai, vì vậy hãy cẩn thận
+                với những gì bạn chia sẻ.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="displayName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Họ và tên</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nguyễn Văn A" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="example@example.com"
+                              {...field}
+                              disabled
+                              className="bg-muted"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Email không thể thay đổi
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Số điện thoại</FormLabel>
+                          <FormControl>
+                            <Input placeholder="0987654321" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="dob"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ngày sinh</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? "Đang cập nhật..." : "Cập nhật thông tin"}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

@@ -1,26 +1,26 @@
 export interface IAccountResponse {
-    id: string;
-    email: string;
-    displayName: string;
-    phone: string;
-    avatar: string;
-    dob: string; // ISO date string
-    roles: string[]; // Assuming roles are represented as an array of strings
+  id: string;
+  email: string;
+  displayName: string;
+  phone: string;
+  avatar: string;
+  dob: string; // ISO date string
+  roles: string[]; // Assuming roles are represented as an array of strings
 }
 
 // Define interfaces for request/response types
-export interface AccountRequest {
+export interface IAccountRequest {
   displayName?: string;
   phone?: string;
   avatar?: string;
   dob?: string;
 }
 
-export interface DeleteAccountRequest {
+export interface IDeleteAccountRequest {
   id: string;
 }
 
-export interface UpgradeToFarmerRequest {
+export interface IUpgradeToFarmerRequest {
   farmName: string;
   farmAddress: string;
   farmDescription?: string;

@@ -30,9 +30,7 @@ export const useCartStore = create<CartState>()(
       error: null,
 
       setItems: (items) => {
-        console.log("useCartStore - setItems called with:", items);
         set({ items, error: null });
-        console.log("useCartStore - items after set:", get().items);
       },
 
       addItem: (item) =>
@@ -71,7 +69,6 @@ export const useCartStore = create<CartState>()(
         return items.reduce((total, item) => {
           // Kiểm tra để tránh lỗi khi quantity undefined
           if (!item || typeof item.quantity !== "number") {
-            console.warn("Invalid cart item quantity:", item);
             return total;
           }
           return total + item.quantity;
@@ -109,7 +106,6 @@ export const useCartStore = create<CartState>()(
       // Chỉ persist items, không persist loading/error states
       partialize: (state) => ({ items: state.items }),
       onRehydrateStorage: () => (state) => {
-        console.log("useCartStore - Rehydrated state:", state);
       },
     }
   )
