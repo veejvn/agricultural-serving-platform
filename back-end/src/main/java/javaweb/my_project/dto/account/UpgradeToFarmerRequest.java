@@ -10,4 +10,6 @@ import lombok.experimental.FieldDefaults;
 public class UpgradeToFarmerRequest {
     @NotBlank(message = "Farmer name is required")
     String name;
+    @NotBlank(message = "Farmer description is required")
+    String description;
 }

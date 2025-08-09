@@ -6,7 +6,7 @@ import javaweb.my_project.dto.account.AccountResponse;
 import javaweb.my_project.dto.account.DeleteAccountRequest;
 import javaweb.my_project.dto.account.UpgradeToFarmerRequest;
 import javaweb.my_project.dto.api.ApiResponse;
-import javaweb.my_project.dto.farmer.FarmerResponse;
+import javaweb.my_project.dto.farmer.UpgradeToFarmerResponse;
 import javaweb.my_project.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -54,9 +54,9 @@ public class AccountController {
     }
 
     @PostMapping("/upgradeToFarmer")
-    public ResponseEntity<ApiResponse<FarmerResponse>> upgradeToFarmer(
+    public ResponseEntity<ApiResponse<UpgradeToFarmerResponse>> upgradeToFarmer(
             @RequestBody @Valid UpgradeToFarmerRequest request) {
-        ApiResponse<FarmerResponse> apiResponse = ApiResponse.<FarmerResponse>builder()
+        ApiResponse<UpgradeToFarmerResponse> apiResponse = ApiResponse.<UpgradeToFarmerResponse>builder()
                 .code("account-s-02")
                 .message("Update account to farmer successfully")
                 .data(accountService.upgradeToFarmer(request))

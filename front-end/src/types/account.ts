@@ -21,7 +21,6 @@ export interface IDeleteAccountRequest {
 }
 
 export interface IUpgradeToFarmerRequest {
-  farmName: string;
-  farmAddress: string;
-  farmDescription?: string;
+  name: string;
+  description?: string;
 }

@@ -92,7 +92,7 @@ export function FarmerSidebar() {
                 href="/farm"
                 className="flex items-center justify-center w-full"
               >
-                <Tractor className="text-green-600 p-1 rounded text-sm"/>
+                <Tractor className="text-green-600 p-1 rounded text-sm" />
               </Link>
             )}
             <Button

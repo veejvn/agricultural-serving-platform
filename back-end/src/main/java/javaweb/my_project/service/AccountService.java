@@ -4,7 +4,7 @@ import javaweb.my_project.dto.account.AccountRequest;
 import javaweb.my_project.dto.account.AccountResponse;
 import javaweb.my_project.dto.account.DeleteAccountRequest;
 import javaweb.my_project.dto.account.UpgradeToFarmerRequest;
-import javaweb.my_project.dto.farmer.FarmerResponse;
+import javaweb.my_project.dto.farmer.UpgradeToFarmerResponse;
 import javaweb.my_project.entities.Account;
 import javaweb.my_project.entities.Farmer;
 import javaweb.my_project.enums.Role;
@@ -14,9 +14,12 @@ import javaweb.my_project.mapper.FarmerMapper;
 import javaweb.my_project.repository.AccountRepository;
 import javaweb.my_project.repository.FarmerRepository;
 import javaweb.my_project.security.SecurityUtil;
+import javaweb.my_project.util.jwt.AccessTokenUtil;
+import javaweb.my_project.util.jwt.RefreshTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -29,6 +32,8 @@ public class AccountService {
     private final AccountMapper accountMapper;
     private final FarmerRepository farmerRepository;
     private final FarmerMapper farmerMapper;
+    private final AccessTokenUtil accessTokenUtil;
+    private final RefreshTokenUtil refreshTokenUtil;
 
     public AccountResponse getAccount() {
         Account account = securityUtil.getAccount();
@@ -63,7 +68,7 @@ public class AccountService {
         return accountMapper.toAccountResponse(account);
     }
 
-    public FarmerResponse upgradeToFarmer(UpgradeToFarmerRequest request) {
+    public UpgradeToFarmerResponse upgradeToFarmer(UpgradeToFarmerRequest request) {
         Account account = securityUtil.getAccount();
         if (account.getRoles().contains(Role.FARMER)) {
             throw new AppException(HttpStatus.CONFLICT, "Account already has role FARMER", "role-e-01");
@@ -72,14 +77,58 @@ public class AccountService {
         accountRepository.save(account);
         Farmer farmer = Farmer.builder()
                 .name(request.getName())
+                .description(request.getDescription())
                 .account(account)
                 .build();
         farmerRepository.save(farmer);
-        return farmerMapper.toFarmerResponse(farmer);
+        UpgradeToFarmerResponse response = new UpgradeToFarmerResponse();
+        response.setFarmerResponse(farmerMapper.toFarmerResponse(farmer));
+        response.setAccessToken(accessTokenUtil.generateToken(accountMapper.toJWTPayloadDto(account)));
+        response.setRefreshToken(refreshTokenUtil.generateToken(accountMapper.toJWTPayloadDto(account), account));
+        return response;
     }
 
+    @Transactional
     public void delete(DeleteAccountRequest request) {
-        accountRepository.deleteById(request.getId());
+        Account account = accountRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Account not found", "account-e-01"));
+
+        try {
+            // Step 1: Clear and delete all related entities to satisfy foreign key
+            // constraints
+
+            // Clear refresh token first
+            account.setRefreshToken(null);
+
+            // Clear cart items first (this was the missing piece)
+            account.getCartItems().clear();
+
+            // Clear other collections
+            account.getForumComments().clear();
+            account.getForums().clear();
+            account.getOrders().clear();
+            account.getAddresses().clear();
+
+            // Handle farmer relationship
+            if (account.getFarmer() != null) {
+                Farmer farmer = account.getFarmer();
+                farmer.getProducts().clear();
+                farmer.getOrders().clear();
+                account.setFarmer(null);
+                farmer.setAccount(null);
+                farmerRepository.delete(farmer);
+            }
+
+            // Step 2: Save account to persist relationship changes
+            accountRepository.save(account);
+
+            // Step 3: Finally delete the account
+            accountRepository.delete(account);
+
+        } catch (Exception e) {
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error deleting account: " + e.getMessage(), "account-e-02");
+        }
     }
 
     public List<AccountResponse> getAllAccount() {

@@ -309,7 +309,7 @@ export default function FarmerProductDetailPage({
           </Link>
         </div>
         <div className="flex gap-2">
-          <Link href={`/product/${product.id}`}>
+          <Link href={`/product/${product.id}`} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="sm">
               <Eye className="mr-2 h-4 w-4" />
               Xem trang công khai

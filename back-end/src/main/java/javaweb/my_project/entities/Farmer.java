@@ -10,10 +10,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = { "account", "address", "weatherInfo", "products", "orders" })
+@EqualsAndHashCode(exclude = { "account", "address", "weatherInfo", "products", "orders" })
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Farmer {
     @Id
@@ -51,14 +54,16 @@ public class Farmer {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "farmer", orphanRemoval = true)
     @JsonIgnore
-    Set<Product> products =  new HashSet<>();
+    @Builder.Default
+    Set<Product> products = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "farmer", orphanRemoval = true)
     @JsonIgnore
+    @Builder.Default
     Set<Order> orders = new HashSet<>();
 
     @PrePersist
-    void onCreate(){
+    void onCreate() {
         this.status = FarmerStatus.ACTIVE;
         this.rating = 5.0;
     }

@@ -59,7 +59,7 @@ export default function FarmerProducts() {
     loadProducts();
   }, [toast]);
 
-  console.log("Products:", products);
+  //console.log("Products:", products);
 
   // Xử lý mở dialog xóa sản phẩm
   const handleDeleteProduct = (productId: string, productName: string) => {
