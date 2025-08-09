@@ -195,33 +195,44 @@ export default function AddressPage() {
 
   // Handle edit address data loading
   useEffect(() => {
-    if (editingAddress) {
+    if (editingAddress && isEditDialogOpen) {
       // Reset wards first
       setAvailableWards([]);
 
       // Set province first
       setSelectedProvince(editingAddress.province);
     }
-  }, [editingAddress]);
+  }, [editingAddress, isEditDialogOpen]);
 
   // Set district after province is set
   useEffect(() => {
-    if (editingAddress && selectedProvince === editingAddress.province) {
+    if (
+      editingAddress &&
+      isEditDialogOpen &&
+      selectedProvince === editingAddress.province
+    ) {
       setSelectedDistrict(editingAddress.district);
     }
-  }, [editingAddress, selectedProvince]);
+  }, [editingAddress, selectedProvince, isEditDialogOpen]);
 
   // Set ward after district is set and wards are loaded
   useEffect(() => {
     if (
       editingAddress &&
+      isEditDialogOpen &&
       selectedProvince === editingAddress.province &&
       selectedDistrict === editingAddress.district &&
       availableWards.length > 0
     ) {
       setSelectedWard(editingAddress.ward);
     }
-  }, [editingAddress, selectedProvince, selectedDistrict, availableWards]);
+  }, [
+    editingAddress,
+    selectedProvince,
+    selectedDistrict,
+    availableWards,
+    isEditDialogOpen,
+  ]);
 
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressFormSchema),
@@ -264,6 +275,7 @@ export default function AddressPage() {
         } else {
           toast.success("Địa chỉ đã được cập nhật");
           setEditingAddressId(null);
+          setEditingAddress(null);
           setIsEditDialogOpen(false);
           await loadAddresses(); // Reload addresses
         }
@@ -408,12 +420,28 @@ export default function AddressPage() {
 
   // Reset form and state when dialogs close
   function resetFormState() {
-    form.reset();
+    form.reset({
+      fullName: "",
+      phone: "",
+      provinceCode: "",
+      districtCode: "",
+      wardCode: "",
+      detail: "",
+      isDefault: false,
+    });
     setSelectedProvince("");
     setSelectedDistrict("");
     setSelectedWard("");
+    setAvailableDistricts([]);
+    setAvailableWards([]);
     setEditingAddressId(null);
     setEditingAddress(null);
+  }
+
+  // Handle opening add dialog with clean state
+  function handleOpenAddDialog() {
+    resetFormState();
+    setIsAddDialogOpen(true);
   }
 
   // Handle dialog close
@@ -440,13 +468,13 @@ export default function AddressPage() {
             Quản lý địa chỉ giao hàng của bạn
           </p>
         </div>
+
+        {/* Add Address Modal */}
         <Dialog open={isAddDialogOpen} onOpenChange={handleAddDialogClose}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Thêm địa chỉ mới
-            </Button>
-          </DialogTrigger>
+          <Button onClick={handleOpenAddDialog}>
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm địa chỉ mới
+          </Button>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Thêm địa chỉ mới</DialogTitle>
@@ -525,10 +553,17 @@ export default function AddressPage() {
                         <Select
                           onValueChange={handleDistrictChange}
                           value={field.value}
+                          disabled={!selectedProvince}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Chọn quận/huyện" />
+                              <SelectValue
+                                placeholder={
+                                  !selectedProvince
+                                    ? "Vui lòng chọn tỉnh/thành phố trước"
+                                    : "Chọn quận/huyện"
+                                }
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-70">
@@ -555,10 +590,19 @@ export default function AddressPage() {
                         <Select
                           onValueChange={handleWardChange}
                           value={field.value}
+                          disabled={!selectedDistrict}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Chọn phường/xã" />
+                              <SelectValue
+                                placeholder={
+                                  !selectedProvince
+                                    ? "Vui lòng chọn tỉnh/thành phố trước"
+                                    : !selectedDistrict
+                                    ? "Vui lòng chọn quận/huyện trước"
+                                    : "Chọn phường/xã"
+                                }
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-70">
@@ -614,6 +658,7 @@ export default function AddressPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Edit Address Modal */}
         <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogClose}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -693,10 +738,17 @@ export default function AddressPage() {
                         <Select
                           onValueChange={handleDistrictChange}
                           value={field.value}
+                          disabled={!selectedProvince}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Chọn quận/huyện" />
+                              <SelectValue
+                                placeholder={
+                                  !selectedProvince
+                                    ? "Vui lòng chọn tỉnh/thành phố trước"
+                                    : "Chọn quận/huyện"
+                                }
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-70">
@@ -723,10 +775,19 @@ export default function AddressPage() {
                         <Select
                           onValueChange={handleWardChange}
                           value={field.value}
+                          disabled={!selectedDistrict}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Chọn phường/xã" />
+                              <SelectValue
+                                placeholder={
+                                  !selectedProvince
+                                    ? "Vui lòng chọn tỉnh/thành phố trước"
+                                    : !selectedDistrict
+                                    ? "Vui lòng chọn quận/huyện trước"
+                                    : "Chọn phường/xã"
+                                }
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-70">
@@ -764,10 +825,16 @@ export default function AddressPage() {
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={addresses.length === 1}
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>Đặt làm địa chỉ mặc định</FormLabel>
+                        {addresses.length === 1 && (
+                          <p className="text-xs text-muted-foreground">
+                            Địa chỉ duy nhất phải là mặc định
+                          </p>
+                        )}
                       </div>
                     </FormItem>
                   )}
@@ -802,84 +869,94 @@ export default function AddressPage() {
             </CardContent>
           </Card>
         ) : (
-          addresses.map((address) => (
-            <Card key={address.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center">
-                    {address.receiverName}
-                    {address.isDefault && (
-                      <span className="ml-2 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 px-2 py-1 rounded-full">
-                        Mặc định
-                      </span>
-                    )}
-                  </CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(address)}
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Chỉnh sửa</span>
-                    </Button>
-                    {!address.isDefault && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <Trash className="h-4 w-4" />
-                            <span className="sr-only">Xóa</span>
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Xóa địa chỉ</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Bạn có chắc chắn muốn xóa địa chỉ này không? Hành
-                              động này không thể hoàn tác.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(address.id)}
-                            >
-                              Xóa
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
+          addresses
+            .sort((a, b) => {
+              // Sort by default address first (true comes before false)
+              if (a.isDefault && !b.isDefault) return -1;
+              if (!a.isDefault && b.isDefault) return 1;
+              return 0;
+            })
+            .map((address) => (
+              <Card key={address.id}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center">
+                      {address.receiverName}
+                      {address.isDefault && (
+                        <span className="ml-2 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 px-2 py-1 rounded-full">
+                          Mặc định
+                        </span>
+                      )}
+                    </CardTitle>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(address)}
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Chỉnh sửa</span>
+                      </Button>
+                      {!address.isDefault && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Trash className="h-4 w-4" />
+                              <span className="sr-only">Xóa</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Xóa địa chỉ</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Bạn có chắc chắn muốn xóa địa chỉ này không?
+                                Hành động này không thể hoàn tác.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Hủy</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(address.id)}
+                              >
+                                Xóa
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <CardDescription>{address.receiverPhone}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm">
-                  {address.detail},{" "}
-                  {getWardNameFromCode(
-                    address.province,
-                    address.district,
-                    address.ward
-                  )}
-                  ,{" "}
-                  {getDistrictNameFromCode(address.province, address.district)},{" "}
-                  {getProvinceNameFromCode(address.province)}
-                </p>
-              </CardContent>
-              {!address.isDefault && (
-                <CardFooter>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSetDefault(address.id)}
-                  >
-                    Đặt làm địa chỉ mặc định
-                  </Button>
-                </CardFooter>
-              )}
-            </Card>
-          ))
+                  <CardDescription>{address.receiverPhone}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">
+                    {address.detail},{" "}
+                    {getWardNameFromCode(
+                      address.province,
+                      address.district,
+                      address.ward
+                    )}
+                    ,{" "}
+                    {getDistrictNameFromCode(
+                      address.province,
+                      address.district
+                    )}
+                    , {getProvinceNameFromCode(address.province)}
+                  </p>
+                </CardContent>
+                {!address.isDefault && (
+                  <CardFooter>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSetDefault(address.id)}
+                    >
+                      Đặt làm địa chỉ mặc định
+                    </Button>
+                  </CardFooter>
+                )}
+              </Card>
+            ))
         )}
       </div>
     </div>
