@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef } from "react";
 import { useCartStore } from "@/stores/useCartStore";
 import CartItemService from "@/services/cartItem.service";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export const useCart = () => {
   const hasFetchedRef = useRef(false);
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
   const {
     items,
@@ -34,11 +36,12 @@ export const useCart = () => {
 
       if (error) {
         setError(error.message);
-        toast({
-          title: "Lỗi",
-          description: "Không thể tải giỏ hàng",
-          variant: "destructive",
-        });
+        console.error("Error fetching cart items:", error);
+        // toast({
+        //   title: "Lỗi",
+        //   description: "Không thể tải giỏ hàng",
+        //   variant: "destructive",
+        // });
       } else {
         setItems(result || []);
         // Don't log items here as it's from previous render
@@ -52,6 +55,8 @@ export const useCart = () => {
 
   // Auto-fetch cart items when hook is first used
   useEffect(() => {
+    // Only fetch if user is logged in
+    if (!isLoggedIn) return;
     // Only fetch if we haven't fetched before and not currently loading
     if (!hasFetchedRef.current && !isLoading) {
       hasFetchedRef.current = true;
@@ -151,11 +156,11 @@ export const useCart = () => {
         });
       } else {
         clearCartStore();
-        toast({
-          title: "Thành công",
-          description: "Đã xóa toàn bộ giỏ hàng",
-          variant: "success",
-        });
+        // toast({
+        //   title: "Thành công",
+        //   description: "Đã xóa toàn bộ giỏ hàng",
+        //   variant: "success",
+        // });
       }
     } catch (err) {
       toast({

@@ -2,8 +2,6 @@ import axios, { service } from "@/tools/axios.tool";
 import { getApiUrl } from "@/tools/url.tool";
 import { IAddressRequest } from "@/types/address";
 
-
-
 const AddressService = {
   // POST /api/addresses - Create new address
   create(request: IAddressRequest) {

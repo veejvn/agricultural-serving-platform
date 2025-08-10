@@ -39,95 +39,29 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-// Mock data
-const orders = [
-  {
-    id: "DH001",
-    date: new Date(2023, 4, 15),
-    status: "completed",
-    total: 1250000,
-    items: [
-      {
-        id: "SP001",
-        name: "Gạo Hữu Cơ Hoa Nắng",
-        price: 250000,
-        quantity: 2,
-        image: "/placeholder.svg?height=80&width=80",
-      },
-      {
-        id: "SP002",
-        name: "Rau Cải Ngọt Hữu Cơ",
-        price: 150000,
-        quantity: 5,
-        image: "/placeholder.svg?height=80&width=80",
-      },
-    ],
-    shipping: {
-      address: "Số 1, Đường Trần Thái Tông, Dịch Vọng, Cầu Giấy, Hà Nội",
-      method: "Giao hàng tiêu chuẩn",
-      tracking: "VNPOST123456789",
-    },
-    payment: {
-      method: "Thanh toán khi nhận hàng",
-      status: "Đã thanh toán",
-    },
-  },
-  {
-    id: "DH002",
-    date: new Date(2023, 4, 10),
-    status: "processing",
-    total: 750000,
-    items: [
-      {
-        id: "SP003",
-        name: "Cà Chua Hữu Cơ",
-        price: 150000,
-        quantity: 3,
-        image: "/placeholder.svg?height=80&width=80",
-      },
-      {
-        id: "SP004",
-        name: "Dưa Leo Hữu Cơ",
-        price: 100000,
-        quantity: 3,
-        image: "/placeholder.svg?height=80&width=80",
-      },
-    ],
-    shipping: {
-      address: "Số 2, Đường Nguyễn Huệ, Bến Nghé, Quận 1, Hồ Chí Minh",
-      method: "Giao hàng nhanh",
-      tracking: "GHN987654321",
-    },
-    payment: {
-      method: "Chuyển khoản ngân hàng",
-      status: "Đã thanh toán",
-    },
-  },
-  {
-    id: "DH003",
-    date: new Date(2023, 3, 25),
-    status: "cancelled",
-    total: 450000,
-    items: [
-      {
-        id: "SP005",
-        name: "Táo Hữu Cơ",
-        price: 150000,
-        quantity: 3,
-        image: "/placeholder.svg?height=80&width=80",
-      },
-    ],
-    shipping: {
-      address: "Số 1, Đường Trần Thái Tông, Dịch Vọng, Cầu Giấy, Hà Nội",
-      method: "Giao hàng tiêu chuẩn",
-      tracking: "",
-    },
-    payment: {
-      method: "Thanh toán khi nhận hàng",
-      status: "Đã hủy",
-    },
-  },
-];
+import { useEffect } from "react";
+import OrderService from "@/services/order.service";
+import { IOrderResponse } from "@/types/order";
+import Loading from "./loading";
+
+function mapOrderStatus(status: string): string {
+  switch (status) {
+    case "PENDING":
+      return "pending";
+    case "CONFIRMED":
+      return "processing";
+    case "DELIVERING":
+      return "shipping";
+    case "DELIVERED":
+      return "completed";
+    case "RECEIVED":
+      return "completed";
+    case "CANCELED":
+      return "cancelled";
+    default:
+      return "pending";
+  }
+}
 
 const statusMap: Record<string, { label: string; color: string }> = {
   pending: {
@@ -158,6 +92,52 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [openOrderId, setOpenOrderId] = useState<string | null>(null);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const [ordersData, error] = await OrderService.getAll();
+        console.log("Fetched orders:", ordersData, error);
+        if (error) {
+          setOrders([]);
+          return;
+        }
+        if (!Array.isArray(ordersData)) {
+          setOrders([]);
+          return;
+        }
+        const mapped = ordersData.map((order: IOrderResponse) => ({
+          id: order.id,
+          date: new Date(order.createdAt),
+          status: mapOrderStatus(order.status),
+          total: order.totalPrice,
+          items: order.orderItems.map((orderItem) => ({
+            id: orderItem.product.id,
+            name: orderItem.product.name,
+            price: orderItem.product.price,
+            quantity: orderItem.quantity,
+            image: orderItem.product.thumbnail,
+          })),
+          shipping: {
+            address: `${order.address.detail}, ${order.address.ward}, ${order.address.district}, ${order.address.province}`,
+            method: "Giao hàng tiêu chuẩn",
+            tracking: "",
+          },
+          payment: {
+            method: "Thanh toán khi nhận hàng",
+            status: order.status === "CANCELED" ? "Đã hủy" : "Đã thanh toán",
+          },
+        }));
+        setOrders(mapped);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
 
   // Filter orders based on search term and status
   const filteredOrders = orders.filter((order) => {
@@ -217,7 +197,20 @@ export default function OrdersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {filteredOrders.length === 0 ? (
+          {loading ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mb-2"></div>
+                    <p className="text-sm text-muted-foreground">
+                      Đang tải đơn hàng...
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : filteredOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10">
               <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground mb-2">
@@ -246,12 +239,16 @@ export default function OrdersPage() {
                   <div className="flex flex-col md:flex-row md:items-center justify-between p-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-medium">Đơn hàng #{order.id}</h3>
+                        <h3 className="font-medium">
+                          Đơn hàng #ORDER_{order.id.slice(0, 8)}
+                        </h3>
                         <Badge className={statusMap[order.status].color}>
                           {statusMap[order.status].label}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
+                        {format(order.date, "HH", { locale: vi })} giờ{" "}
+                        {format(order.date, "mm", { locale: vi })} phút{", "}
                         {format(order.date, "dd MMMM yyyy", { locale: vi })}
                       </p>
                     </div>
@@ -288,7 +285,7 @@ export default function OrdersPage() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {order.items.map((item) => (
+                            {order.items.map((item: any) => (
                               <TableRow key={item.id}>
                                 <TableCell>
                                   <div className="flex items-center gap-2">

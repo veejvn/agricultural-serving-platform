@@ -1,3 +1,5 @@
+import { IFarmerResponse } from "@/types/farmer";
+
 // Interface cho dữ liệu category
 export interface ICategory {
   id: string;
@@ -26,6 +28,7 @@ export interface IProductResponese {
   status: string;
   images: ImageResponse[];
   category: string;
+  farmer: IFarmerResponse;
   createdAt: string;
 }
 

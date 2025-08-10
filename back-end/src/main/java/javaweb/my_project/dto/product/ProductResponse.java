@@ -1,5 +1,6 @@
 package javaweb.my_project.dto.product;
 
+import javaweb.my_project.dto.farmer.FarmerResponse;
 import javaweb.my_project.dto.image.ImageResponse;
 import javaweb.my_project.enums.ProductStatus;
 import lombok.AccessLevel;
@@ -25,5 +26,6 @@ public class ProductResponse {
     ProductStatus status;
     Set<ImageResponse> images = new HashSet<>();
     String category;
+    FarmerResponse farmer;
     LocalDateTime createdAt;
 }

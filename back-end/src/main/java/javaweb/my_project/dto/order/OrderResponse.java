@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -22,6 +23,7 @@ public class OrderResponse {
     AddressResponse address;
     AccountResponse account;
     List<OrderItemDTO> orderItems;
+    LocalDateTime createdAt;
 
     @Data
     public static class OrderItemDTO{

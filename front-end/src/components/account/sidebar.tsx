@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
+  Sprout,
+  Badge,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -55,9 +57,9 @@ const menuItems = [
     icon: ShoppingBag,
   },
   {
-    title: "Nâng cấp thành nông dân",
+    title: "Nâng cấp lên nông dân",
     href: "/account/upgrade-to-farmer",
-    icon: Tractor,
+    icon: Sprout,
   },
   {
     title: "Phương thức thanh toán",
@@ -86,8 +88,8 @@ export function AccountSidebar() {
     <TooltipProvider>
       <div
         className={cn(
-          "flex h-full flex-col border-r bg-white dark:bg-gray-950 dark:border-gray-800 transition-all duration-300",
-          isCollapsed ? "w-20" : "w-64"
+          "flex min-h-screen flex-col border-r bg-white dark:bg-gray-950 dark:border-gray-800 transition-all duration-300",
+          isCollapsed ? "w-20" : "w-56"
         )}
       >
         {/* Header with toggle button */}
@@ -138,7 +140,7 @@ export function AccountSidebar() {
                 return true;
               })
               .map((item) => {
-                const isActive = pathname === item.href;
+                const isActive =  item.href === "/account" ? pathname === "/account" : pathname.startsWith(item.href);
 
                 const LinkComponent = (
                   <Link

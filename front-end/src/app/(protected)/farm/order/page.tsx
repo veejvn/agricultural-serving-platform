@@ -1,94 +1,60 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { DataTable } from "@/components/common/data-table";
 import { Button } from "@/components/ui/button";
 import { Eye, FileEdit, Printer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import OrderService from "@/services/order.service";
+import { IOrderResponse } from "@/types/order";
+import { useRouter } from "next/navigation";
+import { size } from "lodash";
 
-export default function FarmerOrders() {
-  // Dữ liệu mẫu cho đơn hàng
-  const orders = [
-    {
-      id: "DH001",
-      customer: "Nguyễn Văn A",
-      date: "15/04/2024",
-      products: "Gạo ST25 (10kg)",
-      total: "1,000,000 VNĐ",
-      status: "Đã giao",
-    },
-    {
-      id: "DH002",
-      customer: "Trần Thị B",
-      date: "16/04/2024",
-      products: "Gạo Nàng Hoa (5kg), Gạo Lứt (2kg)",
-      total: "430,000 VNĐ",
-      status: "Đang giao",
-    },
-    {
-      id: "DH003",
-      customer: "Lê Văn C",
-      date: "17/04/2024",
-      products: "Gạo Tài Nguyên (15kg)",
-      total: "675,000 VNĐ",
-      status: "Đang xử lý",
-    },
-    {
-      id: "DH004",
-      customer: "Phạm Thị D",
-      date: "18/04/2024",
-      products: "Gạo Nếp Than (3kg)",
-      total: "210,000 VNĐ",
-      status: "Đã giao",
-    },
-    {
-      id: "DH005",
-      customer: "Hoàng Văn E",
-      date: "19/04/2024",
-      products: "Gạo ST25 (15kg)",
-      total: "1,500,000 VNĐ",
-      status: "Đã hủy",
-    },
-    {
-      id: "DH006",
-      customer: "Ngô Thị F",
-      date: "20/04/2024",
-      products: "Gạo Hương Lài (5kg), Gạo Nếp Cái Hoa Vàng (3kg)",
-      total: "445,000 VNĐ",
-      status: "Đang giao",
-    },
-    {
-      id: "DH007",
-      customer: "Đặng Văn G",
-      date: "21/04/2024",
-      products: "Gạo ST25 (8kg), Gạo Nàng Hoa (10kg)",
-      total: "1,400,000 VNĐ",
-      status: "Đang xử lý",
-    },
-    {
-      id: "DH008",
-      customer: "Vũ Thị H",
-      date: "22/04/2024",
-      products: "Gạo Nàng Thơm Chợ Đào (5kg)",
-      total: "400,000 VNĐ",
-      status: "Đã giao",
-    },
-    {
-      id: "DH009",
-      customer: "Bùi Văn I",
-      date: "23/04/2024",
-      products: "Gạo Tài Nguyên (10kg), Gạo Lứt (5kg)",
-      total: "650,000 VNĐ",
-      status: "Đang giao",
-    },
-    {
-      id: "DH010",
-      customer: "Lý Thị K",
-      date: "24/04/2024",
-      products: "Gạo ST25 (20kg), Gạo Nếp Than (5kg)",
-      total: "2,350,000 VNĐ",
-      status: "Đang xử lý",
-    },
-  ];
+export default function FarmerOrdersPage() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      const [result, error] = await OrderService.getAllByFarmer();
+      setLoading(false);
+      if (error || !Array.isArray(result)) {
+        setOrders([]);
+        return;
+      }
+      // Sắp xếp theo createdAt giảm dần rồi map sang bảng
+      const sorted = [...result].sort(
+        (a: IOrderResponse, b: IOrderResponse) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      const mapped = sorted.map((order: IOrderResponse) => {
+        const shortId = "ORDER_" + order.id.slice(0, 8);
+        const customer = order.address?.receiverName || "";
+        const date = new Date(order.createdAt).toLocaleDateString("vi-VN");
+        // Sản phẩm mỗi dòng
+        const products = order.orderItems
+          .map((item) => `${item.product.name} (SL: ${item.quantity})`)
+          .join("<br />");
+        const total = new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(order.totalPrice);
+        return {
+          id: shortId, // dùng cho hiển thị
+          realId: order.id, // dùng cho thao tác
+          customer,
+          date,
+          products,
+          total,
+          orderStatus: order.status, // trạng thái gốc
+        };
+      });
+      setOrders(mapped);
+    };
+    fetchOrders();
+  }, []);
 
   // Định nghĩa cột cho bảng
   const columns = [
@@ -99,48 +65,86 @@ export default function FarmerOrders() {
     {
       accessorKey: "customer",
       header: "Khách hàng",
+      size: 130,
     },
     {
       accessorKey: "date",
       header: "Ngày đặt",
+      size: 120,
     },
     {
       accessorKey: "products",
       header: "Sản phẩm",
+      size: 400,
+      cell: ({ row }: { row: { getValue: (key: string) => string } }) => {
+        // Hiển thị HTML với mỗi sản phẩm 1 dòng
+        return (
+          <span
+            dangerouslySetInnerHTML={{ __html: row.getValue("products") }}
+          />
+        );
+      },
     },
     {
       accessorKey: "total",
       header: "Tổng tiền",
+      size: 120,
     },
     {
-      accessorKey: "status",
+      accessorKey: "orderStatus",
       header: "Trạng thái",
+      size: 150,
       cell: ({ row }: { row: { getValue: (key: string) => string } }) => {
-        const status = row.getValue("status");
+        const status = row.getValue("orderStatus");
+        let label = "";
         let badgeClass =
-          "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100";
-
-        if (status === "Đã giao") {
-          badgeClass =
-            "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
-        } else if (status === "Đang giao") {
-          badgeClass =
-            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
-        } else if (status === "Đã hủy") {
-          badgeClass =
-            "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
+          "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 hover:bg-blue-200 dark:hover:bg-blue-800";
+        switch (status) {
+          case "PENDING":
+            label = "Chờ xác nhận";
+            break;
+          case "CONFIRMED":
+            label = "Đã xác nhận";
+            break;
+          case "DELIVERING":
+            label = "Đang giao";
+            badgeClass =
+              "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 hover:bg-yellow-200 dark:hover:bg-yellow-800";
+            break;
+          case "DELIVERED":
+            label = "Đã giao";
+            badgeClass =
+              "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-800";
+            break;
+          case "RECEIVED":
+            label = "Đã nhận hàng";
+            badgeClass =
+              "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100 hover:bg-emerald-200 dark:hover:bg-emerald-800";
+            break;
+          case "CANCELED":
+            label = "Đã hủy";
+            badgeClass =
+              "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 hover:bg-red-200 dark:hover:bg-red-800";
+            break;
+          default:
+            label = "Không xác định";
         }
-
-        return <Badge className={badgeClass}>{status}</Badge>;
+        return <Badge className={badgeClass}>{label}</Badge>;
       },
     },
     {
       id: "actions",
       header: "Thao tác",
-      cell: ({ row }: { row: { getValue: (key: string) => string } }) => {
+      cell: ({ row }: { row: { original: any } }) => {
+        const order = row.original;
         return (
           <div className="flex space-x-2">
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push(`/farm/order/${order.realId}`)}
+              title="Xem chi tiết"
+            >
               <Eye className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon">
@@ -158,8 +162,14 @@ export default function FarmerOrders() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Quản lý đơn hàng</h1>
-
-      <DataTable columns={columns} data={orders} />
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+        </div>
+      ) : (
+        <DataTable columns={columns} data={orders} />
+      )}
     </div>
   );
 }

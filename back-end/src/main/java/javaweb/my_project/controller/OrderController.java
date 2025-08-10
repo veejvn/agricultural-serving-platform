@@ -40,6 +40,16 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(@PathVariable("id") String id) {
+        ApiResponse<OrderResponse> apiResponse = ApiResponse.<OrderResponse>builder()
+                .code("order-s-03")
+                .message("Get order successfully")
+                .data(orderService.getById(id))
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
     @GetMapping("/farmer")
     @PreAuthorize("hasRole('FARMER')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllByFarmer() {

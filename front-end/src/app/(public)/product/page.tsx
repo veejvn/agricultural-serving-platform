@@ -49,7 +49,7 @@ export default function ProductsPage() {
         setIsLoading(false);
         return;
       }
-      console.log("Fetched products:", data);
+      //console.log("Fetched products:", data);
       setAllProducts(data.content || []);
       setIsLoading(false);
     }
@@ -64,7 +64,7 @@ export default function ProductsPage() {
         console.error("Failed to fetch categories:", error);
         return;
       }
-      console.log("Categories:", data);
+      //console.log("Categories:", data);
 
       // Lưu categories gốc để sử dụng cho hierarchy logic
       setOriginalCategories(data);

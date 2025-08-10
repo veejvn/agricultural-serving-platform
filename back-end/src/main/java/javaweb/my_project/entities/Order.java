@@ -62,7 +62,6 @@ public class Order {
     @JsonBackReference
     Account account;
 
-    @JsonIgnore
     LocalDateTime createdAt;
 
     @PrePersist

@@ -12,11 +12,10 @@ export default function AccountLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="container py-10">
-        <h1 className="text-3xl font-bold mb-6">Tài khoản của tôi</h1>
+      <div className="container">
         <div className="flex flex-col md:flex-row gap-8">
           <AccountSidebar />
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 my-5">{children}</div>
         </div>
       </div>
     </SidebarProvider>

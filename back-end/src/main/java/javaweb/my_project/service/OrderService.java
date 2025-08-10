@@ -32,13 +32,11 @@ public class OrderService {
     private final SecurityUtil securityUtil;
 
     @Transactional
-    public OrderResponse create(OrderRequest request){
+    public OrderResponse create(OrderRequest request) {
         Address address = addressRepository.findById(request.getAddressId()).orElseThrow(
-                () -> new AppException(HttpStatus.NOT_FOUND, "Address not found", "address-e-01")
-        );
+                () -> new AppException(HttpStatus.NOT_FOUND, "Address not found", "address-e-01"));
         Farmer farmer = farmerRepository.findById(request.getFarmerId()).orElseThrow(
-                () -> new AppException(HttpStatus.NOT_FOUND, "Farmer not found", "farmer-e-01")
-        );
+                () -> new AppException(HttpStatus.NOT_FOUND, "Farmer not found", "farmer-e-01"));
         Account account = securityUtil.getAccount();
         int totalPrice = 0;
         int totalQuantity = 0;
@@ -53,12 +51,11 @@ public class OrderService {
                 .build();
         order = orderRepository.save(order);
 
-        for(OrderRequest.OrderItemDTO orderItemDTO : request.getItems()){
+        for (OrderRequest.OrderItemDTO orderItemDTO : request.getItems()) {
             CartItem cartItem = cartItemRepository.findById(orderItemDTO.getCartItemId()).orElseThrow(
-                    () -> new AppException(HttpStatus.NOT_FOUND, "Cart item not found", "cart-item-e-01")
-            );
+                    () -> new AppException(HttpStatus.NOT_FOUND, "Cart item not found", "cart-item-e-01"));
             Product product = cartItem.getProduct();
-            if(cartItem.getQuantity() > product.getInventory()){
+            if (cartItem.getQuantity() > product.getInventory()) {
                 cartItem.setQuantity(product.getInventory());
             }
             product.setInventory(product.getInventory() - cartItem.getQuantity());
@@ -85,38 +82,44 @@ public class OrderService {
         return orderMapper.toOrderResponse(order);
     }
 
-    public List<OrderResponse> getAll(){
+    public List<OrderResponse> getAll() {
         String accountId = securityUtil.getAccountId();
         List<Order> orders = orderRepository.findAllByAccountId(accountId, Sort.by("createdAt").descending());
         return orderMapper.toOrderResponseList(orders);
     }
 
-    public List<OrderResponse> getAllByFarmer(){
+    public OrderResponse getById(String id) {
+        Order order = orderRepository.findById(id).orElseThrow(
+                () -> new AppException(HttpStatus.NOT_FOUND, "Order not found", "order-e-01"));
+        return orderMapper.toOrderResponse(order);
+    }
+
+    public List<OrderResponse> getAllByFarmer() {
         String farmerId = securityUtil.getFarmerId();
         List<Order> orders = orderRepository.findAllByFarmerId(farmerId, Sort.by("createdAt").descending());
         return orderMapper.toOrderResponseList(orders);
     }
 
-    public OrderResponse consumerChangeStatus(ChangeOrderStatusRequest request){
+    @Transactional
+    public OrderResponse consumerChangeStatus(ChangeOrderStatusRequest request) {
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow(
-                () -> new AppException(HttpStatus.NOT_FOUND, "Order not found", "order-e-01")
-        );
+                () -> new AppException(HttpStatus.NOT_FOUND, "Order not found", "order-e-01"));
         Set<OrderStatus> statuses = Set.of(
                 OrderStatus.CANCELED,
-                OrderStatus.RECEIVED
-        );
+                OrderStatus.RECEIVED);
         OrderStatus status = request.getStatus();
-        if(!statuses.contains(status)){
-            throw new AppException(HttpStatus.FORBIDDEN, "You don't have permission to edit order to this status.", "order-e-02");
+        if (!statuses.contains(status)) {
+            throw new AppException(HttpStatus.FORBIDDEN, "You don't have permission to edit order to this status.",
+                    "order-e-02");
         }
-        if(status.equals(OrderStatus.RECEIVED)){
-            for(OrderItem orderItem : order.getOrderItems()){
+        if (status.equals(OrderStatus.RECEIVED)) {
+            for (OrderItem orderItem : order.getOrderItems()) {
                 Product product = orderItem.getProduct();
                 product.setSold(product.getSold() + orderItem.getQuantity());
                 productRepository.save(product);
             }
         } else if (status.equals(OrderStatus.CANCELED)) {
-            for (OrderItem orderItem : order.getOrderItems()){
+            for (OrderItem orderItem : order.getOrderItems()) {
                 Product product = orderItem.getProduct();
                 product.setInventory(product.getInventory() + orderItem.getQuantity());
                 productRepository.save(product);
@@ -127,19 +130,19 @@ public class OrderService {
         return orderMapper.toOrderResponse(order);
     }
 
-    public OrderResponse farmerChangeStatus(ChangeOrderStatusRequest request){
+    @Transactional
+    public OrderResponse farmerChangeStatus(ChangeOrderStatusRequest request) {
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow(
-                () -> new AppException(HttpStatus.NOT_FOUND, "Order not found", "order-e-01")
-        );
+                () -> new AppException(HttpStatus.NOT_FOUND, "Order not found", "order-e-01"));
         Set<OrderStatus> statuses = Set.of(
                 OrderStatus.CONFIRMED,
                 OrderStatus.DELIVERING,
                 OrderStatus.DELIVERED,
-                OrderStatus.CANCELED
-        );
+                OrderStatus.CANCELED);
         OrderStatus status = request.getStatus();
-        if(!statuses.contains(status)){
-            throw new AppException(HttpStatus.FORBIDDEN, "You don't have permission to edit order to this status.", "order-e-02");
+        if (!statuses.contains(status)) {
+            throw new AppException(HttpStatus.FORBIDDEN, "You don't have permission to edit order to this status.",
+                    "order-e-02");
         }
         order.setStatus(status);
         orderRepository.save(order);

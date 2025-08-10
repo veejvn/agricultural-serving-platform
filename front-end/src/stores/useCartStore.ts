@@ -105,8 +105,7 @@ export const useCartStore = create<CartState>()(
       storage: createJSONStorage(() => localStorage),
       // Chỉ persist items, không persist loading/error states
       partialize: (state) => ({ items: state.items }),
-      onRehydrateStorage: () => (state) => {
-      },
+      onRehydrateStorage: () => (state) => {},
     }
   )
 );
