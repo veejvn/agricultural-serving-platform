@@ -126,33 +126,45 @@ export default function FarmerOrderDetailPage() {
 
   const handleUpdateStatus = async () => {
     if (!order) return;
-    try {
-      setUpdating(true);
-      const request: IChangeOrderStatusRequest = {
-        orderId: order.id,
-        status: newStatus,
-      };
-      const [result, error] = await OrderService.farmerChangeStatus(request);
-      if (error || !result) {
-        throw new Error("Cập nhật trạng thái thất bại");
-      }
-      setOrder(result);
-      setIsEditingStatus(false);
+    if (newStatus === "CANCELED" && !farmerNote.trim()) {
       toast({
-        title: "Thành công",
-        description: `Đã cập nhật trạng thái đơn hàng thành "${
-          farmerStatusOptions.find((s) => s.value === newStatus)?.label
-        }"`,
+        title: "Thiếu lý do",
+        description: "Vui lòng nhập lý do hủy đơn hàng.",
+        variant: "destructive",
       });
-    } catch (error) {
+      return;
+    }
+    setUpdating(true);
+    const request: IChangeOrderStatusRequest = {
+      orderId: order.id,
+      status: newStatus,
+      reason:
+        newStatus === "CANCELED" && farmerNote.trim()
+          ? farmerNote.trim()
+          : undefined,
+    };
+    const [result, error] = await OrderService.farmerChangeStatus(request);
+    // console.log("Update status request:", request);
+    // console.log("Update status result:", result);
+    // console.error("Update status failed:", error);
+    if (error || !result) {
       toast({
         title: "Lỗi",
         description: "Không thể cập nhật trạng thái đơn hàng",
         variant: "destructive",
       });
-    } finally {
-      setUpdating(false);
+      return;
     }
+    setOrder(result);
+    setIsEditingStatus(false);
+    setFarmerNote("");
+    setUpdating(false);
+    toast({
+      title: "Thành công",
+      description: `Đã cập nhật trạng thái đơn hàng thành "${
+        farmerStatusOptions.find((s) => s.value === newStatus)?.label
+      }"`,
+    });
   };
 
   const formatPrice = (price: number) => {
@@ -239,7 +251,7 @@ export default function FarmerOrderDetailPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.back()}
+          onClick={() => router.push("/farm/order")}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -317,19 +329,25 @@ export default function FarmerOrderDetailPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="farmer-note">Ghi chú (tùy chọn)</Label>
-                      <Textarea
-                        id="farmer-note"
-                        placeholder="Thêm ghi chú về việc thay đổi trạng thái..."
-                        value={farmerNote}
-                        onChange={(e) => setFarmerNote(e.target.value)}
-                        rows={3}
-                      />
+                      {newStatus === "CANCELED" && (
+                        <Textarea
+                          id="farmer-note"
+                          placeholder="Thêm ghi chú về việc thay đổi trạng thái..."
+                          value={farmerNote}
+                          onChange={(e) => setFarmerNote(e.target.value)}
+                          rows={3}
+                        />
+                      )}
                     </div>
 
                     <div className="flex gap-2">
                       <Button
                         onClick={handleUpdateStatus}
-                        disabled={updating || newStatus === order.status}
+                        disabled={
+                          updating ||
+                          newStatus === order.status ||
+                          (newStatus === "CANCELED" && !farmerNote.trim())
+                        }
                         className="flex items-center gap-2"
                       >
                         <Save className="h-4 w-4" />
@@ -381,7 +399,7 @@ export default function FarmerOrderDetailPage() {
             <CardContent>
               <div className="space-y-4">
                 {order.orderItems.map((item, index) => (
-                  <div key={item.orderItemId}>
+                  <div key={index}>
                     <div className="flex items-center gap-4">
                       <img
                         src={item.product.thumbnail || "/placeholder.svg"}
@@ -431,6 +449,21 @@ export default function FarmerOrderDetailPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">{order.note}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Last Status Change Reason */}
+          {order.lastStatusChangeReason && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Edit className="h-5 w-5" />
+                  Lý do thay đổi trạng thái gần nhất
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700">{order.lastStatusChangeReason}</p>
               </CardContent>
             </Card>
           )}

@@ -2,6 +2,7 @@ package javaweb.my_project.dto.order;
 
 import javaweb.my_project.dto.account.AccountResponse;
 import javaweb.my_project.dto.address.AddressResponse;
+import javaweb.my_project.dto.farmer.FarmerResponse;
 import javaweb.my_project.dto.product.ProductResponse;
 import javaweb.my_project.entities.embeddedId.OrderItemId;
 import javaweb.my_project.enums.OrderStatus;
@@ -19,9 +20,11 @@ public class OrderResponse {
     Integer totalPrice;
     Integer totalQuantity;
     String note;
+    String lastStatusChangeReason;
     OrderStatus status;
     AddressResponse address;
     AccountResponse account;
+    FarmerResponse farmer;
     List<OrderItemDTO> orderItems;
     LocalDateTime createdAt;
 

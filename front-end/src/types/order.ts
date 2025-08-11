@@ -1,5 +1,6 @@
 import { IAccountResponse } from "@/types/account";
 import { IAddressResponse } from "@/types/address";
+import { IFarmerResponse } from "@/types/farmer";
 
 export interface IOrderItemResquest {
   cartItemId: string;
@@ -37,6 +38,7 @@ export type IOrderStatus =
 export interface IChangeOrderStatusRequest {
   orderId: string;
   status: IOrderStatus;
+  reason?: string;
 }
 
 export interface IOrderResponse {
@@ -44,9 +46,11 @@ export interface IOrderResponse {
   totalPrice: number;
   totalQuantity: number;
   note: string;
+  lastStatusChangeReason: string;
   status: IOrderStatus;
   address: IAddressResponse;
   account: IAccountResponse;
+  farmer: IFarmerResponse;
   orderItems: IOrderItemResponse[];
   createdAt: string;
 }

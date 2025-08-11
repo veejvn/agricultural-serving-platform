@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   ArrowLeft,
   Package,
@@ -21,6 +23,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  Edit,
 } from "lucide-react";
 import type { IOrderResponse } from "@/types/order";
 
@@ -29,32 +32,35 @@ import OrderService from "@/services/order.service";
 const statusConfig = {
   PENDING: {
     label: "Chờ xác nhận",
-    color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    color:
+      "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200",
     icon: Clock,
   },
   CONFIRMED: {
     label: "Đã xác nhận",
-    color: "bg-blue-100 text-blue-800 border-blue-200",
+    color: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200",
     icon: CheckCircle,
   },
   DELIVERING: {
     label: "Đang giao hàng",
-    color: "bg-purple-100 text-purple-800 border-purple-200",
+    color:
+      "bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200",
     icon: Truck,
   },
   DELIVERED: {
     label: "Đã giao hàng",
-    color: "bg-green-100 text-green-800 border-green-200",
+    color: "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
     icon: Package,
   },
   RECEIVED: {
     label: "Đã nhận hàng",
-    color: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    color:
+      "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200",
     icon: CheckCircle,
   },
   CANCELED: {
     label: "Đã hủy",
-    color: "bg-red-100 text-red-800 border-red-200",
+    color: "bg-red-100 text-red-800 border-red-200 hover:bg-red-200",
     icon: XCircle,
   },
 };
@@ -64,6 +70,9 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const [order, setOrder] = useState<IOrderResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reason, setReason] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [showCancelReason, setShowCancelReason] = useState(false);
   const orderId = params.id as string;
 
   useEffect(() => {
@@ -92,15 +101,27 @@ export default function OrderDetailPage() {
 
   const handleCancelOrder = async () => {
     if (!order) return;
+    if (!reason.trim()) {
+      toast({
+        title: "Thiếu lý do",
+        description: "Vui lòng nhập lý do hủy đơn hàng.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowCancelReason(false);
     try {
+      setUpdating(true);
       const [result, error] = await OrderService.consumerChangeStatus({
         orderId: order.id,
         status: "CANCELED",
+        reason: reason.trim(),
       });
       if (error || !result) {
         throw new Error("Không thể hủy đơn hàng");
       }
       setOrder(result);
+      setReason("");
       toast({
         title: "Thành công",
         description: "Đơn hàng đã được hủy",
@@ -111,12 +132,15 @@ export default function OrderDetailPage() {
         description: "Không thể hủy đơn hàng",
         variant: "destructive",
       });
+    } finally {
+      setUpdating(false);
     }
   };
 
   const handleConfirmReceived = async () => {
     if (!order) return;
     try {
+      setUpdating(true);
       const [result, error] = await OrderService.consumerChangeStatus({
         orderId: order.id,
         status: "RECEIVED",
@@ -125,6 +149,7 @@ export default function OrderDetailPage() {
         throw new Error("Không thể xác nhận nhận hàng");
       }
       setOrder(result);
+      setReason("");
       toast({
         title: "Thành công",
         description: "Đã xác nhận nhận hàng",
@@ -135,6 +160,8 @@ export default function OrderDetailPage() {
         description: "Không thể xác nhận nhận hàng",
         variant: "destructive",
       });
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -229,31 +256,84 @@ export default function OrderDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <Badge className={`${statusConfig[order.status].color} border`}>
-                  {statusConfig[order.status].label}
-                </Badge>
-                <div className="flex gap-2">
-                  {canCancel && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancelOrder}
-                      className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium">
+                      Trạng thái hiện tại:
+                    </span>
+                    <Badge
+                      className={`${statusConfig[order.status].color} border`}
                     >
-                      Hủy đơn hàng
-                    </Button>
-                  )}
-                  {canConfirmReceived && (
-                    <Button
-                      size="sm"
-                      onClick={handleConfirmReceived}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      Xác nhận đã nhận hàng
-                    </Button>
-                  )}
+                      {statusConfig[order.status].label}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {canCancel && (
+                      <>
+                        {!showCancelReason && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowCancelReason(true)}
+                            className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
+                            disabled={updating}
+                          >
+                            Hủy đơn hàng
+                          </Button>
+                        )}
+                      </>
+                    )}
+                    {canConfirmReceived && (
+                      <Button
+                        size="sm"
+                        onClick={handleConfirmReceived}
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={updating}
+                      >
+                        Xác nhận đã nhận hàng
+                      </Button>
+                    )}
+                  </div>
                 </div>
+                {showCancelReason && (
+                  <>
+                    <Label htmlFor="reason" className="mb-1">
+                      Lý do hủy đơn hàng <span className="text-red-500">*</span>
+                    </Label>
+                    <Textarea
+                      id="reason"
+                      placeholder="Nhập lý do hủy đơn hàng..."
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      rows={2}
+                      className="mb-2"
+                      disabled={updating}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancelOrder}
+                        className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
+                        disabled={updating || !reason.trim()}
+                      >
+                        Xác nhận hủy đơn
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowCancelReason(false);
+                          setReason("");
+                        }}
+                        disabled={updating}
+                      >
+                        Hủy
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -269,7 +349,7 @@ export default function OrderDetailPage() {
             <CardContent>
               <div className="space-y-4">
                 {order.orderItems.map((item, index) => (
-                  <div key={item.orderItemId}>
+                  <div key={index}>
                     <div className="flex items-center gap-4">
                       <img
                         src={item.product.thumbnail || "/placeholder.svg"}
@@ -319,6 +399,21 @@ export default function OrderDetailPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">{order.note}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Last Status Change Reason */}
+          {order.lastStatusChangeReason && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Edit className="h-5 w-5" />
+                  Lý do thay đổi trạng thái gần nhất
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700">{order.lastStatusChangeReason}</p>
               </CardContent>
             </Card>
           )}

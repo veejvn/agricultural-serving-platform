@@ -8,11 +8,18 @@ import { Badge } from "@/components/ui/badge";
 import OrderService from "@/services/order.service";
 import { IOrderResponse } from "@/types/order";
 import { useRouter } from "next/navigation";
-import { size } from "lodash";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function FarmerOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
   const router = useRouter();
 
   useEffect(() => {
@@ -93,7 +100,7 @@ export default function FarmerOrdersPage() {
     {
       accessorKey: "orderStatus",
       header: "Trạng thái",
-      size: 150,
+      size: 180,
       cell: ({ row }: { row: { getValue: (key: string) => string } }) => {
         const status = row.getValue("orderStatus");
         let label = "";
@@ -159,16 +166,46 @@ export default function FarmerOrdersPage() {
     },
   ];
 
+  // Lọc orders theo trạng thái
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter((order) => order.orderStatus === statusFilter);
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Quản lý đơn hàng</h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+        <div className="w-full md:w-64">
+          <label
+            htmlFor="statusFilter"
+            className="block text-sm font-medium mb-1"
+          >
+            Lọc theo trạng thái
+          </label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="PENDING">Chờ xác nhận</SelectItem>
+              <SelectItem value="CONFIRMED">Đã xác nhận</SelectItem>
+              <SelectItem value="DELIVERING">Đang giao</SelectItem>
+              <SelectItem value="DELIVERED">Đã giao</SelectItem>
+              <SelectItem value="RECEIVED">Đã nhận hàng</SelectItem>
+              <SelectItem value="CANCELED">Đã hủy</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       {loading ? (
         <div className="flex items-center justify-center py-8">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
         </div>
       ) : (
-        <DataTable columns={columns} data={orders} />
+        <DataTable columns={columns} data={filteredOrders} />
       )}
     </div>
   );

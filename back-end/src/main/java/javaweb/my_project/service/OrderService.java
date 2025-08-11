@@ -112,6 +112,16 @@ public class OrderService {
             throw new AppException(HttpStatus.FORBIDDEN, "You don't have permission to edit order to this status.",
                     "order-e-02");
         }
+        // Không cho phép hủy đơn nếu đã RECEIVED
+        if (status.equals(OrderStatus.CANCELED) && order.getStatus().equals(OrderStatus.RECEIVED)) {
+            throw new AppException(HttpStatus.FORBIDDEN, "Cannot cancel an order that has been received.",
+                    "order-e-05");
+        }
+        // Không cho phép nhận hàng nếu đơn chưa ở trạng thái DELIVERED
+        if (status.equals(OrderStatus.RECEIVED) && !order.getStatus().equals(OrderStatus.DELIVERED)) {
+            throw new AppException(HttpStatus.FORBIDDEN, "Order must be in DELIVERED status to receive.",
+                    "order-e-06");
+        }
         if (status.equals(OrderStatus.RECEIVED)) {
             for (OrderItem orderItem : order.getOrderItems()) {
                 Product product = orderItem.getProduct();
@@ -124,6 +134,10 @@ public class OrderService {
                 product.setInventory(product.getInventory() + orderItem.getQuantity());
                 productRepository.save(product);
             }
+        }
+
+        if(request.getReason() != null){
+            order.setLastStatusChangeReason(request.getReason());
         }
         order.setStatus(status);
         orderRepository.save(order);
@@ -143,6 +157,38 @@ public class OrderService {
         if (!statuses.contains(status)) {
             throw new AppException(HttpStatus.FORBIDDEN, "You don't have permission to edit order to this status.",
                     "order-e-02");
+        }
+        if (status.equals(OrderStatus.CONFIRMED)) {
+            if (!order.getStatus().equals(OrderStatus.PENDING)) {
+                throw new AppException(HttpStatus.FORBIDDEN, "Order must be in PENDING status to confirm.",
+                        "order-e-03");
+            }
+        } else if (status.equals(OrderStatus.DELIVERING)) {
+            if (!order.getStatus().equals(OrderStatus.CONFIRMED)) {
+                throw new AppException(HttpStatus.FORBIDDEN, "Order must be in CONFIRMED status to deliver.",
+                        "order-e-04");
+            }
+
+        } else if (status.equals(OrderStatus.DELIVERED)) {
+            if (!order.getStatus().equals(OrderStatus.DELIVERING)) {
+                throw new AppException(HttpStatus.FORBIDDEN, "Order must be in DELIVERING status to mark as delivered.",
+                        "order-e-05");
+            }
+        } else if (status.equals(OrderStatus.CANCELED)) {
+            if (order.getStatus().equals(OrderStatus.RECEIVED)) {
+                throw new AppException(HttpStatus.FORBIDDEN, "Cannot cancel an order that has been received.",
+                        "order-e-06");
+            }
+        }
+        if (status.equals(OrderStatus.CANCELED)) {
+            for (OrderItem orderItem : order.getOrderItems()) {
+                Product product = orderItem.getProduct();
+                product.setInventory(product.getInventory() + orderItem.getQuantity());
+                productRepository.save(product);
+            }
+        }
+        if(request.getReason() != null){
+            order.setLastStatusChangeReason(request.getReason());
         }
         order.setStatus(status);
         orderRepository.save(order);

@@ -71,6 +71,10 @@ const useInitialApp = () => {
     }
 
     if (!isLoggedIn || !refreshTokenString) {
+      if (isLoggedIn && !refreshTokenString) {
+        setIsLoggedIn(false);
+        setTokens("", "");
+      }
       console.log("❌ Skip initialization - not logged in or no refresh token");
       hasRunRef.current = false; // Reset để có thể chạy lại khi login
       return;
@@ -103,9 +107,17 @@ const useInitialApp = () => {
     console.log("⏰ Setting up refresh token interval", {
       isLoggedIn,
       hasRefreshToken: !!refreshTokenString,
+      interval: env.interval_refresh_token,
     });
 
     if (isLoggedIn && refreshTokenString) {
+      if (!env.interval_refresh_token || env.interval_refresh_token < 1000) {
+        console.warn(
+          "⚠️ interval_refresh_token không hợp lệ:",
+          env.interval_refresh_token
+        );
+        return;
+      }
       intervalRef.current = setInterval(() => {
         console.log("🔄 Auto refreshing token...");
         refreshToken();

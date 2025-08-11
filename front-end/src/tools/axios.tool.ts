@@ -31,13 +31,14 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle authentication errors
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    // Chỉ đăng xuất khi gặp lỗi 401 (UNAUTHORIZED)
+    if (error.response?.status === 401) {
       const clearTokens = useAuthStore.getState().clearTokens;
       if (clearTokens) {
         clearTokens();
       }
     }
+    // Nếu là 403 (FORBIDDEN), chỉ trả lỗi về cho UI xử lý, không đăng xuất
     return Promise.reject(error);
   }
 );

@@ -14,4 +14,5 @@ public class ChangeOrderStatusRequest {
     String orderId;
     @NotNull(message = "Order status is required")
     OrderStatus status;
+    String reason;
 }

@@ -31,6 +31,9 @@ public class Order {
     @Column(columnDefinition = "TEXT")
     String note;
 
+    @Column(columnDefinition = "TEXT")
+    String lastStatusChangeReason;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     OrderStatus status;
@@ -44,10 +47,12 @@ public class Order {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonManagedReference
+    @Builder.Default
     Set<OrderItem> orderItems = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "order", orphanRemoval = true)
     @JsonIgnore
+    @Builder.Default
     Set<Review> reviews = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -65,8 +70,9 @@ public class Order {
     LocalDateTime createdAt;
 
     @PrePersist
-    void onCreate(){
+    void onCreate() {
         this.status = OrderStatus.PENDING;
+        this.lastStatusChangeReason = "";
         this.createdAt = LocalDateTime.now();
     }
 }
