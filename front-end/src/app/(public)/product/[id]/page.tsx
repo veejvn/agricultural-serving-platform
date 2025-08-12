@@ -526,6 +526,36 @@ export default function ProductDetailPage({
             {product.name}
           </h1>
 
+          {/* Farmer Info */}
+          <div className="mt-2 flex items-center gap-3">
+            <Link href={`/farmer/${product.farmer.id}`} className="flex items-center gap-2 hover:underline">
+              <img
+                src={product.farmer.avatar || "/placeholder.svg"}
+                alt={product.farmer.name}
+                className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-700 object-cover"
+              />
+              <span className="font-medium text-green-700 dark:text-green-300">
+                {product.farmer.name}
+              </span>
+            </Link>
+            <span className="text-xs text-gray-500 dark:text-gray-400">•</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">
+              Đánh giá:{" "}
+              <span className="font-semibold">
+                {product.farmer.rating.toFixed(1)}
+              </span>
+            </span>
+            {product.farmer.status !== "ACTIVE" && (
+              <span className="ml-2 text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                {product.farmer.status === "SELF_BLOCK"
+                  ? "Tạm ngưng"
+                  : product.farmer.status === "ADMIN_BLOCK"
+                  ? "Bị khóa"
+                  : product.farmer.status}
+              </span>
+            )}
+          </div>
+
           <div className="mt-2 flex items-center gap-2">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
@@ -620,10 +650,10 @@ export default function ProductDetailPage({
             </Button>
           </div>
 
-          <div className="mt-6 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          {/* <div className="mt-6 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Truck className="h-4 w-4" />
             <span>Giao hàng miễn phí cho đơn hàng từ 500.000đ</span>
-          </div>
+          </div> */}
         </div>
       </div>
 

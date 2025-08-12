@@ -73,10 +73,21 @@ public class ProductController {
                 return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
         }
 
+        // Endpoint cho người dùng CUSTOMER để lấy sản phẩm của một nông dân cụ thể
+        @GetMapping("/farmer/{farmerId}")
+        public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllByFarmerId(@PathVariable String farmerId) {
+                ApiResponse<List<ProductResponse>> apiResponse = ApiResponse.<List<ProductResponse>>builder()
+                                .code("product-s-05")
+                                .message("Get all product by farmer ID successfully")
+                                .data(productService.getAllByFarmerId(farmerId))
+                                .build();
+                return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        }
+
         @GetMapping("/{id}")
         public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable String id) {
                 ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
-                                .code("product-s-05")
+                                .code("product-s-06")
                                 .message("Get product successfully")
                                 .data(productService.getById(id))
                                 .build();
@@ -88,7 +99,7 @@ public class ProductController {
         public ResponseEntity<ApiResponse<ProductResponse>> update(@PathVariable String id,
                         @RequestBody @Valid ProductUpdateRequest request) {
                 ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
-                                .code("product-s-06")
+                                .code("product-s-07")
                                 .message("Update product successfully")
                                 .data(productService.update(id, request))
                                 .build();
@@ -100,7 +111,7 @@ public class ProductController {
         public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
                 productService.delete(id);
                 ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
-                                .code("product-s-07")
+                                .code("product-s-08")
                                 .message("Delete product successfully")
                                 .build();
                 return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
@@ -111,7 +122,7 @@ public class ProductController {
         public ResponseEntity<ApiResponse<ProductResponse>> adminChangeProductStatus(
                         @RequestBody @Valid ChangeProductStatusRequest request) {
                 ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
-                                .code("product-s-08")
+                                .code("product-s-09")
                                 .message("Change product status successfully")
                                 .data(productService.adminChangeProductStatus(request))
                                 .build();

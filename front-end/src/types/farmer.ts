@@ -15,3 +15,17 @@ export interface IUpgradeToFarmerResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface IFarmerUpdateInfoPutRequest {
+  name: string;
+  avatar: string;
+  coverImage: string;
+  description: string;
+}
+
+export interface IFarmerUpdateInfoPatchRequest {
+  name?: string;
+  avatar?: string;
+  coverImage?: string;
+  description?: string;
+}

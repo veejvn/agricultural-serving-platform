@@ -391,11 +391,11 @@ export default function FarmerStats() {
               title="Doanh thu theo thời gian"
               description="Biểu đồ doanh thu 12 tháng gần nhất"
               chart={
-                <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                <div className="h-[350px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <ResponsiveContainer width="100%" height={280}>
                     <LineChart
                       data={revenueChartData}
-                      margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 0 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
@@ -539,7 +539,7 @@ export default function FarmerStats() {
               title="Đơn hàng theo thời gian"
               description="Biểu đồ số lượng đơn hàng 12 tháng gần nhất"
               chart={
-                <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                <div className="h-[350px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <ResponsiveContainer width="100%" height={260}>
                     <LineChart
                       data={orderCountChartData}
@@ -571,8 +571,8 @@ export default function FarmerStats() {
               title="Trạng thái đơn hàng"
               description="Phân bố đơn hàng theo trạng thái"
               chart={
-                <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height={260}>
+                <div className="h-[350px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height={300}>
                     <RePieChart>
                       <Pie
                         data={orderStatusData}
@@ -612,7 +612,7 @@ export default function FarmerStats() {
               title="Khách hàng mới"
               description="Biểu đồ khách hàng mới 12 tháng gần nhất"
               chart={
-                <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                <div className="h-[350px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <ResponsiveContainer width="100%" height={260}>
                     <LineChart
                       data={newCustomerChartData}
@@ -646,7 +646,7 @@ export default function FarmerStats() {
               title="Khách hàng thân thiết"
               description="Top 10 khách hàng có đơn hàng nhiều nhất"
               chart={
-                <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                <div className="h-[350px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
                   <ResponsiveContainer width="100%" height={260}>
                     <ReBarChart
                       data={loyalCustomerChartData}

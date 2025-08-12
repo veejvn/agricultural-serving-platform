@@ -25,6 +25,10 @@ const ProductService = {
     return service(axios.get(getApiUrl("/products/farmer")), true);
   },
 
+  getAllByFarmerId(farmerId: string) {
+    return service(axios.get(getApiUrl(`/products/farmer/${farmerId}`)), true);
+  },
+
   // Lấy sản phẩm theo ID
   getById(id: string) {
     return service(axios.get(getApiUrl(`/products/${id}`)), true);

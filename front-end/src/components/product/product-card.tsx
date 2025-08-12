@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { IProductTag } from "@/types/product";
+import { IProductResponese, IProductTag } from "@/types/product";
 import { formatPrice } from "@/utils/common/format";
 import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
@@ -25,7 +25,7 @@ export function ProductCard({
   product,
   featured = false,
 }: {
-  product: IProductTag;
+  product: IProductTag | IProductResponese;
   featured?: boolean;
 }) {
   const [isAdding, setIsAdding] = useState(false);
@@ -46,7 +46,6 @@ export function ProductCard({
       toast({
         title: "Cần đăng nhập",
         description: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng",
-        variant: "destructive",
       });
       router.push(ROUTES.LOGIN);
       return;

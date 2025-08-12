@@ -151,6 +151,15 @@ public class ProductService {
         return productMapper.toListProductResponse(products);
     }
 
+    public List<ProductResponse> getAllByFarmerId(String farmerId) {
+        if (farmerId == null || farmerId.isEmpty()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Farmer ID cannot be null or empty", "farmer-e-01");
+        }
+        List<Product> products = productRepository.findAllByFarmerIdAndStatusNot(farmerId, ProductStatus.DELETED,
+                Sort.by("createdAt").descending());
+        return productMapper.toListProductResponse(products);
+    }
+
     public Page<ProductTagResponse> getAllActiveProduct(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("rating").descending());
         Page<Product> productPage = productRepository.findByStatus(ProductStatus.ACTIVE, pageable);

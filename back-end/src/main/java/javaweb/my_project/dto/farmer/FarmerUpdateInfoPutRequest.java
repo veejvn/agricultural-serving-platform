@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class FarmerRequest {
+public class FarmerUpdateInfoPutRequest {
     @NotBlank(message = "Farmer name is required")
     String name;
     @NotBlank(message = "Farmer avatar is required")

@@ -52,11 +52,11 @@ export default function Header() {
       path: "/price",
       icon: <LineChart className="h-5 w-5" />,
     },
-    {
-      name: "Diễn đàn",
-      path: "/forum",
-      icon: <MessageSquare className="h-5 w-5" />,
-    },
+    // {
+    //   name: "Diễn đàn",
+    //   path: "/forum",
+    //   icon: <MessageSquare className="h-5 w-5" />,
+    // },
   ];
 
   return (

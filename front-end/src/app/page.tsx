@@ -141,7 +141,7 @@ export default function Home() {
             </CardFooter>
           </Card>
 
-          <Card className="border-green-100 dark:border-green-800">
+          {/* <Card className="border-green-100 dark:border-green-800">
             <CardHeader className="pb-2">
               <MessageSquare className="h-10 w-10 text-green-600 dark:text-green-500" />
               <CardTitle className="mt-2 text-xl text-green-800 dark:text-green-300">
@@ -163,7 +163,7 @@ export default function Home() {
                 <Link href="/forum">Tham gia ngay</Link>
               </Button>
             </CardFooter>
-          </Card>
+          </Card> */}
 
           <Card className="border-green-100 dark:border-green-800">
             <CardHeader className="pb-2">
@@ -189,7 +189,7 @@ export default function Home() {
             </CardFooter>
           </Card>
 
-          <Card className="border-green-100 dark:border-green-800">
+          {/* <Card className="border-green-100 dark:border-green-800">
             <CardHeader className="pb-2">
               <Users className="h-10 w-10 text-green-600 dark:text-green-500" />
               <CardTitle className="mt-2 text-xl text-green-800 dark:text-green-300">
@@ -211,9 +211,9 @@ export default function Home() {
                 <Link href="/cong-dong">Tham gia</Link>
               </Button>
             </CardFooter>
-          </Card>
+          </Card> */}
 
-          <Card className="border-green-100 dark:border-green-800">
+          {/* <Card className="border-green-100 dark:border-green-800">
             <CardHeader className="pb-2">
               <CalendarDays className="h-10 w-10 text-green-600 dark:text-green-500" />
               <CardTitle className="mt-2 text-xl text-green-800 dark:text-green-300">
@@ -235,7 +235,7 @@ export default function Home() {
                 <Link href="/lich-canh-tac">Xem lịch</Link>
               </Button>
             </CardFooter>
-          </Card>
+          </Card> */}
         </div>
       </section>
 
@@ -251,16 +251,16 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
             <div className="col-span-1">
               <WeatherWidget />
             </div>
             <div className="col-span-1">
               <MarketPriceWidget />
             </div>
-            <div className="col-span-1">
+            {/* <div className="col-span-1">
               <ForumPreview />
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
