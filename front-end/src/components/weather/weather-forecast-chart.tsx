@@ -1,5 +1,6 @@
 "use client";
 
+import { IForecastResponse } from "@/types/weather";
 import React, { useEffect, useState } from "react";
 import {
   Line,
@@ -11,19 +12,18 @@ import {
 } from "recharts";
 
 interface WeatherForecastChartProps {
+  forcast: IForecastResponse | null;
   type: "temperature" | "rainfall" | "humidity" | "wind";
+  data?: Array<{ day: string; value: number }>;
 }
 
 export default function WeatherForecastChart({
+  forcast,
   type,
+  data,
 }: WeatherForecastChartProps) {
-  const [chartData, setChartData] = useState<unknown[]>([]);
-
-  useEffect(() => {
-    // Trong thực tế, dữ liệu này sẽ được lấy từ API
-    const data = generateChartData(type);
-    setChartData(data);
-  }, [type]);
+  // Nếu có data từ props thì dùng, không thì để []
+  const chartData = data || buildChartData(forcast, type);
 
   return (
     <div className="h-[300px] w-full">
@@ -76,37 +76,58 @@ export default function WeatherForecastChart({
   );
 }
 
-// Hàm tạo dữ liệu mẫu cho biểu đồ
-function generateChartData(type: string) {
-  const days = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
-
-  switch (type) {
-    case "temperature":
-      return days.map((day, index) => ({
-        day,
-        value: Math.floor(Math.random() * 5) + 28 - (index % 3), // 28-32°C
-      }));
-    case "rainfall":
-      return days.map((day, index) => ({
-        day,
-        value:
-          index > 3
-            ? Math.floor(Math.random() * 30) + 5
-            : Math.floor(Math.random() * 5), // Tăng lượng mưa vào cuối tuần
-      }));
-    case "humidity":
-      return days.map((day) => ({
-        day,
-        value: Math.floor(Math.random() * 15) + 70, // 70-85%
-      }));
-    case "wind":
-      return days.map((day) => ({
-        day,
-        value: Math.floor(Math.random() * 10) + 5, // 5-15 km/h
-      }));
-    default:
-      return [];
+// Hàm tạo dữ liệu biểu đồ từ forecastData (dạng daily)
+export function buildChartData(
+  forecast: IForecastResponse | null,
+  type: "temperature" | "rainfall" | "humidity" | "wind"
+): Array<{ day: string; value: number }> {
+  if (!forecast || !forecast.list || forecast.list.length === 0) {
+    return [];
   }
+  // Group các bản ghi theo ngày (YYYY-MM-DD)
+  const groups: Record<string, typeof forecast.list> = {};
+  forecast.list.forEach((item) => {
+    const day = item.dt_txt.split(" ")[0];
+    if (!groups[day]) groups[day] = [];
+    groups[day].push(item);
+  });
+  // Lấy 5 ngày đầu tiên
+  const days = Object.keys(groups).slice(1, 6);
+  return days.map((dayStr) => {
+    const items = groups[dayStr];
+    // Tìm mốc gần 12:00 nhất
+    let target = items[0];
+    let minDiff = Infinity;
+    for (const item of items) {
+      const hour = Number(item.dt_txt.split(" ")[1].split(":")[0]);
+      const diff = Math.abs(hour - 12);
+      if (diff < minDiff) {
+        minDiff = diff;
+        target = item;
+      }
+    }
+    console.log("target WeatherForecastChart", target);
+    const dateObj = new Date(target.dt * 1000);
+    const day = dateObj.toLocaleDateString("vi-VN", { weekday: "short" });
+    let value = 0;
+    switch (type) {
+      case "temperature":
+        value = Math.round(target.main.temp);
+        break;
+      case "rainfall":
+        value = target.rain?.["3h"] || 0;
+        break;
+      case "humidity":
+        value = target.main.humidity;
+        break;
+      case "wind":
+        value = target.wind.speed;
+        break;
+      default:
+        value = 0;
+    }
+    return { day, value };
+  });
 }
 
 // Lấy đơn vị đo tương ứng với loại dữ liệu
