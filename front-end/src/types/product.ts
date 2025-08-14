@@ -88,3 +88,10 @@ export interface ProductStats {
     revenue: number;
   }[];
 }
+
+export interface IProductMarketPriceResponse {
+  id: string;
+  name: string;
+  unitPrice: string;
+  category: string;
+}

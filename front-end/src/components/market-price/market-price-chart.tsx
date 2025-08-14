@@ -10,14 +10,55 @@ import {
   YAxis,
 } from "recharts";
 
-export default function MarketPriceChart() {
-  const [chartData, setChartData] = useState<unknown[]>([]);
+interface MarketPriceData {
+  id: string;
+  price: number;
+  dateRecorded: string;
+  region: string;
+  product: {
+    id: string;
+    name: string;
+    unitPrice: string;
+  };
+}
+
+interface MarketPriceChartProps {
+  data?: MarketPriceData[];
+}
+
+export default function MarketPriceChart({ data = [] }: MarketPriceChartProps) {
+  const [chartData, setChartData] = useState<{ date: string; price: number }[]>(
+    []
+  );
 
   useEffect(() => {
-    // Trong thực tế, dữ liệu này sẽ được lấy từ API
-    const data = generateChartData();
-    setChartData(data);
-  }, []);
+    if (data && data.length > 0) {
+      // Sắp xếp dữ liệu theo ngày (từ cũ đến mới)
+      const sortedData = [...data].sort(
+        (a, b) =>
+          new Date(a.dateRecorded).getTime() -
+          new Date(b.dateRecorded).getTime()
+      );
+
+      // Lấy tối đa 15 điểm dữ liệu gần đây nhất (không lọc thêm vì API đã cách 2 ngày sẵn)
+      const recentData = sortedData.slice(-15);
+
+      // Chuyển đổi dữ liệu cho chart
+      const formattedData = recentData.map((item) => ({
+        date: new Date(item.dateRecorded).toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+        }),
+        price: item.price,
+      }));
+
+      setChartData(formattedData);
+    } else {
+      // Fallback to sample data if no data provided
+      const fallbackData = generateChartData();
+      setChartData(fallbackData);
+    }
+  }, [data]);
 
   return (
     <div className="h-[300px] w-full">
@@ -38,18 +79,23 @@ export default function MarketPriceChart() {
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => `${value}đ`}
+            tickFormatter={(value) => `${value.toLocaleString("vi-VN")}đ`}
           />
           <Tooltip
             content={({ active, payload, label }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="rounded-lg border bg-background p-2 shadow-sm">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="font-medium">{label}</div>
-                      <div className="font-medium text-right">{`${(payload[0]?.value ?? 0).toLocaleString(
-                        "vi-VN"
-                      )}đ`}</div>
+                  <div className="rounded-lg border bg-background p-3 shadow-sm">
+                    <div className="grid gap-2">
+                      <div className="font-medium text-sm">Ngày: {label}</div>
+                      <div className="font-medium text-lg text-green-600">
+                        {`${(payload[0]?.value ?? 0).toLocaleString("vi-VN")}đ`}
+                        {data.length > 0 && data[0]?.product?.unitPrice && (
+                          <span className="text-sm text-gray-500">
+                            /{data[0].product.unitPrice}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

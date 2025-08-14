@@ -12,6 +12,7 @@ import {
   Bell,
   Settings,
   LogOut,
+  SquareChartGantt,
 } from "lucide-react";
 
 export function AdminSidebar() {
@@ -35,6 +36,12 @@ export function AdminSidebar() {
       icon: Package,
       title: "Sản phẩm",
       active: pathname === "/admin/product",
+    },
+    {
+      href: "/admin/category",
+      icon: SquareChartGantt,
+      title: "Danh mục sản phẩm",
+      active: pathname === "/admin/category",
     },
     {
       href: "/admin/order",

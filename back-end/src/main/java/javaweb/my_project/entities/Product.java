@@ -46,9 +46,9 @@ public class Product {
     @Column(nullable = false)
     ProductStatus status;
 
-    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", orphanRemoval = true)
     @JsonIgnore
-    MarketPrice marketPrice;
+    Set<MarketPrice> marketPrices;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", orphanRemoval = true)
     @EqualsAndHashCode.Exclude

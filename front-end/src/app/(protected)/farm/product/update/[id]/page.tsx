@@ -949,26 +949,6 @@ export default function UpdateProductPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="inventory">
-                  Số lượng tồn kho <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="inventory"
-                  type="number"
-                  value={formData.inventory}
-                  onChange={(e) =>
-                    handleInputChange("inventory", e.target.value)
-                  }
-                  placeholder="0"
-                  min="0"
-                  className={errors.inventory ? "border-red-500" : ""}
-                />
-                {errors.inventory && (
-                  <p className="text-sm text-red-500">{errors.inventory}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="unitPrice">
                   Đơn vị tính <span className="text-red-500">*</span>
                 </Label>
@@ -989,6 +969,26 @@ export default function UpdateProductPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="inventory">
+                  Số lượng tồn kho <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="inventory"
+                  type="number"
+                  value={formData.inventory}
+                  onChange={(e) =>
+                    handleInputChange("inventory", e.target.value)
+                  }
+                  placeholder="0"
+                  min="0"
+                  className={errors.inventory ? "border-red-500" : ""}
+                />
+                {errors.inventory && (
+                  <p className="text-sm text-red-500">{errors.inventory}</p>
+                )}
               </div>
             </div>
           </CardContent>

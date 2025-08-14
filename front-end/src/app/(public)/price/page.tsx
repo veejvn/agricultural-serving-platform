@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -24,48 +26,340 @@ import {
   TrendingUp,
 } from "lucide-react";
 import MarketPriceChart from "@/components/market-price/market-price-chart";
+import { useEffect, useMemo, useState } from "react";
+import MarketPriceService from "@/services/marketPrice.service";
+import { IMarkerPriceResponse } from "@/types/market-price";
+import { IProductMarketPriceResponse } from "@/types/product";
 
 export default function MarketPricePage() {
+  const [marketPrices, setMarketPrices] = useState<IMarkerPriceResponse[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [products, setProducts] = useState<IProductMarketPriceResponse[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedRegion, setSelectedRegion] = useState<string>(
+    "dong-bang-song-cuu-long"
+  );
+  const [selectedProduct, setSelectedProduct] = useState<string>("");
+  const today = new Date().toLocaleDateString("vi-VN");
+
+  // Lọc products theo category được chọn
+  const filteredProducts = useMemo(() => {
+    if (!selectedCategory) return [];
+    const products = marketPrices
+      .filter((item) => item.product.category === selectedCategory)
+      .map((item) => item.product);
+
+    // Loại bỏ duplicates dựa trên product.id
+    const uniqueProducts = products.filter(
+      (product, index, self) =>
+        index === self.findIndex((p) => p.id === product.id)
+    );
+
+    return uniqueProducts;
+  }, [marketPrices, selectedCategory]);
+
+  // Lọc marketPrices theo category, region và product được chọn
+  const filteredMarketPrices = useMemo(() => {
+    return marketPrices.filter(
+      (item) =>
+        (selectedCategory
+          ? item.product.category === selectedCategory
+          : true) &&
+        (selectedRegion ? item.region === selectedRegion : true) &&
+        (selectedProduct ? item.product.id === selectedProduct : true)
+    );
+  }, [marketPrices, selectedCategory, selectedRegion, selectedProduct]);
+
+  // Lọc marketPrices theo selectedProduct
+  const selectedProductMarketPrices = useMemo(() => {
+    if (!selectedProduct) return [];
+    return marketPrices.filter(
+      (item) =>
+        item.product.id === selectedProduct &&
+        (selectedRegion ? item.region === selectedRegion : true)
+    );
+  }, [marketPrices, selectedProduct, selectedRegion]);
+
+  // Tính toán giá hiện tại, cao nhất, thấp nhất cho sản phẩm được chọn
+  const productPriceStats = useMemo(() => {
+    if (selectedProductMarketPrices.length === 0) {
+      return {
+        currentPrice: null,
+        highestPrice: null,
+        lowestPrice: null,
+        currentProduct: null,
+      };
+    }
+
+    // Sắp xếp theo ngày để lấy giá hiện tại (mới nhất)
+    const sortedByDate = [...selectedProductMarketPrices].sort(
+      (a, b) =>
+        new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime()
+    );
+
+    const currentPrice = sortedByDate[0];
+
+    // Tính giá cao nhất và thấp nhất trong 15 ngày qua
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+    const last15DaysPrices = selectedProductMarketPrices.filter(
+      (item) => new Date(item.dateRecorded) >= fifteenDaysAgo
+    );
+
+    const highestPrice = last15DaysPrices.reduce(
+      (max, item) => (item.price > max.price ? item : max),
+      last15DaysPrices[0]
+    );
+
+    const lowestPrice = last15DaysPrices.reduce(
+      (min, item) => (item.price < min.price ? item : min),
+      last15DaysPrices[0]
+    );
+
+    return {
+      currentPrice,
+      highestPrice,
+      lowestPrice,
+      currentProduct: currentPrice?.product,
+    };
+  }, [selectedProductMarketPrices]);
+
+  // Tính toán % thay đổi so với tuần trước
+  const priceChangePercentage = useMemo(() => {
+    if (selectedProductMarketPrices.length < 2) return null;
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Sắp xếp theo ngày
+    const sortedPrices = [...selectedProductMarketPrices].sort(
+      (a, b) =>
+        new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime()
+    );
+
+    const currentPrice = sortedPrices[sortedPrices.length - 1];
+
+    // Tìm giá gần nhất cách đây 7 ngày
+    const weekAgoPrice = sortedPrices.find(
+      (price) => new Date(price.dateRecorded) <= sevenDaysAgo
+    );
+
+    if (!weekAgoPrice || !currentPrice) return null;
+
+    const changePercent =
+      ((currentPrice.price - weekAgoPrice.price) / weekAgoPrice.price) * 100;
+    return parseFloat(changePercent.toFixed(1));
+  }, [selectedProductMarketPrices]);
+
+  // Tạo dữ liệu cho bảng giá từ selectedProductMarketPrices
+  const tableData = useMemo(() => {
+    if (selectedProductMarketPrices.length === 0) return [];
+
+    // Sắp xếp theo ngày mới nhất trước
+    const sortedData = [...selectedProductMarketPrices].sort(
+      (a, b) =>
+        new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime()
+    );
+
+    // Lấy tối đa 11 bản ghi gần đây nhất để có thể tính % thay đổi cho 10 bản ghi hiển thị
+    const recentData = sortedData.slice(0, 11);
+
+    // Tính toán % thay đổi cho từng ngày (chỉ lấy 10 bản ghi đầu để hiển thị)
+    return recentData.slice(0, 10).map((item, index) => {
+      let change = 0;
+      // Kiểm tra có bản ghi trước đó không (có thể là bản ghi thứ 11)
+      const previousItem = recentData[index + 1];
+      if (previousItem) {
+        change = ((item.price - previousItem.price) / previousItem.price) * 100;
+      }
+
+      return {
+        date: new Date(item.dateRecorded).toLocaleDateString("vi-VN"),
+        price: item.price.toLocaleString("vi-VN"),
+        unitPrice: item.product.unitPrice,
+        change: parseFloat(change.toFixed(1)),
+      };
+    });
+  }, [selectedProductMarketPrices]);
+
+  // Tạo dữ liệu so sánh giá các sản phẩm trong category được chọn
+  const comparisonData = useMemo(() => {
+    if (!selectedCategory || marketPrices.length === 0) return [];
+
+    // Lấy tất cả sản phẩm trong category được chọn
+    const categoryProducts = filteredProducts;
+
+    return categoryProducts
+      .map((product) => {
+        // Lấy dữ liệu market prices cho từng sản phẩm trong khu vực được chọn
+        const productPrices = marketPrices.filter(
+          (item) =>
+            item.product.id === product.id && item.region === selectedRegion
+        );
+
+        if (productPrices.length === 0) {
+          return {
+            name: product.name,
+            currentPrice: 0,
+            unitPrice: product.unitPrice,
+            change7Days: 0,
+            change15Days: 0,
+          };
+        }
+
+        // Sắp xếp theo ngày
+        const sortedPrices = productPrices.sort(
+          (a, b) =>
+            new Date(b.dateRecorded).getTime() -
+            new Date(a.dateRecorded).getTime()
+        );
+
+        const currentPrice = sortedPrices[0];
+
+        // Tính thay đổi 7 ngày
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const price7DaysAgo = sortedPrices.find(
+          (price) => new Date(price.dateRecorded) <= sevenDaysAgo
+        );
+
+        let change7Days = 0;
+        if (price7DaysAgo) {
+          change7Days =
+            ((currentPrice.price - price7DaysAgo.price) / price7DaysAgo.price) *
+            100;
+        }
+
+        // Tính thay đổi 15 ngày
+        const fifteenDaysAgo = new Date();
+        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+        const price15DaysAgo = sortedPrices.find(
+          (price) => new Date(price.dateRecorded) <= fifteenDaysAgo
+        );
+
+        let change15Days = 0;
+        if (price15DaysAgo) {
+          change15Days =
+            ((currentPrice.price - price15DaysAgo.price) /
+              price15DaysAgo.price) *
+            100;
+        }
+
+        return {
+          name: product.name,
+          currentPrice: currentPrice.price,
+          unitPrice: product.unitPrice,
+          change7Days: parseFloat(change7Days.toFixed(1)),
+          change15Days: parseFloat(change15Days.toFixed(1)),
+        };
+      })
+      .filter((item) => item.currentPrice > 0); // Chỉ hiển thị sản phẩm có giá
+  }, [filteredProducts, marketPrices, selectedCategory, selectedRegion]);
+
+  //console.log("Filtered Market Prices:", filteredMarketPrices);
+
+  useEffect(() => {
+    async function fetchMarketPrices() {
+      try {
+        const [marketPriceRes, error] =
+          await MarketPriceService.getAllMarketPrices();
+        if (error) {
+          console.error("Error fetching market prices:", error);
+          return;
+        }
+        setMarketPrices(marketPriceRes);
+        // Lấy danh sách category duy nhất từ marketPrices
+        const uniqueCategories = Array.from(
+          new Set(
+            marketPriceRes.map(
+              (item: IMarkerPriceResponse) => item.product.category
+            )
+          )
+        );
+        setCategories(uniqueCategories as string[]);
+
+        // Set category đầu tiên làm mặc định
+        if (uniqueCategories.length > 0) {
+          setSelectedCategory(uniqueCategories[0] as string);
+        }
+      } catch (error) {
+        console.error("Error fetching market prices:", error);
+      }
+    }
+
+    fetchMarketPrices();
+  }, []);
+
+  // Auto-select first product when filteredProducts changes
+  useEffect(() => {
+    if (filteredProducts.length > 0) {
+      // Reset selectedProduct when category changes or set first product
+      setSelectedProduct(filteredProducts[0].id);
+    } else {
+      setSelectedProduct("");
+    }
+  }, [filteredProducts]);
+
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
           Giá Cả Thị Trường
         </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+        {/* <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
           Theo dõi biến động giá nông sản theo thời gian thực
+        </p> */}
+        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+          Hôm nay ngày {today}
         </p>
       </div>
 
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="w-full sm:w-48">
-            <Select defaultValue="rice">
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn nông sản" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="rice">Lúa gạo</SelectItem>
-                <SelectItem value="coffee">Cà phê</SelectItem>
-                <SelectItem value="pepper">Hồ tiêu</SelectItem>
-                <SelectItem value="cashew">Điều</SelectItem>
-                <SelectItem value="fruit">Trái cây</SelectItem>
-                <SelectItem value="vegetable">Rau củ</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="w-full sm:w-48">
-            <Select defaultValue="mekong-delta">
+            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn sản phẩm" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredProducts.map((product) => (
+                  <SelectItem key={product.id} value={product.id}>
+                    {product.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-48">
+            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khu vực" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="mekong-delta">
+                <SelectItem value="dong-bang-song-cuu-long">
                   Đồng bằng sông Cửu Long
                 </SelectItem>
-                <SelectItem value="central-highlands">Tây Nguyên</SelectItem>
-                <SelectItem value="southeast">Đông Nam Bộ</SelectItem>
-                <SelectItem value="red-river-delta">
+                <SelectItem value="tay-nguyen">Tây Nguyên</SelectItem>
+                <SelectItem value="dong-nam-bo">Đông Nam Bộ</SelectItem>
+                <SelectItem value="dong-bang-song-hong">
                   Đồng bằng sông Hồng
                 </SelectItem>
               </SelectContent>
@@ -95,14 +389,64 @@ export default function MarketPricePage() {
           <CardHeader className="pb-2">
             <CardDescription>Giá hiện tại</CardDescription>
             <CardTitle className="text-2xl text-green-800 dark:text-green-300">
-              7,500 đ/kg
+              {productPriceStats.currentPrice
+                ? `${productPriceStats.currentPrice.price.toLocaleString()} đ/${
+                    productPriceStats.currentPrice.product.unitPrice
+                  }`
+                : "Đang tải..."}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <TrendingUp className="mr-2 h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-green-600">
-                +2.5% so với tuần trước
+              {priceChangePercentage !== null ? (
+                <>
+                  {priceChangePercentage >= 0 ? (
+                    <TrendingUp className="mr-2 h-4 w-4 text-green-600" />
+                  ) : (
+                    <TrendingDown className="mr-2 h-4 w-4 text-red-600" />
+                  )}
+                  <span
+                    className={`text-sm font-medium ${
+                      priceChangePercentage >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {priceChangePercentage >= 0 ? "+" : ""}
+                    {priceChangePercentage}% so với tuần trước
+                  </span>
+                </>
+              ) : (
+                <span className="text-sm text-gray-500">
+                  {productPriceStats.currentProduct
+                    ? productPriceStats.currentProduct.name
+                    : "Chưa chọn sản phẩm"}
+                </span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Giá cao nhất (15 ngày)</CardDescription>
+            <CardTitle className="text-2xl text-green-800 dark:text-green-300">
+              {productPriceStats.highestPrice
+                ? `${productPriceStats.highestPrice.price.toLocaleString()} đ/${
+                    productPriceStats.highestPrice.product.unitPrice
+                  }`
+                : "Đang tải..."}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Calendar className="mr-2 h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-500">
+                {productPriceStats.highestPrice
+                  ? new Date(
+                      productPriceStats.highestPrice.dateRecorded
+                    ).toLocaleDateString("vi-VN")
+                  : "Đang tải..."}
               </span>
             </div>
           </CardContent>
@@ -110,30 +454,25 @@ export default function MarketPricePage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Giá cao nhất (30 ngày)</CardDescription>
+            <CardDescription>Giá thấp nhất (15 ngày)</CardDescription>
             <CardTitle className="text-2xl text-green-800 dark:text-green-300">
-              7,800 đ/kg
+              {productPriceStats.lowestPrice
+                ? `${productPriceStats.lowestPrice.price.toLocaleString()} đ/${
+                    productPriceStats.lowestPrice.product.unitPrice
+                  }`
+                : "Đang tải..."}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
               <Calendar className="mr-2 h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-500">05/05/2025</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Giá thấp nhất (30 ngày)</CardDescription>
-            <CardTitle className="text-2xl text-green-800 dark:text-green-300">
-              7,100 đ/kg
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Calendar className="mr-2 h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-500">15/04/2025</span>
+              <span className="text-sm text-gray-500">
+                {productPriceStats.lowestPrice
+                  ? new Date(
+                      productPriceStats.lowestPrice.dateRecorded
+                    ).toLocaleDateString("vi-VN")
+                  : "Đang tải..."}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -167,12 +506,14 @@ export default function MarketPricePage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-green-800 dark:text-green-300">
-                Biểu đồ giá lúa gạo
+                {productPriceStats.currentProduct
+                  ? `Biểu đồ giá ${productPriceStats.currentProduct.name}`
+                  : "Biểu đồ giá sản phẩm"}
               </CardTitle>
-              <CardDescription>Biến động giá 30 ngày qua</CardDescription>
+              <CardDescription>Biến động giá 15 ngày qua</CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
-              <MarketPriceChart />
+              <MarketPriceChart data={selectedProductMarketPrices} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -181,9 +522,17 @@ export default function MarketPricePage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-green-800 dark:text-green-300">
-                Bảng giá lúa gạo
+                {productPriceStats.currentProduct
+                  ? `Bảng giá ${productPriceStats.currentProduct.name}`
+                  : "Bảng giá sản phẩm"}
               </CardTitle>
-              <CardDescription>Cập nhật ngày 11/05/2025</CardDescription>
+              <CardDescription>
+                {productPriceStats.currentPrice
+                  ? `Cập nhật ngày ${new Date(
+                      productPriceStats.currentPrice.dateRecorded
+                    ).toLocaleDateString("vi-VN")}`
+                  : "Cập nhật ngày 11/05/2025"}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -191,48 +540,54 @@ export default function MarketPricePage() {
                   <thead>
                     <tr className="border-b">
                       <th className="py-3 text-left font-medium">Ngày</th>
-                      <th className="py-3 text-left font-medium">Giá mở cửa</th>
                       <th className="py-3 text-left font-medium">
-                        Giá cao nhất
-                      </th>
-                      <th className="py-3 text-left font-medium">
-                        Giá thấp nhất
-                      </th>
-                      <th className="py-3 text-left font-medium">
-                        Giá đóng cửa
+                        Giá (
+                        {productPriceStats.currentProduct?.unitPrice ||
+                          "đơn vị"}
+                        )
                       </th>
                       <th className="py-3 text-left font-medium">Biến động</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {priceData.map((item) => (
-                      <tr key={item.date} className="border-b">
-                        <td className="py-3">{item.date}</td>
-                        <td className="py-3">{item.open}</td>
-                        <td className="py-3">{item.high}</td>
-                        <td className="py-3">{item.low}</td>
-                        <td className="py-3">{item.close}</td>
-                        <td className="py-3">
-                          <div className="flex items-center">
-                            {item.change > 0 ? (
-                              <>
-                                <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                                <span className="text-green-600">
-                                  {item.change}%
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <ArrowDown className="mr-1 h-4 w-4 text-red-600" />
-                                <span className="text-red-600">
-                                  {Math.abs(item.change)}%
-                                </span>
-                              </>
-                            )}
-                          </div>
+                    {tableData.length > 0 ? (
+                      tableData.map((item, index) => (
+                        <tr key={`${item.date}-${index}`} className="border-b">
+                          <td className="py-3">{item.date}</td>
+                          <td className="py-3">{item.price} đ</td>
+                          <td className="py-3">
+                            <div className="flex items-center">
+                              {item.change > 0 ? (
+                                <>
+                                  <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
+                                  <span className="text-green-600">
+                                    +{item.change}%
+                                  </span>
+                                </>
+                              ) : item.change < 0 ? (
+                                <>
+                                  <ArrowDown className="mr-1 h-4 w-4 text-red-600" />
+                                  <span className="text-red-600">
+                                    {item.change}%
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-gray-500">0%</span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="py-8 text-center text-gray-500"
+                        >
+                          Không có dữ liệu để hiển thị
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -304,96 +659,108 @@ export default function MarketPricePage() {
         </TabsContent>
       </Tabs>
 
-      <div className="mt-12 grid gap-6 lg:grid-cols-2">
+      <div className="mt-12 flex flex-col gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-xl text-green-800 dark:text-green-300">
-              So sánh giá các loại gạo
+              {selectedCategory
+                ? `So sánh giá các loại ${selectedCategory.toLowerCase()}`
+                : "So sánh giá sản phẩm"}
             </CardTitle>
-            <CardDescription>Cập nhật ngày 11/05/2025</CardDescription>
+            <CardDescription>
+              {selectedRegion && comparisonData.length > 0
+                ? `Khu vực: ${
+                    selectedRegion === "dong-bang-song-cuu-long"
+                      ? "Đồng bằng sông Cửu Long"
+                      : selectedRegion === "tay-nguyen"
+                      ? "Tây Nguyên"
+                      : selectedRegion === "dong-nam-bo"
+                      ? "Đông Nam Bộ"
+                      : selectedRegion === "dong-bang-song-hong"
+                      ? "Đồng bằng sông Hồng"
+                      : selectedRegion
+                  }`
+                : `Cập nhật ngày ${today}`}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b">
-                    <th className="py-3 text-left font-medium">Loại gạo</th>
-                    <th className="py-3 text-left font-medium">
-                      Giá hiện tại (đ/kg)
-                    </th>
+                    <th className="py-3 text-left font-medium">Sản phẩm</th>
+                    <th className="py-3 text-left font-medium">Giá hiện tại</th>
                     <th className="py-3 text-left font-medium">
                       Thay đổi 7 ngày
                     </th>
                     <th className="py-3 text-left font-medium">
-                      Thay đổi 30 ngày
+                      Thay đổi 15 ngày
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b">
-                    <td className="py-3">Gạo ST25</td>
-                    <td className="py-3">22,500</td>
-                    <td className="py-3">
-                      <div className="flex items-center">
-                        <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                        <span className="text-green-600">2.3%</span>
-                      </div>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center">
-                        <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                        <span className="text-green-600">5.1%</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-3">Gạo Nàng Hoa</td>
-                    <td className="py-3">18,200</td>
-                    <td className="py-3">
-                      <div className="flex items-center">
-                        <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                        <span className="text-green-600">1.7%</span>
-                      </div>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center">
-                        <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                        <span className="text-green-600">3.8%</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-3">Gạo Jasmine</td>
-                    <td className="py-3">19,800</td>
-                    <td className="py-3">
-                      <div className="flex items-center">
-                        <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                        <span className="text-green-600">2.1%</span>
-                      </div>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center">
-                        <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                        <span className="text-green-600">4.2%</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-3">Gạo IR50404</td>
-                    <td className="py-3">12,500</td>
-                    <td className="py-3">
-                      <div className="flex items-center">
-                        <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                        <span className="text-green-600">1.2%</span>
-                      </div>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center">
-                        <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
-                        <span className="text-green-600">2.5%</span>
-                      </div>
-                    </td>
-                  </tr>
+                  {comparisonData.length > 0 ? (
+                    comparisonData.map((item, index) => (
+                      <tr key={`${item.name}-${index}`} className="border-b">
+                        <td className="py-3">{item.name}</td>
+                        <td className="py-3">
+                          {item.currentPrice.toLocaleString("vi-VN")} đ/
+                          {item.unitPrice}
+                        </td>
+                        <td className="py-3">
+                          <div className="flex items-center">
+                            {item.change7Days > 0 ? (
+                              <>
+                                <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
+                                <span className="text-green-600">
+                                  +{item.change7Days}%
+                                </span>
+                              </>
+                            ) : item.change7Days < 0 ? (
+                              <>
+                                <ArrowDown className="mr-1 h-4 w-4 text-red-600" />
+                                <span className="text-red-600">
+                                  {item.change7Days}%
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-gray-500">0%</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3">
+                          <div className="flex items-center">
+                            {item.change15Days > 0 ? (
+                              <>
+                                <ArrowUp className="mr-1 h-4 w-4 text-green-600" />
+                                <span className="text-green-600">
+                                  +{item.change15Days}%
+                                </span>
+                              </>
+                            ) : item.change15Days < 0 ? (
+                              <>
+                                <ArrowDown className="mr-1 h-4 w-4 text-red-600" />
+                                <span className="text-red-600">
+                                  {item.change15Days}%
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-gray-500">0%</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="py-8 text-center text-gray-500"
+                      >
+                        Không có dữ liệu để so sánh
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -457,63 +824,3 @@ export default function MarketPricePage() {
     </div>
   );
 }
-
-// Dữ liệu mẫu
-const priceData = [
-  {
-    date: "11/05/2025",
-    open: "7,450",
-    high: "7,500",
-    low: "7,400",
-    close: "7,500",
-    change: 0.7,
-  },
-  {
-    date: "10/05/2025",
-    open: "7,400",
-    high: "7,450",
-    low: "7,380",
-    close: "7,450",
-    change: 0.5,
-  },
-  {
-    date: "09/05/2025",
-    open: "7,380",
-    high: "7,420",
-    low: "7,350",
-    close: "7,410",
-    change: 0.4,
-  },
-  {
-    date: "08/05/2025",
-    open: "7,350",
-    high: "7,400",
-    low: "7,320",
-    close: "7,380",
-    change: 0.3,
-  },
-  {
-    date: "07/05/2025",
-    open: "7,320",
-    high: "7,380",
-    low: "7,300",
-    close: "7,360",
-    change: 0.6,
-  },
-  {
-    date: "06/05/2025",
-    open: "7,300",
-    high: "7,350",
-    low: "7,280",
-    close: "7,320",
-    change: 0.3,
-  },
-  {
-    date: "05/05/2025",
-    open: "7,280",
-    high: "7,320",
-    low: "7,250",
-    close: "7,300",
-    change: -0.4,
-  },
-];
