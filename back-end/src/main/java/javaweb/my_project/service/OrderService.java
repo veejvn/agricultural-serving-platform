@@ -7,6 +7,7 @@ import javaweb.my_project.dto.order.OrderResponse;
 import javaweb.my_project.entities.*;
 import javaweb.my_project.entities.embeddedId.OrderItemId;
 import javaweb.my_project.enums.OrderStatus;
+import javaweb.my_project.enums.PaymentMethod;
 import javaweb.my_project.exception.AppException;
 import javaweb.my_project.mapper.OrderMapper;
 import javaweb.my_project.repository.*;
@@ -43,11 +44,18 @@ public class OrderService {
 
         Set<OrderItem> orderItems = new HashSet<>();
 
+        // Validate payment method first
+        Set<PaymentMethod> paymentMethods = Set.of(PaymentMethod.COD, PaymentMethod.VNPAY);
+        if (!paymentMethods.contains(request.getPaymentMethod())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Invalid payment method", "order-e-01");
+        }
+
         Order order = Order.builder()
                 .note(request.getNote())
                 .address(address)
                 .account(account)
                 .farmer(farmer)
+                .paymentMethod(request.getPaymentMethod())
                 .build();
         order = orderRepository.save(order);
 
@@ -75,6 +83,7 @@ public class OrderService {
             orderItems.add(orderItem);
             cartItemRepository.deleteById(cartItem.getId());
         }
+
         order.setTotalPrice(totalPrice);
         order.setTotalQuantity(totalQuantity);
         order.setOrderItems(orderItems);
@@ -136,7 +145,7 @@ public class OrderService {
             }
         }
 
-        if(request.getReason() != null){
+        if (request.getReason() != null) {
             order.setLastStatusChangeReason(request.getReason());
         }
         order.setStatus(status);
@@ -187,7 +196,7 @@ public class OrderService {
                 productRepository.save(product);
             }
         }
-        if(request.getReason() != null){
+        if (request.getReason() != null) {
             order.setLastStatusChangeReason(request.getReason());
         }
         order.setStatus(status);

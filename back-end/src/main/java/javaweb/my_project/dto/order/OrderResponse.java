@@ -6,6 +6,8 @@ import javaweb.my_project.dto.farmer.FarmerResponse;
 import javaweb.my_project.dto.product.ProductResponse;
 import javaweb.my_project.entities.embeddedId.OrderItemId;
 import javaweb.my_project.enums.OrderStatus;
+import javaweb.my_project.enums.PaymentMethod;
+import javaweb.my_project.enums.PaymentStatus;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -22,6 +24,8 @@ public class OrderResponse {
     String note;
     String lastStatusChangeReason;
     OrderStatus status;
+    PaymentStatus paymentStatus;
+    PaymentMethod paymentMethod;
     AddressResponse address;
     AccountResponse account;
     FarmerResponse farmer;

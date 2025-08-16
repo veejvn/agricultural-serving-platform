@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import javaweb.my_project.enums.OrderStatus;
+import javaweb.my_project.enums.PaymentMethod;
+import javaweb.my_project.enums.PaymentStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -38,6 +40,14 @@ public class Order {
     @Column(nullable = false)
     OrderStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    PaymentStatus paymentStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    PaymentMethod paymentMethod;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
     @JsonBackReference
@@ -67,11 +77,18 @@ public class Order {
     @JsonBackReference
     Account account;
 
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Payment payment;
+
     LocalDateTime createdAt;
 
     @PrePersist
     void onCreate() {
         this.status = OrderStatus.PENDING;
+        this.paymentStatus = PaymentStatus.PENDING;
         this.lastStatusChangeReason = "";
         this.createdAt = LocalDateTime.now();
     }

@@ -101,7 +101,7 @@ export default function CartPage() {
     await clearCart();
   };
 
-  const shipping = 30000; // Phí vận chuyển
+  const shipping = 0; // Phí vận chuyển
   const total = totalPrice + shipping;
 
   // Kiểm tra giỏ hàng trống
@@ -342,7 +342,6 @@ export default function CartPage() {
                     <li>
                       • {totalItems} sản phẩm từ {farmerGroups.length} người bán
                     </li>
-                    <li>• Miễn phí vận chuyển cho đơn hàng từ 500.000₫</li>
                     <li>• Thời gian giao hàng dự kiến: 2-3 ngày</li>
                   </ul>
                 </div>

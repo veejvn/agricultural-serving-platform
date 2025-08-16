@@ -59,7 +59,7 @@ import addressData from "@/json/address.json";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/utils/common/format";
 import OrderService from "@/services/order.service";
-import { IOrderRequest, IOrderResponse } from "@/types/order";
+import { IOrderRequest, IOrderResponse, IPaymentMethod } from "@/types/order";
 import { useRouter } from "next/navigation";
 import {
   useOrderStore,
@@ -147,6 +147,7 @@ export default function CheckoutPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
   const [orderNote, setOrderNote] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<IPaymentMethod>("COD");
   const [isCreatingOrders, setIsCreatingOrders] = useState(false);
   const [addressFormData, setAddressFormData] = useState({
     province: "",
@@ -398,6 +399,7 @@ export default function CheckoutPage() {
           note: orderNote,
           addressId: selectedAddress,
           farmerId: group.farmer.id,
+          paymentMethod: paymentMethod,
           items: group.items.map((item) => ({
             cartItemId: item.id,
           })),
@@ -477,7 +479,7 @@ export default function CheckoutPage() {
   };
 
   // Tính toán tổng tiền từ cart thật
-  const shipping = 30000; // Phí vận chuyển
+  const shipping = 0; // Phí vận chuyển
   const total = totalPrice + shipping;
 
   // Check if cart is loading or empty
@@ -873,7 +875,7 @@ export default function CheckoutPage() {
             </Card>
 
             {/* Phương thức vận chuyển */}
-            <Card>
+            {/* <Card>
               <CardHeader className="flex flex-row items-center gap-2">
                 <Truck className="h-5 w-5 text-green-600 dark:text-green-500" />
                 <CardTitle className="text-xl text-green-800 dark:text-green-300">
@@ -914,7 +916,7 @@ export default function CheckoutPage() {
                   </div>
                 </RadioGroup>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Phương thức thanh toán */}
             <Card>
@@ -925,9 +927,15 @@ export default function CheckoutPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RadioGroup defaultValue="cod" className="space-y-3">
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={(value) =>
+                    setPaymentMethod(value as IPaymentMethod)
+                  }
+                  className="space-y-3"
+                >
                   <div className="flex items-center space-x-2 rounded-lg border p-4">
-                    <RadioGroupItem value="cod" id="cod" />
+                    <RadioGroupItem value="COD" id="cod" />
                     <Label
                       htmlFor="cod"
                       className="flex flex-1 cursor-pointer items-center gap-4"
@@ -949,7 +957,7 @@ export default function CheckoutPage() {
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2 rounded-lg border p-4">
-                    <RadioGroupItem value="bank" id="bank" />
+                    <RadioGroupItem value="VNPAY" id="bank" />
                     <Label
                       htmlFor="bank"
                       className="flex flex-1 cursor-pointer items-center gap-4"
@@ -961,14 +969,14 @@ export default function CheckoutPage() {
                         height={40}
                       />
                       <div>
-                        <p className="font-medium">Chuyển khoản ngân hàng</p>
+                        <p className="font-medium">Thanh toán VNPAY</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Thanh toán qua chuyển khoản ngân hàng
+                          Thanh toán qua ví điện tử VNPAY
                         </p>
                       </div>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2 rounded-lg border p-4">
+                  {/* <div className="flex items-center space-x-2 rounded-lg border p-4">
                     <RadioGroupItem value="momo" id="momo" />
                     <Label
                       htmlFor="momo"
@@ -987,7 +995,7 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     </Label>
-                  </div>
+                  </div> */}
                 </RadioGroup>
               </CardContent>
             </Card>

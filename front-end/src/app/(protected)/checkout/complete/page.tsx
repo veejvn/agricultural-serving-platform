@@ -22,7 +22,11 @@ import Link from "next/link";
 import { useOrder } from "@/hooks/useOrder";
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/utils/common/format";
-import { IOrderItemResponse } from "@/types/order";
+import {
+  IOrderItemResponse,
+  IPaymentMethod,
+  IPaymentStatus,
+} from "@/types/order";
 import { IAddressResponse } from "@/types/address";
 
 interface OrderData {
@@ -35,6 +39,8 @@ interface OrderData {
   address: IAddressResponse;
   note: string;
   status: string;
+  paymentMethod: IPaymentMethod;
+  paymentStatus: IPaymentStatus;
 }
 
 export default function OrderCompletePage() {
@@ -51,7 +57,7 @@ export default function OrderCompletePage() {
         (total, item) => total + item.product.price * item.quantity,
         0
       );
-      const shipping = 30000; // Phí vận chuyển
+      const shipping = 0; // Phí vận chuyển
       const total = subtotal + shipping;
 
       setOrderData({
@@ -72,12 +78,97 @@ export default function OrderCompletePage() {
         address: lastCreatedOrders[0]?.address,
         note: lastCreatedOrders[0]?.note,
         status: lastCreatedOrders[0]?.status,
+        paymentMethod: lastCreatedOrders[0]?.paymentMethod,
+        paymentStatus: lastCreatedOrders[0]?.paymentStatus,
       });
     }
   }, [lastCreatedOrders]);
 
   const getOrderId = (orderNumbers: string[]) => {
     return orderNumbers.map((num) => `ORDER_${num.slice(0, 8)}`).join(", ");
+  };
+
+  const getPaymentMethodText = (method: IPaymentMethod) => {
+    switch (method) {
+      case "COD":
+        return "Thanh toán khi nhận hàng (COD)";
+      case "VNPAY":
+        return "Thanh toán VNPAY";
+      default:
+        return "Chưa xác định";
+    }
+  };
+
+  const getPaymentStatusText = (status: IPaymentStatus) => {
+    switch (status) {
+      case "PENDING":
+        return "Chờ thanh toán";
+      case "PAID":
+        return "Đã thanh toán";
+      case "FAILED":
+        return "Thanh toán thất bại";
+      case "REFUNDED":
+        return "Đã hoàn tiền";
+      case "CANCELED":
+        return "Đã hủy";
+      default:
+        return "Chưa xác định";
+    }
+  };
+
+  const getPaymentStatusColor = (status: IPaymentStatus) => {
+    switch (status) {
+      case "PENDING":
+        return "text-orange-600 dark:text-orange-500";
+      case "PAID":
+        return "text-green-600 dark:text-green-500";
+      case "FAILED":
+        return "text-red-600 dark:text-red-500";
+      case "REFUNDED":
+        return "text-blue-600 dark:text-blue-500";
+      case "CANCELED":
+        return "text-gray-600 dark:text-gray-500";
+      default:
+        return "text-gray-600 dark:text-gray-500";
+    }
+  };
+
+  const getOrderStatusText = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "Chờ xác nhận";
+      case "CONFIRMED":
+        return "Đã xác nhận";
+      case "DELIVERING":
+        return "Đang giao hàng";
+      case "DELIVERED":
+        return "Đã giao hàng";
+      case "RECEIVED":
+        return "Đã nhận hàng";
+      case "CANCELED":
+        return "Đã hủy";
+      default:
+        return "Đang xử lý";
+    }
+  };
+
+  const getOrderStatusColor = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "text-orange-600 dark:text-orange-500";
+      case "CONFIRMED":
+        return "text-blue-600 dark:text-blue-500";
+      case "DELIVERING":
+        return "text-purple-600 dark:text-purple-500";
+      case "DELIVERED":
+        return "text-green-600 dark:text-green-500";
+      case "RECEIVED":
+        return "text-green-700 dark:text-green-400";
+      case "CANCELED":
+        return "text-red-600 dark:text-red-500";
+      default:
+        return "text-orange-600 dark:text-orange-500";
+    }
   };
 
   if (!orderData || lastCreatedOrders.length === 0) {
@@ -184,14 +275,32 @@ export default function OrderCompletePage() {
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Phương thức thanh toán
                   </p>
-                  <p className="font-medium">Thanh toán khi nhận hàng (COD)</p>
+                  <p className="font-medium">
+                    {getPaymentMethodText(orderData.paymentMethod)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Trạng thái
+                    Trạng thái thanh toán
                   </p>
-                  <p className="font-medium text-orange-600 dark:text-orange-500">
-                    {"Đang xử lý"}
+                  <p
+                    className={`font-medium ${getPaymentStatusColor(
+                      orderData.paymentStatus
+                    )}`}
+                  >
+                    {getPaymentStatusText(orderData.paymentStatus)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Trạng thái đơn hàng
+                  </p>
+                  <p
+                    className={`font-medium ${getOrderStatusColor(
+                      orderData.status
+                    )}`}
+                  >
+                    {getOrderStatusText(orderData.status)}
                   </p>
                 </div>
                 <div className="sm:col-span-2">

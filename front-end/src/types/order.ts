@@ -6,10 +6,13 @@ export interface IOrderItemResquest {
   cartItemId: string;
 }
 
+export type IPaymentMethod = "COD" | "VNPAY";
+
 export interface IOrderRequest {
   note: string;
   addressId: string;
   farmerId: string;
+  paymentMethod: IPaymentMethod;
   items: IOrderItemResquest[];
 }
 
@@ -35,6 +38,13 @@ export type IOrderStatus =
   | "RECEIVED"
   | "CANCELED";
 
+export type IPaymentStatus =
+  | "PENDING"
+  | "PAID"
+  | "FAILED"
+  | "REFUNDED"
+  | "CANCELED";
+
 export interface IChangeOrderStatusRequest {
   orderId: string;
   status: IOrderStatus;
@@ -48,6 +58,8 @@ export interface IOrderResponse {
   note: string;
   lastStatusChangeReason: string;
   status: IOrderStatus;
+  paymentStatus: IPaymentStatus;
+  paymentMethod: IPaymentMethod;
   address: IAddressResponse;
   account: IAccountResponse;
   farmer: IFarmerResponse;
