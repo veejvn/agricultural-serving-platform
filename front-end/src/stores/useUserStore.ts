@@ -49,7 +49,7 @@ export const useUserStore = create<UserState>()(
         const [result, error] = await AuthService.getAccountInfo();
         // console.log("Result: " + result);
         // console.log("Error: " + error);
-        if(error) {
+        if (error) {
           set({
             user: {} as User, // Reset user state on error
           });

@@ -61,11 +61,11 @@ const menuItems = [
     href: "/account/upgrade-to-farmer",
     icon: Sprout,
   },
-  {
-    title: "Phương thức thanh toán",
-    href: "/account/payment",
-    icon: CreditCard,
-  },
+  // {
+  //   title: "Phương thức thanh toán",
+  //   href: "/account/payment",
+  //   icon: CreditCard,
+  // },
   {
     title: "Thông báo",
     href: "/account/notification",

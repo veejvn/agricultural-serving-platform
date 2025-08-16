@@ -240,7 +240,7 @@ export default function Home() {
       </section>
 
       {/* Dashboard Preview */}
-      <section className="bg-green-50 dark:bg-green-950 py-12">
+      {/* <section className="bg-green-50 dark:bg-green-950 py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <h2 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
@@ -258,12 +258,12 @@ export default function Home() {
             <div className="col-span-1">
               <MarketPriceWidget />
             </div>
-            {/* <div className="col-span-1">
+            <div className="col-span-1">
               <ForumPreview />
-            </div> */}
+            </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Testimonials */}
       <section className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">

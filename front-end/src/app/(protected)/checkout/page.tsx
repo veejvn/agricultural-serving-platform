@@ -156,7 +156,7 @@ export default function CheckoutPage() {
   });
 
   // Use order store
-  const { createPendingOrders, setLastCreatedOrders } = useOrder();
+  const { setLastCreatedOrders } = useOrder();
 
   // Use real cart data
   const {
