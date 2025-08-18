@@ -213,19 +213,19 @@ export default function FarmerDashboard() {
           title="Sản phẩm bán chạy"
           description="Top 5 sản phẩm bán chạy nhất"
           chart={
-            <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={260}>
+            <div className="h-[350px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+              <ResponsiveContainer width="100%" height={350}>
                 <ReBarChart
                   data={productSoldData}
                   layout="vertical"
-                  margin={{ left: 40, right: 20, top: 20, bottom: 20 }}
+                  margin={{ left: 20, right: 20, top: 20, bottom: 20 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     type="number"
                     tickFormatter={(v) => v.toLocaleString()}
                   />
-                  <YAxis dataKey="name" type="category" width={120} />
+                  <YAxis dataKey="name" type="category" width={200} />
                   <Tooltip
                     formatter={(v: number) => v.toLocaleString() + " sản phẩm"}
                   />
@@ -265,7 +265,10 @@ export default function FarmerDashboard() {
                     key={order.id}
                     className="grid grid-cols-5 gap-1 items-center px-2 py-1"
                   >
-                    <Link href={`/farm/order/${order.id}`} className="font-medium hover:underline hover:text-blue-600">
+                    <Link
+                      href={`/farm/order/${order.id}`}
+                      className="font-medium hover:underline hover:text-blue-600"
+                    >
                       #ORDER_{order.id.slice(0, 8)}
                     </Link>
                     <div className="text-sm text-gray-500">

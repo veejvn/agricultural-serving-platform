@@ -16,7 +16,7 @@ export default function CartEmpty() {
         Có vẻ như bạn chưa thêm bất kỳ sản phẩm nào vào giỏ hàng. Hãy khám phá
         các sản phẩm nông nghiệp chất lượng cao của chúng tôi.
       </p>
-      <div className="mb-12 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {/* <div className="mb-12 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex flex-col items-center rounded-lg border p-4 text-center">
           <Image
             src="/placeholder.svg?height=80&width=80"
@@ -83,7 +83,7 @@ export default function CartEmpty() {
             <Link href="/product?category=pesticides">Xem ngay</Link>
           </Button>
         </div>
-      </div>
+      </div> */}
       <Button
         className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
         size="lg"

@@ -130,9 +130,9 @@ const addressArray = Object.values(addressData as Record<string, any>).map(
 const addressSchema = z.object({
   receiverName: z.string().min(1, "Họ tên không được để trống"),
   receiverPhone: z.string().min(10, "Số điện thoại không hợp lệ"),
-  province: z.string().min(1, "Vui lòng chọn tỉnh/thành phố"),
-  district: z.string().min(1, "Vui lòng chọn quận/huyện"),
-  ward: z.string().min(1, "Vui lòng chọn phường/xã"),
+  provinceCode: z.string().min(1, "Vui lòng chọn tỉnh/thành phố"),
+  districtCode: z.string().min(1, "Vui lòng chọn quận/huyện"),
+  wardCode: z.string().min(1, "Vui lòng chọn phường/xã"),
   detail: z.string().min(1, "Địa chỉ chi tiết không được để trống"),
   isDefault: z.boolean().optional(),
 });
@@ -149,11 +149,17 @@ export default function CheckoutPage() {
   const [orderNote, setOrderNote] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<IPaymentMethod>("COD");
   const [isCreatingOrders, setIsCreatingOrders] = useState(false);
-  const [addressFormData, setAddressFormData] = useState({
-    province: "",
-    district: "",
-    ward: "",
-  });
+
+  // Address selection states
+  const [selectedProvince, setSelectedProvince] = useState<string>("");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+  const [selectedWard, setSelectedWard] = useState<string>("");
+  const [availableDistricts, setAvailableDistricts] = useState<
+    Array<{ code: string; name: string }>
+  >([]);
+  const [availableWards, setAvailableWards] = useState<
+    Array<{ code: string; name: string }>
+  >([]);
 
   // Use order store
   const { setLastCreatedOrders } = useOrder();
@@ -200,17 +206,17 @@ export default function CheckoutPage() {
     defaultValues: {
       receiverName: "",
       receiverPhone: "",
-      province: "",
-      district: "",
-      ward: "",
+      provinceCode: "",
+      districtCode: "",
+      wardCode: "",
       detail: "",
       isDefault: false,
     },
   });
 
   const { watch, setValue } = addressForm;
-  const watchedProvince = watch("province");
-  const watchedDistrict = watch("district");
+  const watchedProvince = watch("provinceCode");
+  const watchedDistrict = watch("districtCode");
 
   // Load existing addresses
   useEffect(() => {
@@ -225,19 +231,81 @@ export default function CheckoutPage() {
   // Update districts when province changes
   useEffect(() => {
     if (watchedProvince) {
-      setValue("district", "");
-      setValue("ward", "");
-      setAddressFormData((prev) => ({ ...prev, district: "", ward: "" }));
+      setSelectedProvince(watchedProvince);
+      setValue("districtCode", "");
+      setValue("wardCode", "");
+      setSelectedDistrict("");
+      setSelectedWard("");
+
+      const provinceData = Object.values(addressData).find(
+        (p: any) => p.code === watchedProvince
+      ) as any;
+      if (provinceData?.district) {
+        const districts = Object.values(provinceData.district)
+          .map((district: any) => ({
+            code: district.code,
+            name: district.name_with_type,
+          }))
+          .sort((a, b) =>
+            a.name.localeCompare(b.name, "vi", { numeric: true })
+          );
+        setAvailableDistricts(districts);
+      } else {
+        setAvailableDistricts([]);
+      }
+      setAvailableWards([]);
+    } else {
+      setSelectedProvince("");
+      setAvailableDistricts([]);
+      setAvailableWards([]);
     }
   }, [watchedProvince, setValue]);
 
   // Update wards when district changes
   useEffect(() => {
     if (watchedDistrict) {
-      setValue("ward", "");
-      setAddressFormData((prev) => ({ ...prev, ward: "" }));
+      setSelectedDistrict(watchedDistrict);
+      setValue("wardCode", "");
+      setSelectedWard("");
+
+      if (watchedProvince && watchedDistrict) {
+        const provinceData = Object.values(addressData).find(
+          (p: any) => p.code === watchedProvince
+        ) as any;
+        const districtData =
+          provinceData?.district &&
+          (Object.values(provinceData.district).find(
+            (d: any) => d.code === watchedDistrict
+          ) as any);
+        if (districtData?.ward) {
+          const wards = Object.values(districtData.ward)
+            .map((ward: any) => ({
+              code: ward.code,
+              name: ward.name_with_type,
+            }))
+            .sort((a, b) =>
+              a.name.localeCompare(b.name, "vi", { numeric: true })
+            );
+          setAvailableWards(wards);
+        } else {
+          setAvailableWards([]);
+        }
+      } else {
+        setAvailableWards([]);
+      }
+    } else {
+      setSelectedDistrict("");
+      setAvailableWards([]);
     }
-  }, [watchedDistrict, setValue]);
+  }, [watchedProvince, watchedDistrict, setValue]);
+
+  // Sync selectedWard with form field
+  useEffect(() => {
+    const watchedWard = addressForm.watch("wardCode");
+    if (watchedWard) {
+      setSelectedWard(watchedWard);
+    }
+  }, [addressForm]);
 
   const loadAddresses = async () => {
     try {
@@ -269,9 +337,9 @@ export default function CheckoutPage() {
       const addressRequest: IAddressRequest = {
         receiverName: data.receiverName,
         receiverPhone: data.receiverPhone,
-        province: data.province,
-        district: data.district,
-        ward: data.ward,
+        province: data.provinceCode,
+        district: data.districtCode,
+        ward: data.wardCode,
         detail: data.detail,
         isDefault: data.isDefault || false,
       };
@@ -289,7 +357,7 @@ export default function CheckoutPage() {
       setSelectedAddress(newAddress.id);
 
       // Reset form and close dialog
-      addressForm.reset();
+      resetFormState();
       setIsDialogOpen(false);
     } catch (error) {
       toast.error("Không thể thêm địa chỉ mới");
@@ -309,70 +377,115 @@ export default function CheckoutPage() {
       );
   };
 
-  const getDistricts = (provinceCode: string) => {
-    const province = addressArray.find(
-      (p: Province) => p.code === provinceCode
-    );
-    return province
-      ? province.districts.sort((a, b) =>
-          a.name_with_type.localeCompare(b.name_with_type, "vi", {
-            sensitivity: "base",
-          })
-        )
-      : [];
-  };
+  // Helper functions to get names from codes for display
+  function getProvinceNameFromCode(code: string): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === code
+    ) as any;
+    return province?.name_with_type || code;
+  }
 
-  const getWards = (provinceCode: string, districtCode: string) => {
-    const province = addressArray.find(
-      (p: Province) => p.code === provinceCode
-    );
-    const district = province?.districts.find(
-      (d: District) => d.code === districtCode
-    );
-    return district
-      ? district.wards.sort((a, b) =>
-          a.name_with_type.localeCompare(b.name_with_type, "vi", {
-            sensitivity: "base",
-          })
-        )
-      : [];
-  };
+  function getDistrictNameFromCode(
+    provinceCode: string,
+    districtCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    return district?.name_with_type || districtCode;
+  }
 
-  const getProvinceName = (code: string) => {
-    return (
-      addressArray.find((p: Province) => p.code === code)?.name_with_type || ""
-    );
-  };
-
-  const getDistrictName = (provinceCode: string, districtCode: string) => {
-    const province = addressArray.find(
-      (p: Province) => p.code === provinceCode
-    );
-    return (
-      province?.districts.find((d: District) => d.code === districtCode)
-        ?.name_with_type || ""
-    );
-  };
-
-  const getWardName = (
+  function getWardNameFromCode(
     provinceCode: string,
     districtCode: string,
     wardCode: string
-  ) => {
-    const province = addressArray.find(
-      (p: Province) => p.code === provinceCode
-    );
-    const district = province?.districts.find(
-      (d: District) => d.code === districtCode
-    );
-    return (
-      district?.wards.find((w: Ward) => w.code === wardCode)?.name_with_type ||
-      ""
-    );
-  };
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    const ward =
+      district?.ward &&
+      (Object.values(district.ward).find(
+        (w: any) => w.code === wardCode
+      ) as any);
+    return ward?.name_with_type || wardCode;
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      const [result, error] = await AddressService.delete(id);
+      if (error) {
+        console.error("Error deleting address:", error);
+        toast.error("Không thể xóa địa chỉ");
+      } else {
+        toast.success("Địa chỉ đã được xóa");
+        await loadAddresses(); // Reload addresses
+      }
+    } catch (error) {
+      console.error("Error deleting address:", error);
+      toast.error("Có lỗi xảy ra khi xóa địa chỉ");
+    }
+  }
 
   const getSelectedAddressDetails = () => {
     return addresses.find((addr) => addr.id.toString() === selectedAddress);
+  };
+
+  // Handle province change
+  const handleProvinceChange = (provinceCode: string) => {
+    setSelectedProvince(provinceCode);
+    addressForm.setValue("provinceCode", provinceCode);
+    addressForm.setValue("districtCode", "");
+    addressForm.setValue("wardCode", "");
+  };
+
+  // Handle district change
+  const handleDistrictChange = (districtCode: string) => {
+    setSelectedDistrict(districtCode);
+    addressForm.setValue("districtCode", districtCode);
+    addressForm.setValue("wardCode", "");
+  };
+
+  // Handle ward change
+  const handleWardChange = (wardCode: string) => {
+    setSelectedWard(wardCode);
+    addressForm.setValue("wardCode", wardCode);
+  };
+
+  // Reset form and state when dialog closes
+  const resetFormState = () => {
+    addressForm.reset({
+      receiverName: "",
+      receiverPhone: "",
+      provinceCode: "",
+      districtCode: "",
+      wardCode: "",
+      detail: "",
+      isDefault: false,
+    });
+    setSelectedProvince("");
+    setSelectedDistrict("");
+    setSelectedWard("");
+    setAvailableDistricts([]);
+    setAvailableWards([]);
+  };
+
+  // Handle dialog close
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      resetFormState();
+    }
   };
 
   // Tạo đơn hàng cho từng farmer
@@ -595,8 +708,18 @@ export default function CheckoutPage() {
                                 )}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {address.detail}, {address.ward},{" "}
-                                {address.district}, {address.province}
+                                {address.detail},{" "}
+                                {getWardNameFromCode(
+                                  address.province,
+                                  address.district,
+                                  address.ward
+                                )}
+                                ,{" "}
+                                {getDistrictNameFromCode(
+                                  address.province,
+                                  address.district
+                                )}
+                                , {getProvinceNameFromCode(address.province)}
                               </div>
                             </div>
                           </Label>
@@ -618,7 +741,7 @@ export default function CheckoutPage() {
 
                 {/* Single Dialog for adding address */}
                 {!isLoadingAddresses && (
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
                     <DialogTrigger asChild>
                       <Button
                         variant={addresses.length > 0 ? "outline" : "default"}
@@ -681,18 +804,13 @@ export default function CheckoutPage() {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <FormField
                               control={addressForm.control}
-                              name="province"
+                              name="provinceCode"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Tỉnh/Thành phố</FormLabel>
                                   <Select
-                                    onValueChange={(value) => {
-                                      field.onChange(getProvinceName(value));
-                                      setAddressFormData((prev) => ({
-                                        ...prev,
-                                        province: value,
-                                      }));
-                                    }}
+                                    onValueChange={handleProvinceChange}
+                                    value={field.value}
                                   >
                                     <FormControl>
                                       <SelectTrigger>
@@ -716,39 +834,33 @@ export default function CheckoutPage() {
                             />
                             <FormField
                               control={addressForm.control}
-                              name="district"
+                              name="districtCode"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Quận/Huyện</FormLabel>
                                   <Select
-                                    onValueChange={(value) => {
-                                      field.onChange(
-                                        getDistrictName(
-                                          addressFormData.province,
-                                          value
-                                        )
-                                      );
-                                      setAddressFormData((prev) => ({
-                                        ...prev,
-                                        district: value,
-                                      }));
-                                    }}
-                                    disabled={!addressFormData.province}
+                                    onValueChange={handleDistrictChange}
+                                    value={field.value}
+                                    disabled={!selectedProvince}
                                   >
                                     <FormControl>
                                       <SelectTrigger>
-                                        <SelectValue placeholder="Chọn quận/huyện" />
+                                        <SelectValue
+                                          placeholder={
+                                            !selectedProvince
+                                              ? "Vui lòng chọn tỉnh/thành phố trước"
+                                              : "Chọn quận/huyện"
+                                          }
+                                        />
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className="max-h-70">
-                                      {getDistricts(
-                                        addressFormData.province
-                                      ).map((district) => (
+                                      {availableDistricts.map((district) => (
                                         <SelectItem
                                           key={district.code}
                                           value={district.code}
                                         >
-                                          {district.name_with_type}
+                                          {district.name}
                                         </SelectItem>
                                       ))}
                                     </SelectContent>
@@ -759,41 +871,35 @@ export default function CheckoutPage() {
                             />
                             <FormField
                               control={addressForm.control}
-                              name="ward"
+                              name="wardCode"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Phường/Xã</FormLabel>
                                   <Select
-                                    onValueChange={(value) => {
-                                      field.onChange(
-                                        getWardName(
-                                          addressFormData.province,
-                                          addressFormData.district,
-                                          value
-                                        )
-                                      );
-                                      setAddressFormData((prev) => ({
-                                        ...prev,
-                                        ward: value,
-                                      }));
-                                    }}
-                                    disabled={!addressFormData.district}
+                                    onValueChange={handleWardChange}
+                                    value={field.value}
+                                    disabled={!selectedDistrict}
                                   >
                                     <FormControl>
                                       <SelectTrigger>
-                                        <SelectValue placeholder="Chọn phường/xã" />
+                                        <SelectValue
+                                          placeholder={
+                                            !selectedProvince
+                                              ? "Vui lòng chọn tỉnh/thành phố trước"
+                                              : !selectedDistrict
+                                              ? "Vui lòng chọn quận/huyện trước"
+                                              : "Chọn phường/xã"
+                                          }
+                                        />
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className="max-h-70">
-                                      {getWards(
-                                        addressFormData.province,
-                                        addressFormData.district
-                                      ).map((ward) => (
+                                      {availableWards.map((ward) => (
                                         <SelectItem
                                           key={ward.code}
                                           value={ward.code}
                                         >
-                                          {ward.name_with_type}
+                                          {ward.name}
                                         </SelectItem>
                                       ))}
                                     </SelectContent>
@@ -1030,8 +1136,18 @@ export default function CheckoutPage() {
                           </span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {address.detail}, {address.ward}, {address.district},{" "}
-                          {address.province}
+                          {address.detail},{" "}
+                          {getWardNameFromCode(
+                            address.province,
+                            address.district,
+                            address.ward
+                          )}
+                          ,{" "}
+                          {getDistrictNameFromCode(
+                            address.province,
+                            address.district
+                          )}
+                          , {getProvinceNameFromCode(address.province)}
                         </div>
                       </div>
                     ) : null;

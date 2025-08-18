@@ -42,7 +42,7 @@ import {
 import { useEffect } from "react";
 import OrderService from "@/services/order.service";
 import { IOrderResponse } from "@/types/order";
-import Loading from "./loading";
+import addressData from "@/json/address.json";
 
 function mapOrderStatus(status: string): string {
   switch (status) {
@@ -57,7 +57,7 @@ function mapOrderStatus(status: string): string {
     case "RECEIVED":
       return "completed";
     case "CANCELED":
-      return "cancelled";
+      return "canceled";
     default:
       return "pending";
   }
@@ -82,7 +82,7 @@ const statusMap: Record<string, { label: string; color: string }> = {
     label: "Đã giao hàng",
     color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
   },
-  cancelled: {
+  canceled: {
     label: "Đã hủy",
     color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
   },
@@ -122,13 +122,20 @@ export default function OrdersPage() {
             image: orderItem.product.thumbnail,
           })),
           shipping: {
-            address: `${order.address.detail}, ${order.address.ward}, ${order.address.district}, ${order.address.province}`,
+            address: `${order.address.detail}, ${getWardNameFromCode(
+              order.address.province,
+              order.address.district,
+              order.address.ward
+            )}, ${getDistrictNameFromCode(
+              order.address.province,
+              order.address.district
+            )}, ${getProvinceNameFromCode(order.address.province)}`,
             method: "Giao hàng tiêu chuẩn",
             tracking: "",
           },
           payment: {
-            method: "Thanh toán khi nhận hàng",
-            status: order.status === "CANCELED" ? "Đã hủy" : "Đã thanh toán",
+            method: order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng" : "Thanh toán bằng VNPAY",
+            status: getPaymentStatus(order.paymentStatus),
           },
         }));
         setOrders(mapped);
@@ -138,6 +145,23 @@ export default function OrdersPage() {
     };
     fetchOrders();
   }, []);
+
+  const getPaymentStatus = (status: string): string => {
+    switch (status) {
+      case "PENDING":
+        return "Chưa thanh toán";
+      case "PAID":
+        return "Đã thanh toán";
+      case "FAILED":
+        return "Thanh toán thất bại";
+      case "REFUNDED":
+        return "Đã hoàn tiền";
+      case "CANCELED":
+        return "Đã hủy";
+      default:
+        return "Không rõ";
+    }
+  }
 
   // Filter orders based on search term and status
   const filteredOrders = orders.filter((order) => {
@@ -159,6 +183,50 @@ export default function OrdersPage() {
       currency: "VND",
     }).format(amount);
   };
+
+  // Helper functions to get names from codes for display
+  function getProvinceNameFromCode(code: string): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === code
+    ) as any;
+    return province?.name_with_type || code;
+  }
+
+  function getDistrictNameFromCode(
+    provinceCode: string,
+    districtCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    return district?.name_with_type || districtCode;
+  }
+
+  function getWardNameFromCode(
+    provinceCode: string,
+    districtCode: string,
+    wardCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    const ward =
+      district?.ward &&
+      (Object.values(district.ward).find(
+        (w: any) => w.code === wardCode
+      ) as any);
+    return ward?.name_with_type || wardCode;
+  }
 
   return (
     <div className="space-y-6">
@@ -191,7 +259,7 @@ export default function OrdersPage() {
                 <SelectItem value="processing">Đang xử lý</SelectItem>
                 <SelectItem value="shipping">Đang giao hàng</SelectItem>
                 <SelectItem value="completed">Đã giao hàng</SelectItem>
-                <SelectItem value="cancelled">Đã hủy</SelectItem>
+                <SelectItem value="canceled">Đã hủy</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -323,7 +391,7 @@ export default function OrdersPage() {
                               {order.shipping.address}
                             </p>
                             <p>
-                              <span className="font-medium">Phương thức:</span>{" "}
+                              <span className="font-medium">Phương thức vận chuyển:</span>{" "}
                               {order.shipping.method}
                             </p>
                             {order.shipping.tracking && (
@@ -340,7 +408,7 @@ export default function OrdersPage() {
                           </h4>
                           <div className="text-sm space-y-1">
                             <p>
-                              <span className="font-medium">Phương thức:</span>{" "}
+                              <span className="font-medium">Phương thức thanh toán:</span>{" "}
                               {order.payment.method}
                             </p>
                             <p>

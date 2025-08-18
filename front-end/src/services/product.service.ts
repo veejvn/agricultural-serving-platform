@@ -3,7 +3,7 @@ import { getApiUrl } from "@/tools/url.tool";
 
 const ProductService = {
   // Lấy tất cả sản phẩm active với phân trang (public)
-  getAllProducts({ page = 0, size = 10 }) {
+  getAllProducts({ page , size } : { page?: number; size?: number }) {
     return service(
       axios.get(getApiUrl(`/products?page=${page}&size=${size}`)),
       true

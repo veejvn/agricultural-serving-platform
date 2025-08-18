@@ -26,8 +26,8 @@ import {
   Edit,
 } from "lucide-react";
 import type { IOrderResponse } from "@/types/order";
-
 import OrderService from "@/services/order.service";
+import addressData from "@/json/address.json";
 
 const statusConfig = {
   PENDING: {
@@ -62,6 +62,30 @@ const statusConfig = {
     label: "Đã hủy",
     color: "bg-red-100 text-red-800 border-red-200 hover:bg-red-200",
     icon: XCircle,
+  },
+};
+
+const statusPaymentConfig = {
+  PENDING: {
+    label: "Chưa thanh toán",
+    color:
+      "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200",
+  },
+  PAID: {
+    label: "Đã thanh toán",
+    color: "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
+  },
+  FAILED: {
+    label: "Thanh toán thất bại",
+    color: "bg-red-100 text-red-800 border-red-200 hover:bg-red-200",
+  },
+  REFUNDED: {
+    label: "Đã hoàn tiền",
+    color: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200",
+  },
+  CANCELED: {
+    label: "Đã hủy thanh toán",
+    color: "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200",
   },
 };
 
@@ -182,6 +206,50 @@ export default function OrderDetailPage() {
     });
   };
 
+  // Helper functions to get names from codes for display
+  function getProvinceNameFromCode(code: string): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === code
+    ) as any;
+    return province?.name_with_type || code;
+  }
+
+  function getDistrictNameFromCode(
+    provinceCode: string,
+    districtCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    return district?.name_with_type || districtCode;
+  }
+
+  function getWardNameFromCode(
+    provinceCode: string,
+    districtCode: string,
+    wardCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    const ward =
+      district?.ward &&
+      (Object.values(district.ward).find(
+        (w: any) => w.code === wardCode
+      ) as any);
+    return ward?.name_with_type || wardCode;
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -258,16 +326,31 @@ export default function OrderDetailPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium">
-                      Trạng thái hiện tại:
-                    </span>
-                    <Badge
-                      className={`${statusConfig[order.status].color} border`}
-                    >
-                      {statusConfig[order.status].label}
-                    </Badge>
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <span className="text-sm font-medium">
+                        Trạng thái giao hàng:
+                      </span>
+                      <Badge
+                        className={`${statusConfig[order.status].color} border`}
+                      >
+                        {statusConfig[order.status].label}
+                      </Badge>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium">
+                        Trạng thái thanh toán:
+                      </span>
+                      <Badge
+                        className={`${
+                          statusPaymentConfig[order.paymentStatus].color
+                        } border`}
+                      >
+                        {statusPaymentConfig[order.paymentStatus].label}
+                      </Badge>
+                    </div>
                   </div>
+
                   <div className="flex flex-col gap-2">
                     {canCancel && (
                       <>
@@ -457,8 +540,18 @@ export default function OrderDetailPage() {
                 SĐT: {order.address.receiverPhone}
               </p>
               <p className="text-sm text-gray-700">
-                Địa chỉ: {order.address.detail}, {order.address.ward},{" "}
-                {order.address.district}, {order.address.province}
+                Địa chỉ: {order.address.detail},{" "}
+                {getWardNameFromCode(
+                  order.address.province,
+                  order.address.district,
+                  order.address.ward
+                )}
+                ,{" "}
+                {getDistrictNameFromCode(
+                  order.address.province,
+                  order.address.district
+                )}
+                , {getProvinceNameFromCode(order.address.province)}
               </p>
             </CardContent>
           </Card>

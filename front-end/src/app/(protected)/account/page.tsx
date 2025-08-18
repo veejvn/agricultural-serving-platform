@@ -57,7 +57,7 @@ export default function AccountPage() {
       description: "Cập nhật thông tin cá nhân của bạn",
       icon: User,
       href: "/account/information",
-      stats: `${user.displayName} · ${user.email}`,
+      stats: `${user.displayName || ""} · ${user.email}`,
     },
     {
       title: "Địa chỉ",

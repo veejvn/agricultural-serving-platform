@@ -42,7 +42,7 @@ export default function ProductsPage() {
       setIsLoading(true);
       const [data, error] = await ProductService.getAllProducts({
         page: 0,
-        size: 1000, // Lấy một số lượng lớn để có tất cả sản phẩm
+        size: 1000,
       });
       if (error) {
         console.error("Failed to fetch products:", error);

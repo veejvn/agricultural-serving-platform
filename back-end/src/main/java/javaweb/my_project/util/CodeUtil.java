@@ -42,7 +42,7 @@ public class CodeUtil<T> {
         if (entry == null || entry.getExpiresAt().isBefore(LocalDateTime.now())){
             // Nếu mã hết hạn hoặc không tồn tại, xóa mã và trả về null
             verificationCodes.remove(code);
-            throw new AppException(HttpStatus.NOT_FOUND, "Code not found","auth-e-04");
+            throw new AppException(HttpStatus.NOT_FOUND, "Code not found","code-e-01");
         }
         return entry.getPayload();
     }

@@ -8,6 +8,7 @@ import javaweb.my_project.entities.*;
 import javaweb.my_project.entities.embeddedId.OrderItemId;
 import javaweb.my_project.enums.OrderStatus;
 import javaweb.my_project.enums.PaymentMethod;
+import javaweb.my_project.enums.PaymentStatus;
 import javaweb.my_project.exception.AppException;
 import javaweb.my_project.mapper.OrderMapper;
 import javaweb.my_project.repository.*;
@@ -143,6 +144,7 @@ public class OrderService {
                 product.setInventory(product.getInventory() + orderItem.getQuantity());
                 productRepository.save(product);
             }
+            order.setPaymentStatus(PaymentStatus.CANCELED);
         }
 
         if (request.getReason() != null) {
@@ -183,11 +185,13 @@ public class OrderService {
                 throw new AppException(HttpStatus.FORBIDDEN, "Order must be in DELIVERING status to mark as delivered.",
                         "order-e-05");
             }
+            order.setPaymentStatus(PaymentStatus.PAID);
         } else if (status.equals(OrderStatus.CANCELED)) {
             if (order.getStatus().equals(OrderStatus.RECEIVED)) {
                 throw new AppException(HttpStatus.FORBIDDEN, "Cannot cancel an order that has been received.",
                         "order-e-06");
             }
+            order.setPaymentStatus(PaymentStatus.CANCELED);
         }
         if (status.equals(OrderStatus.CANCELED)) {
             for (OrderItem orderItem : order.getOrderItems()) {

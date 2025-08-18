@@ -34,7 +34,7 @@ public class ProductController {
         @GetMapping
         public ResponseEntity<ApiResponse<PageResponse<ProductTagResponse>>> getAllActiveProduct(
                         @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "10") int size) {
+                        @RequestParam(defaultValue = "12") int size) {
                 Page<ProductTagResponse> pagedProducts = productService.getAllActiveProduct(page, size);
                 PageResponse<ProductTagResponse> pageResponseProduct = PageResponse.<ProductTagResponse>builder()
                                 .content(pagedProducts.getContent())

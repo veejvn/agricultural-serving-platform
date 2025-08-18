@@ -28,6 +28,7 @@ import {
   IPaymentStatus,
 } from "@/types/order";
 import { IAddressResponse } from "@/types/address";
+import addressData from "@/json/address.json";
 
 interface OrderData {
   orderNumbers: string[];
@@ -171,6 +172,50 @@ export default function OrderCompletePage() {
     }
   };
 
+  // Helper functions to get names from codes for display
+  function getProvinceNameFromCode(code: string): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === code
+    ) as any;
+    return province?.name_with_type || code;
+  }
+
+  function getDistrictNameFromCode(
+    provinceCode: string,
+    districtCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    return district?.name_with_type || districtCode;
+  }
+
+  function getWardNameFromCode(
+    provinceCode: string,
+    districtCode: string,
+    wardCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    const ward =
+      district?.ward &&
+      (Object.values(district.ward).find(
+        (w: any) => w.code === wardCode
+      ) as any);
+    return ward?.name_with_type || wardCode;
+  }
+
   if (!orderData || lastCreatedOrders.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -240,12 +285,12 @@ export default function OrderCompletePage() {
               <CardTitle className="text-xl text-green-800 dark:text-green-300">
                 Đơn hàng {getOrderId(orderData.orderNumbers)}
               </CardTitle>
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <Button variant="outline" size="sm">
                   <Printer className="mr-2 h-4 w-4" />
                   In đơn hàng
                 </Button>
-              </div>
+              </div> */}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -342,7 +387,16 @@ export default function OrderCompletePage() {
                     </p>
                     <p className="font-medium">
                       {orderData.address
-                        ? `${orderData.address.detail}, ${orderData.address.ward}, ${orderData.address.district}, ${orderData.address.province}`
+                        ? `${orderData.address.detail}, ${getWardNameFromCode(
+                            orderData.address.province,
+                            orderData.address.district,
+                            orderData.address.ward
+                          )}, ${getDistrictNameFromCode(
+                            orderData.address.province,
+                            orderData.address.district
+                          )}, ${getProvinceNameFromCode(
+                            orderData.address.province
+                          )}`
                         : "-"}
                     </p>
                   </div>
