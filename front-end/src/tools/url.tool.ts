@@ -1,4 +1,4 @@
-import { SERVER_URL } from "@/contants/common.contant";
+import { SERVER_URL } from "@/contants/common";
 
 
 const getApiUrl = (path: string) => {

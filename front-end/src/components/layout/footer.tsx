@@ -1,16 +1,23 @@
+"use client";
+
 import Link from "next/link";
-import {
-  Leaf,
-  Facebook,
-  Twitter,
-  Instagram,
-  Youtube,
-  Mail,
-  Phone,
-  MapPin,
-} from "lucide-react";
+import { Leaf, Mail, Phone, MapPin } from "lucide-react";
+import { FacebookIcon } from "@/icons/FacebookIcon";
+import { XIcon } from "@/icons/XIcon";
+import { InstagramIcon } from "@/icons/InstagramIcon";
+import { YoutubeIcon } from "@/icons/YoutubeIcon";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (
+    pathname.startsWith("/admin/login") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register")
+  ) {
+    return null; // Không hiển thị footer trên các trang đăng nhập hoặc đăng ký
+  }
+
   return (
     <footer className="border-t bg-background">
       <div className="container px-4 py-8 sm:px-6 lg:px-8">
@@ -30,28 +37,28 @@ export default function Footer() {
                 href="#"
                 className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
               >
-                <Facebook className="h-5 w-5" />
+                <FacebookIcon className="size-5" />
                 <span className="sr-only">Facebook</span>
               </Link>
               <Link
                 href="#"
                 className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
               >
-                <Twitter className="h-5 w-5" />
+                <XIcon className="size-5" />
                 <span className="sr-only">Twitter</span>
               </Link>
               <Link
                 href="#"
                 className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
               >
-                <Instagram className="h-5 w-5" />
+                <InstagramIcon className="size-5" />
                 <span className="sr-only">Instagram</span>
               </Link>
               <Link
                 href="#"
                 className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
               >
-                <Youtube className="h-5 w-5" />
+                <YoutubeIcon className="size-5" />
                 <span className="sr-only">Youtube</span>
               </Link>
             </div>

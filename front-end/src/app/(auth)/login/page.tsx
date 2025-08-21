@@ -25,7 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import useMessageByApiCode from "@/hooks/useMessageByApiCode";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { ROUTES } from "@/contants/router.contant";
+import { ROUTES } from "@/contants/router";
 
 export default function LoginPage() {
   const [error, setError] = useState("");

@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter, usePathname } from "next/navigation";
-import { ROUTES } from "@/contants/router.contant";
+import { ROUTES } from "@/contants/router";
 import { useCart } from "@/hooks/useCart";
 
 export function ProductCard({

@@ -4,7 +4,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import AuthService from "@/services/auth.service";
-import env from "@/contants/env.contant";
+import env from "@/contants/env";
 import { useUserStore } from "@/stores/useUserStore";
 
 const useInitialApp = () => {

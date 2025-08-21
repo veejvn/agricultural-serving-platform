@@ -7,7 +7,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import LoadingSpinner from "@/components/common/loading-spinner";
 import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
 import { FarmerSidebar } from "@/components/farmer/sidebar";
-import { ROUTES } from "@/contants/router.contant";
+import { ROUTES } from "@/contants/router";
 
 function FarmerLayoutContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();

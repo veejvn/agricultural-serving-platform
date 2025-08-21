@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/useCart";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter, usePathname } from "next/navigation";
-import { ROUTES } from "@/contants/router.contant";
+import { ROUTES } from "@/contants/router";
 import ProductService from "@/services/product.service";
 import type { IProductResponese } from "@/types/product";
 import { ProductReviewForm } from "@/components/product/product-review-form";
@@ -528,7 +528,10 @@ export default function ProductDetailPage({
 
           {/* Farmer Info */}
           <div className="mt-2 flex items-center gap-3">
-            <Link href={`/farmer/${product.farmer.id}`} className="flex items-center gap-2 hover:underline">
+            <Link
+              href={`/farmer/${product.farmer.id}`}
+              className="flex items-center gap-2 hover:underline"
+            >
               <img
                 src={product.farmer.avatar || "/placeholder.svg"}
                 alt={product.farmer.name}

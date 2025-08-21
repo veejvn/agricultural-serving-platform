@@ -31,6 +31,15 @@ export default function Header() {
   const pathname = usePathname();
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
+  if (
+    pathname.startsWith("/admin/login") || 
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register")
+  ) {
+    return null; // Không hiển thị header trên các trang đăng nhập hoặc đăng ký
+  }
+
   const routes = [
     {
       name: "Trang chủ",

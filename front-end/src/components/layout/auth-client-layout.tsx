@@ -1,7 +1,7 @@
 "use client";
 
 import LoadingSpinner from "@/components/common/loading-spinner";
-import { ROUTES } from "@/contants/router.contant";
+import { ROUTES } from "@/contants/router";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

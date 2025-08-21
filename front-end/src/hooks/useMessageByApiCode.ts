@@ -1,4 +1,4 @@
-import apiCode from "@/contants/apiCode.contant";
+import apiCode from "@/contants/apiCode";
 
 export default function useMessageByApiCode() {
   const codeMap = apiCode as Record<string, string>;
