@@ -1,4 +1,3 @@
-import { getLS } from "@/tools/localStorage.tool";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
@@ -49,7 +48,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: "auth-storage", // tên key trong localStorage
+      name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )

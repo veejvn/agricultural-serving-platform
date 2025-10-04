@@ -140,7 +140,10 @@ export function AccountSidebar() {
                 return true;
               })
               .map((item) => {
-                const isActive =  item.href === "/account" ? pathname === "/account" : pathname.startsWith(item.href);
+                const isActive =
+                  item.href === "/account"
+                    ? pathname === "/account"
+                    : pathname.startsWith(item.href);
 
                 const LinkComponent = (
                   <Link

@@ -31,6 +31,10 @@ const AuthService = {
     return service(axios.post(getAuthUrl("/login"), { email, password }));
   },
 
+  adminLogin({ email, password }: LoginFormData) {
+    return service(axios.post(getAuthUrl("/login/admin"), { email, password }));
+  },
+
   // GET /auth/info - Get authenticated user info
   getAccountInfo() {
     return service(axios.get(getAuthUrl("/info")), true);

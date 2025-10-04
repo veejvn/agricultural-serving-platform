@@ -75,6 +75,17 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PostMapping("/login/admin")
+    public ResponseEntity<ApiResponse<AuthResponse>> loginAdmin(@RequestBody @Valid AuthLoginRequest request) {
+        AuthResponse authResponse = authService.adminLogin(request);
+        ApiResponse<AuthResponse> apiResponse = ApiResponse.<AuthResponse>builder()
+                .data(authResponse)
+                .code("auth-s-03")
+                .message("Login admin successfully")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestBody @Valid AuthRefreshTokenRequest request) {
         AuthResponse authResponse = authService.refreshToken(request);

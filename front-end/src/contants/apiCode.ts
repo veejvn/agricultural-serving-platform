@@ -17,6 +17,7 @@ const apiCode = {
   "auth-e-06": "Không tìm thấy tài khoản",
   "code-e-01": "Mã code hết hạn hoặc không tồn tại",
   "auth-e-07": "Mật khẩu hiện tại không đúng",
+  "auth-e-08": "Tài khoản hoặc mật khẩu không đúng",
   "account-s-01": "Lấy thông tin tài khoản thành công",
   "account-s-02": "Cập nhật tài khoản thành công",
   "account-s-03": "Xóa tài khoản thành công",

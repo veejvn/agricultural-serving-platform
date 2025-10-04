@@ -18,6 +18,7 @@ const useInitialApp = () => {
   const setTokens = useAuthStore((state) => state.setTokens);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const fetchUser = useUserStore((state) => state.fetchUser);
+  const clearUser = useUserStore((state) => state.clearUser);
 
   // Cleanup interval
   const cleanup = useCallback(() => {
@@ -58,11 +59,7 @@ const useInitialApp = () => {
 
   // Initialize app data - chỉ chạy khi thực sự cần thiết
   const initializeApp = useCallback(async () => {
-    console.log("🚀 Initializing app...", {
-      isLoggedIn,
-      hasRefreshToken: !!refreshTokenString,
-      hasRun: hasRunRef.current,
-    });
+    console.log("🚀 Initializing app...");
 
     // Chỉ skip nếu đã chạy thành công trước đó VÀ vẫn đang login
     if (hasRunRef.current && isLoggedIn && refreshTokenString) {
@@ -104,18 +101,11 @@ const useInitialApp = () => {
   const setupInterval = useCallback(() => {
     cleanup(); // Clear existing interval
 
-    console.log("⏰ Setting up refresh token interval", {
-      isLoggedIn,
-      hasRefreshToken: !!refreshTokenString,
-      interval: env.interval_refresh_token,
-    });
+    console.log("⏰ Setting up refresh token interval");
 
     if (isLoggedIn && refreshTokenString) {
       if (!env.interval_refresh_token || env.interval_refresh_token < 1000) {
-        console.warn(
-          "⚠️ interval_refresh_token không hợp lệ:",
-          env.interval_refresh_token
-        );
+        console.warn("⚠️ interval_refresh_token không hợp lệ:");
         return;
       }
       intervalRef.current = setInterval(() => {

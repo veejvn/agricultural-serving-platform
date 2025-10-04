@@ -82,6 +82,25 @@ public class AuthService {
                 .build();
     }
 
+    public AuthResponse adminLogin(AuthLoginRequest request) {
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(
+                        () -> new AppException(HttpStatus.NOT_FOUND, "Email account not found", "auth-e-02"));
+        if (!account.getRoles().contains(Role.ADMIN)) {
+            throw new AppException(HttpStatus.FORBIDDEN, "Account doesn't have Admin role", "auth-e-08");
+        }
+        boolean isMatchPassword = passwordUtil.checkPassword(request.getPassword(), account.getPassword());
+        if (!isMatchPassword) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Wrong password", "auth-e-04");
+        }
+        String accessTokenString = accessTokenUtil.generateToken(accountMapper.toJWTPayloadDto(account));
+        String refreshTokenString = refreshTokenUtil.generateToken(accountMapper.toJWTPayloadDto(account), account);
+        return AuthResponse.builder()
+                .accessToken(accessTokenString)
+                .refreshToken(refreshTokenString)
+                .build();
+    }
+
     public AuthResponse refreshToken(AuthRefreshTokenRequest request) {
         String refreshTokenString = request.getRefreshToken();
         JWTPayloadDto payload = refreshTokenUtil.verifyToken(refreshTokenString);

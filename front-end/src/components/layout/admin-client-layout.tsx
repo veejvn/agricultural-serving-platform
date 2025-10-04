@@ -1,15 +1,14 @@
 "use client";
 
-import type React from "react";
-
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/sidebar";
+import LoadingSpinner from "@/components/common/loading-spinner";
+import { ROLES } from "@/contants/role";
+import { ROUTES } from "@/contants/router";
+import { SidebarProvider } from "@/contexts/sidebar-context";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useUserStore } from "@/stores/useUserStore";
-import { ROLES } from "@/contants/role";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/contants/router";
-import LoadingSpinner from "@/components/common/loading-spinner";
 
 export default function AdminClientLayout({
   children,
@@ -19,30 +18,46 @@ export default function AdminClientLayout({
   const router = useRouter();
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const user = useUserStore((state) => state.user);
-  const hasAdminRole = user.roles?.includes(ROLES.ADMIN) || false;
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
 
-  useEffect(() => {
-    if (!isLoggedIn || !hasAdminRole) {
+  const checkAuth = useCallback(() => {
+    const isAuthenticated =
+      isLoggedIn && user && user.roles?.includes(ROLES.ADMIN);
+
+    if (!isAuthenticated) {
       router.replace(ROUTES.ADMIN_LOGIN);
     }
-    setTimeout(() => {
-      setIsChecking(false);
-    }, 1000);
-  }, [isLoggedIn, hasAdminRole, router]);
+    setIsChecking(false);
+  }, [isLoggedIn, user, router]);
 
-  if (isChecking) {
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    const timeoutId = setTimeout(checkAuth, 100);
+    return () => clearTimeout(timeoutId);
+  }, [hasHydrated, checkAuth]);
+
+  if (!hasHydrated) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-screen">
         <LoadingSpinner />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <AdminSidebar />
-      <div className="flex flex-1 flex-col overflow-y-auto p-6">{children}</div>
-    </div>
+    <SidebarProvider>
+      <div className="flex h-full bg-gray-50 dark:bg-gray-900">
+        <AdminSidebar />
+        <div className="flex flex-1 flex-col overflow-y-auto p-6">
+          {children}
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }

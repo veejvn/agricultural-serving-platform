@@ -32,7 +32,7 @@ export default function Header() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
   if (
-    pathname.startsWith("/admin/login") || 
+    pathname.startsWith("/admin/login") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/register")

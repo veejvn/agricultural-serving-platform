@@ -48,7 +48,7 @@ export default function ProtectedLayoutClientLayout({
   // Hiển thị loading khi chưa hydrate hoặc đang kiểm tra auth
   if (!hasHydrated || isChecking) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-screen">
         <LoadingSpinner />
       </div>
     );

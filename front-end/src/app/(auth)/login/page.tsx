@@ -73,6 +73,7 @@ export default function LoginPage() {
       // });
     }
   };
+  
   return (
     <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">

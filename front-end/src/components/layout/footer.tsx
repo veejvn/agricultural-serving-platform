@@ -12,6 +12,7 @@ export default function Footer() {
   const pathname = usePathname();
   if (
     pathname.startsWith("/admin/login") ||
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/register")
   ) {
