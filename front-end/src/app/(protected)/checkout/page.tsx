@@ -517,13 +517,13 @@ export default function CheckoutPage() {
             cartItemId: item.id,
           })),
         };
-        console.log(
-          `Tạo đơn hàng cho ${group.farmer.name} với ${group.items.length} sản phẩm`,
-          orderRequest
-        );
+        // console.log(
+        //   `Tạo đơn hàng cho ${group.farmer.name} với ${group.items.length} sản phẩm`,
+        //   orderRequest
+        // );
 
         const [result, error] = await OrderService.create(orderRequest);
-        console.log(`Tạo đơn hàng cho ${group.farmer.name}:`, result, error);
+        //console.log(`Tạo đơn hàng cho ${group.farmer.name}:`, result, error);
 
         if (error) {
           throw new Error(

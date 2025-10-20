@@ -686,7 +686,7 @@ export default function ProductsPage() {
         <PaginationComponent />
       </div>
 
-      <div className="mt-12 rounded-lg bg-green-50 p-6 dark:bg-green-900">
+      {/* <div className="mt-12 rounded-lg bg-green-50 p-6 dark:bg-green-900">
         <h2 className="mb-4 text-2xl font-bold text-green-800 dark:text-green-300">
           Sản phẩm đề xuất cho mùa vụ hiện tại
         </h2>
@@ -695,7 +695,7 @@ export default function ProductsPage() {
             <ProductCard key={product.id} product={product} featured />
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

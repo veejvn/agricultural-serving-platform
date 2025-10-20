@@ -28,4 +28,9 @@ public class Payment {
     @OneToOne
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
+
+    @PrePersist
+    protected void onCreate() {
+        this.payDate = LocalDateTime.now();
+    }
 }

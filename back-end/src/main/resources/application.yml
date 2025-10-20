@@ -48,7 +48,9 @@ app:
     hash-secret: ${VN_PAY_HASH_SECRET}
     payment-url: ${VN_PAY_PAYMENT_URL}
     return-url: ${VN_PAY_RETURN_URL}
+    ipn-url: ${VN_PAY_IPN_URL}
     version: ${VN_PAY_VERSION}
     command: ${VN_PAY_COMMAND}
+    order-type: ${VN_PAY_ORDER_TYPE}
 server:
   port: ${PORT}
