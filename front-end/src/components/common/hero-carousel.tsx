@@ -71,7 +71,7 @@ export default function HeroCarousel({
           >
             <img
               src={image}
-              alt={`Nông nghiệp thông minh - Hình ${index + 1}`}
+              alt={`Nông nghiệp Xanh - Hình ${index + 1}`}
               className="w-full h-full object-cover"
             />
           </div>

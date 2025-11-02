@@ -49,7 +49,6 @@ public class PaymentService {
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
-        vnp_Params.put("vnp_IpnUrl", vnPayConfig.getIpnUrl());
         vnp_Params.put("vnp_IpAddr", VNPayUtil.getIpAddress(request));
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -119,8 +118,17 @@ public class PaymentService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Order not found", "order-e-01"));
 
-        // 3️⃣ Không cập nhật DB, chỉ đọc trạng thái
-        PaymentStatus status = order.getPaymentStatus();
+        String responseCode = request.getParameter("vnp_ResponseCode");
+        String transactionStatus = request.getParameter("vnp_TransactionStatus");
+
+        if ("00".equals(responseCode) && "00".equals(transactionStatus)) {
+            // ✅ Ở môi trường test, cập nhật trực tiếp
+            order.setPaymentStatus(PaymentStatus.PAID);
+            orderRepository.save(order);
+        } else {
+            order.setPaymentStatus(PaymentStatus.FAILED);
+            orderRepository.save(order);
+        }
 
         // 4️⃣ Trả về kết quả để frontend hiển thị
         return orderMapper.toOrderResponse(order);

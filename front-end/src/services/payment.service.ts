@@ -8,5 +8,12 @@ const PaymentService = {
       true
     );
   },
-  
+  vnpayReturn(params: any) {
+    return service(
+      axios.get(getApiUrl(`/payments/vnpay-return`), { params }),
+      true
+    );
+  }
 };
+
+export default PaymentService;

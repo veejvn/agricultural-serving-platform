@@ -665,8 +665,8 @@ export default function ProductDetailPage({
         <Tabs defaultValue="description">
           <TabsList className="w-full justify-start border-b border-gray-200 dark:border-gray-800">
             <TabsTrigger value="description">Mô tả chi tiết</TabsTrigger>
-            <TabsTrigger value="specifications">Thông số kỹ thuật</TabsTrigger>
-            <TabsTrigger value="usage">Hướng dẫn sử dụng</TabsTrigger>
+            {/* <TabsTrigger value="specifications">Thông số kỹ thuật</TabsTrigger>
+            <TabsTrigger value="usage">Hướng dẫn sử dụng</TabsTrigger> */}
             <TabsTrigger value="reviews">
               Đánh giá ({reviews.length})
             </TabsTrigger>

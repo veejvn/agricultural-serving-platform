@@ -66,6 +66,7 @@ import {
   convertOrderRequestToPending,
 } from "@/stores/useOrderStore";
 import { useOrder } from "@/hooks/useOrder";
+import PaymentService from "@/services/payment.service";
 
 // Define types for address data structure
 interface Ward {
@@ -96,6 +97,10 @@ interface Province {
   name_with_type: string;
   slug: string;
   districts: District[];
+}
+
+interface PaymentCreationResponse {
+  paymentUrl: string;
 }
 
 // Convert addressData object to array
@@ -568,8 +573,24 @@ export default function CheckoutPage() {
           );
         }
 
-        // Chuyển hướng đến trang đơn hàng
-        router.push("/checkout/complete");
+        // Xử lý chuyển hướng dựa trên phương thức thanh toán
+        if (paymentMethod === "VNPAY") {
+          // Lấy ID của đơn hàng đầu tiên để tạo URL thanh toán
+          const firstOrderId = fulfilledOrders[0].id;
+          const [paymentResult, paymentError] = await PaymentService.createPaymentUrl(firstOrderId);
+          
+          if (paymentError) {
+            toast.error("Không thể tạo liên kết thanh toán");
+            return;
+          }
+
+          const paymentResponse = paymentResult as PaymentCreationResponse;
+          // Chuyển hướng đến trang thanh toán VNPay
+          window.location.href = paymentResponse.paymentUrl;
+        } else {
+          // Với COD, chuyển về trang hoàn tất đơn hàng
+          router.push("/checkout/complete");
+        }
       } else {
         // Tất cả đơn hàng thất bại - xóa pending orders
         //createPendingOrders([], "", ""); // Clear by creating empty

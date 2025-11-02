@@ -26,7 +26,7 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Leaf className="h-6 w-6 text-green-600 dark:text-green-500" />
-              <span className="text-lg font-bold">Nông Nghiệp Thông Minh</span>
+              <span className="text-lg font-bold">Nông Nghiệp Xanh</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Nền tảng hỗ trợ toàn diện cho nông dân Việt Nam với thông tin thời
@@ -229,7 +229,7 @@ export default function Footer() {
         <div className="mt-8 border-t pt-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Nông Nghiệp Thông Minh. Tất cả
+              &copy; {new Date().getFullYear()} Nông Nghiệp Xanh. Tất cả
               quyền được bảo lưu.
             </p>
             <div className="flex gap-4 text-sm">

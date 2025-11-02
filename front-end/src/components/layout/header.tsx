@@ -25,6 +25,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 import UserMenu from "@/components/layout/user-menu";
+import Image from "next/image";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -70,7 +71,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="container flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="lg:hidden">
@@ -85,9 +86,7 @@ export default function Header() {
               </SheetHeader>
               <div className="flex items-center gap-2 py-4">
                 <Leaf className="h-6 w-6 text-green-600 dark:text-green-500" />
-                <span className="text-lg font-bold">
-                  Nông Nghiệp Thông Minh
-                </span>
+                <span className="text-lg font-bold">Nông Nghiệp Xanh</span>
               </div>
               <nav className="flex flex-col gap-4 py-4">
                 {routes.map((route) => (
@@ -121,11 +120,14 @@ export default function Header() {
               )}
             </SheetContent>
           </Sheet>
-          <Link href="/" className="flex items-center gap-2">
-            <Leaf className="h-6 w-6 text-green-600 dark:text-green-500" />
-            <span className="hidden font-bold sm:inline-block">
-              Nông Nghiệp Thông Minh
-            </span>
+          <Link href="/" className="hidden lg:flex items-center w-40">
+            <Image
+              src={"/images/logo.png"}
+              alt="Logo Nông Nghiệp Xanh"
+              className="mx-auto"
+              width={70}
+              height={70}
+            />
           </Link>
         </div>
         <nav className="hidden lg:flex lg:items-center lg:gap-6">

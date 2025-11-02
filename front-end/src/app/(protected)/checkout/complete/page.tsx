@@ -29,6 +29,8 @@ import {
 } from "@/types/order";
 import { IAddressResponse } from "@/types/address";
 import addressData from "@/json/address.json";
+import { useSearchParams } from "next/navigation";
+import PaymentService from "@/services/payment.service";
 
 interface OrderData {
   orderNumbers: string[];
@@ -45,8 +47,10 @@ interface OrderData {
 }
 
 export default function OrderCompletePage() {
+  const searchParams = useSearchParams();
   const { lastCreatedOrders, clearLastCreatedOrders } = useOrder();
   const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   //console.log("Last created orders:", lastCreatedOrders);
   //console.log("Order data state:", orderData);
 
@@ -84,6 +88,33 @@ export default function OrderCompletePage() {
       });
     }
   }, [lastCreatedOrders]);
+
+  useEffect(() => {
+    const verifyPayment = async () => {
+      setLoading(true);
+      const params = Object.fromEntries(searchParams.entries());
+      const [result, error] = await PaymentService.vnpayReturn(params);
+      if (error) {
+        console.error("Error verifying VNPAY payment:", error);
+        setLoading(false);
+        return;
+      }
+      console.log("VNPAY payment verification result:", result);
+      setOrderData((prev) =>
+        prev
+          ? {
+              ...prev,
+              paymentStatus:
+                result.paymentStatus === "PAID" ? "PAID" : "FAILED",
+            }
+          : prev
+      );
+      setLoading(false);
+    };
+    if (searchParams.get("vnp_ResponseCode")) {
+      verifyPayment();
+    }
+  }, [searchParams]);
 
   const getOrderId = (orderNumbers: string[]) => {
     return orderNumbers.map((num) => `ORDER_${num.slice(0, 8)}`).join(", ");
@@ -214,6 +245,45 @@ export default function OrderCompletePage() {
         (w: any) => w.code === wardCode
       ) as any);
     return ward?.name_with_type || wardCode;
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-8 flex flex-col items-center justify-center text-center">
+            <div className="mb-4 rounded-full bg-blue-100 p-3 text-blue-600 dark:bg-blue-900 dark:text-blue-400 animate-spin">
+              <svg
+                className="h-12 w-12"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-blue-800 dark:text-blue-300 sm:text-4xl">
+              Đang xử lý đơn hàng...
+            </h1>
+            <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+              Vui lòng chờ trong giây lát.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!orderData || lastCreatedOrders.length === 0) {

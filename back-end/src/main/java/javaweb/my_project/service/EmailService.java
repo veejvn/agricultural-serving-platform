@@ -56,7 +56,7 @@ public class EmailService {
     }
 
     public void sendEmailToWelcome(String toEmail) {
-        String emailText = "Chào mừng bạn đến với Nông nghiệp thông minh";
+        String emailText = "Chào mừng bạn đến với Nông nghiệp xanh";
         SendEmailDto emailPayload = SendEmailDto.builder()
                 .to(toEmail)
                 .subject("Nông nghiệp xanh chào mừng")

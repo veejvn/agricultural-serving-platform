@@ -77,7 +77,7 @@ export function ProductCard({
             src={product.thumbnail || "/placeholder.svg"}
             alt={product.name}
             fill
-            className="object-cover transition-transform hover:scale-105"
+            className="object-contain transition-transform hover:scale-105"
           />
           {product.price > 20000 && (
             <div className="absolute right-2 top-2 rounded-full bg-green-500 px-2 py-1 text-xs font-medium text-white">
@@ -89,12 +89,9 @@ export function ProductCard({
           <CardTitle className="line-clamp-1 text-lg text-green-800 dark:text-green-300">
             {product.name}
           </CardTitle>
-          <CardDescription className="line-clamp-2">
+          <CardDescription className="text-gray-600 dark:text-gray-400 line-clamp-1">
             {product.description}
           </CardDescription>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Nông trại: {product.farmer.name}
-          </div>
         </CardHeader>
         <CardContent className="flex-1 p-4 pt-2">
           <div className="flex items-center justify-between">

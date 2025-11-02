@@ -129,9 +129,9 @@ export function AdminSidebar() {
                 className="flex items-center gap-2 font-bold text-lg"
               >
                 <span className="bg-green-600 text-white p-1 rounded">
-                  <ChartColumn/>
+                  <ChartColumn />
                 </span>
-                <span>Admin</span>
+                <span>Quản trị</span>
               </Link>
             )}
             {isCollapsed && (

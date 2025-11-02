@@ -10,7 +10,7 @@ import RootClientLayout from "@/components/layout/root-client-layout";
 const inter = Inter({ subsets: ["vietnamese"] });
 
 export const metadata: Metadata = {
-  title: "Nông Nghiệp Thông Minh",
+  title: "Nông Nghiệp Xanh",
   description: "Nền tảng hỗ trợ nông dân Việt Nam",
 };
 

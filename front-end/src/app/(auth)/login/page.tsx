@@ -89,7 +89,7 @@ export default function LoginPage() {
             />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/80 to-transparent p-8 flex flex-col justify-end">
               <h2 className="mb-4 text-3xl font-bold text-white">
-                Nông Nghiệp Thông Minh
+                Nông Nghiệp Xanh
               </h2>
               <p className="text-lg text-green-100">
                 Nền tảng hỗ trợ toàn diện cho nông dân Việt Nam với thông tin
@@ -100,9 +100,9 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="flex flex-col justify-center">
-          <div className="mb-8 text-center lg:text-left">
-            <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
-              Chào mừng bạn đến với Nông Nghiệp Thông Minh
+          <div className="mb-2 text-center lg:text-left">
+            <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-xl">
+              Chào mừng bạn đến với Nông Nghiệp Xanh
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
               Đăng ký hoặc đăng nhập để trải nghiệm đầy đủ các tính năng
@@ -183,6 +183,14 @@ export default function LoginPage() {
                   className="text-sm text-green-600 hover:underline dark:text-green-500"
                 >
                   Đăng ký ngay
+                </Link>
+              </div>
+              <div>
+                <Link
+                  href="/"
+                  className="text-sm text-green-600 hover:underline dark:text-green-500"
+                >
+                  Quay về trang chủ
                 </Link>
               </div>
             </CardFooter>

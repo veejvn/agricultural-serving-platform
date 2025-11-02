@@ -43,7 +43,7 @@ export default function Home() {
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col justify-center space-y-6">
               <h1 className="text-4xl font-bold tracking-tighter text-green-800 dark:text-green-300 sm:text-5xl xl:text-6xl">
-                Nông Nghiệp Thông Minh
+                Nông Nghiệp Xanh
               </h1>
               <p className="max-w-[600px] text-lg text-gray-700 dark:text-gray-300">
                 Nền tảng toàn diện hỗ trợ nông dân Việt Nam với thông tin thời
@@ -366,40 +366,6 @@ export default function Home() {
               </p>
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-green-600 dark:bg-green-800">
-        <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-8 text-center lg:flex-row lg:text-left">
-            <div className="lg:max-w-2xl">
-              <h2 className="text-3xl font-bold text-white sm:text-4xl">
-                Sẵn sàng nâng cao hiệu quả canh tác?
-              </h2>
-              <p className="mt-4 text-lg text-green-100">
-                Đăng ký ngay hôm nay để tiếp cận đầy đủ các tính năng và thông
-                tin hữu ích cho hoạt động nông nghiệp của bạn.
-              </p>
-            </div>
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <Button
-                asChild
-                size="lg"
-                className="bg-white text-green-700 hover:bg-green-700 hover:text-white"
-              >
-                <Link href="/register">Đăng Ký Miễn Phí</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="bg-white text-green-700 hover:bg-green-700 hover:text-white"
-              >
-                <Link href="/lien-he">Liên Hệ Tư Vấn</Link>
-              </Button>
-            </div>
-          </div>
         </div>
       </section>
     </div>
