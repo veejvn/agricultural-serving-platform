@@ -107,7 +107,7 @@ public class ProductController {
         }
 
         @DeleteMapping("/{id}")
-        @PreAuthorize("hasRole('FARMER') or hasRole('ADMIN')")
+        @PreAuthorize("hasRole('FARMER')")
         public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
                 productService.delete(id);
                 ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
@@ -124,7 +124,7 @@ public class ProductController {
                 ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
                                 .code("product-s-09")
                                 .message("Change product status successfully")
-                                .data(productService.adminChangeProductStatus(request))
+                                .data(productService.changeProductStatusByAdmin(request))
                                 .build();
                 return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
         }

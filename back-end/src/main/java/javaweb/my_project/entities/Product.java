@@ -42,6 +42,8 @@ public class Product {
 
     LocalDateTime createdAt;
 
+    LocalDateTime deletedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     ProductStatus status;

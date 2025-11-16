@@ -39,7 +39,7 @@ export default function Home() {
     <div className="flex flex-col gap-8 pb-8">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-b from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
-        <div className="container mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col justify-center space-y-6">
               <h1 className="text-4xl font-bold tracking-tighter text-green-800 dark:text-green-300 sm:text-5xl xl:text-6xl">
@@ -82,7 +82,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <section className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
             Tính Năng Nổi Bật
@@ -266,7 +266,7 @@ export default function Home() {
       </section> */}
 
       {/* Testimonials */}
-      <section className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <section className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
             Nông Dân Nói Gì Về Chúng Tôi

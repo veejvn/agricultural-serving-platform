@@ -1,3 +1,10 @@
+export enum Role {
+  ADMIN = "ADMIN",
+  CONSUMER = "CONSUMER",
+  FARMER = "FARMER",
+  SPECIALIST = "SPECIALIST",
+}
+
 export interface IAccountResponse {
   id: string;
   email: string;
@@ -5,7 +12,7 @@ export interface IAccountResponse {
   phone: string;
   avatar: string;
   dob: string; // ISO date string
-  roles: string[]; // Assuming roles are represented as an array of strings
+  roles: Role[]; // Assuming roles are represented as an array of strings
 }
 
 // Define interfaces for request/response types

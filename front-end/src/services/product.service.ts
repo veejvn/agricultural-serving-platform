@@ -3,7 +3,7 @@ import { getApiUrl } from "@/tools/url.tool";
 
 const ProductService = {
   // Lấy tất cả sản phẩm active với phân trang (public)
-  getAllProducts({ page , size } : { page?: number; size?: number }) {
+  getAllProducts({ page, size }: { page?: number; size?: number }) {
     return service(
       axios.get(getApiUrl(`/products?page=${page}&size=${size}`)),
       true
@@ -45,7 +45,7 @@ const ProductService = {
   },
 
   // Thay đổi trạng thái sản phẩm (ADMIN)
-  adminChangeStatus(data: { productId: string; status: string }) {
+  adminChangeStatus(data: any) { // Sử dụng any cho data
     return service(
       axios.post(getApiUrl("/products/admin/change-status"), data),
       true

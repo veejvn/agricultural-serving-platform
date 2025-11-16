@@ -3,7 +3,6 @@ package javaweb.my_project.controller;
 import jakarta.validation.Valid;
 import javaweb.my_project.dto.account.AccountRequest;
 import javaweb.my_project.dto.account.AccountResponse;
-import javaweb.my_project.dto.account.DeleteAccountRequest;
 import javaweb.my_project.dto.account.UpgradeToFarmerRequest;
 import javaweb.my_project.dto.api.ApiResponse;
 import javaweb.my_project.dto.farmer.UpgradeToFarmerResponse;
@@ -64,9 +63,10 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> delete(@RequestBody @Valid DeleteAccountRequest request) {
-        accountService.delete(request);
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
+        accountService.delete(id);
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .code("account-s-03")
                 .message("Delete account successfully")
@@ -81,6 +81,17 @@ public class AccountController {
                 .code("address-s-04")
                 .message("Get all user successfully")
                 .data(accountService.getAllAccount())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AccountResponse>> getAccountById(@PathVariable String id) {
+        ApiResponse<AccountResponse> apiResponse = ApiResponse.<AccountResponse>builder()
+                .code("address-s-05")
+                .message("Get user by id successfully")
+                .data(accountService.getAccountById(id))
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }

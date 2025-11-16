@@ -40,6 +40,7 @@ public class AccountService {
         return accountMapper.toAccountResponse(account);
     }
 
+    @Transactional
     public AccountResponse updateAccount(AccountRequest request) {
         Account account = securityUtil.getAccount();
         accountMapper.updateAccount(account, request);
@@ -47,6 +48,7 @@ public class AccountService {
         return accountMapper.toAccountResponse(account);
     }
 
+    @Transactional
     public AccountResponse patchAccount(AccountRequest request) {
         Account account = securityUtil.getAccount();
 
@@ -68,6 +70,7 @@ public class AccountService {
         return accountMapper.toAccountResponse(account);
     }
 
+    @Transactional
     public UpgradeToFarmerResponse upgradeToFarmer(UpgradeToFarmerRequest request) {
         Account account = securityUtil.getAccount();
         if (account.getRoles().contains(Role.FARMER)) {
@@ -89,8 +92,8 @@ public class AccountService {
     }
 
     @Transactional
-    public void delete(DeleteAccountRequest request) {
-        Account account = accountRepository.findById(request.getId())
+    public void delete(String accountId) {
+        Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Account not found", "account-e-01"));
 
         try {
@@ -134,5 +137,11 @@ public class AccountService {
     public List<AccountResponse> getAllAccount() {
         List<Account> accounts = accountRepository.findAll();
         return accountMapper.toListAccountResponse(accounts);
+    }
+
+    public AccountResponse getAccountById(String accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Account not found", "account-e-01"));
+        return accountMapper.toAccountResponse(account);
     }
 }

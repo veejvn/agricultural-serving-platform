@@ -15,6 +15,13 @@ export interface ImageResponse {
   alt: string;
 }
 
+export type ProductStatus =
+  | "ACTIVE"
+  | "PENDING"
+  | "REJECTED"
+  | "BLOCKED"
+  | "DELETED";
+
 // Interface cho dữ liệu sản phẩm
 export interface IProductResponese {
   id: string;
@@ -26,11 +33,12 @@ export interface IProductResponese {
   rating: number;
   thumbnail: string;
   unitPrice: string;
-  status: string;
+  status: ProductStatus;
   images: ImageResponse[];
   category: string;
   farmer: IFarmerResponse;
   createdAt: string;
+  deletedAt?: string; // Thêm trường này cho soft delete
 }
 
 // Interface cho response phân trang
@@ -95,3 +103,12 @@ export interface IProductMarketPriceResponse {
   unitPrice: string;
   category: string;
 }
+
+// Interface cho request thay đổi trạng thái sản phẩm
+export interface IChangeProductStatusRequest {
+  id: string;
+  status: ProductStatus;
+}
+
+// Interface cho response sản phẩm admin (có thể dùng lại IProductResponese nếu đủ)
+export interface IProductAdminResponse extends IProductResponese {}

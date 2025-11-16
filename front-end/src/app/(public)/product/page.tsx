@@ -586,7 +586,7 @@ export default function ProductsPage() {
   return (
     <>
       {/* Cart Button */}
-      <div className="flex fixed top-24 right-4 z-50 items-center gap-2">
+      <div className="flex fixed bottom-8 right-4 z-50 items-center gap-2">
         <Button
           variant="outline"
           className="border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-950"
@@ -653,7 +653,7 @@ export default function ProductsPage() {
 
           {/* Product Grid */}
           {isLoading || isFiltering ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
@@ -662,7 +662,7 @@ export default function ProductsPage() {
               ))}
             </div>
           ) : products.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
               {products.map((product: IProductTag) => (
                 <ProductCard key={product.id} product={product} />
               ))}

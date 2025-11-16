@@ -86,16 +86,15 @@ export function ProductCard({
           )}
         </div>
         <CardHeader className="p-4 pb-0">
-          <CardTitle className="line-clamp-1 text-lg text-green-800 dark:text-green-300">
+          <CardTitle className="text-lg text-green-800 dark:text-green-300 line-clamp-2 h-14">
             {product.name}
           </CardTitle>
-          <CardDescription className="text-gray-600 dark:text-gray-400 line-clamp-1">
-            {product.description}
+          <CardDescription className="text-gray-600 dark:text-gray-400">
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 p-4 pt-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between h-8">
+            <div className="flex items-center">
               <span className="text-lg font-bold text-green-600 dark:text-green-500">
                 {formatPrice(product.price)}
               </span>

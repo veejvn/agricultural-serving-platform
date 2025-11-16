@@ -1,7 +1,7 @@
 package javaweb.my_project.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import javaweb.my_project.dto.PaymentCreationResponse;
+import javaweb.my_project.dto.payment.PaymentCreationResponse;
 import javaweb.my_project.dto.api.ApiResponse;
 import javaweb.my_project.dto.order.OrderResponse;
 import javaweb.my_project.service.PaymentService;

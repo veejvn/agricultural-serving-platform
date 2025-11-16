@@ -30,17 +30,19 @@ const AccountService = {
     );
   },
 
-  // DELETE /api/accounts - Delete account
-  deleteAccount(request: IDeleteAccountRequest) {
-    return service(
-      axios.delete(getApiUrl("/accounts"), { data: request }),
-      false
-    );
+  // DELETE /api/accounts/{id} - Delete account by ID (Admin only)
+  deleteAccountById(id: string) {
+    return service(axios.delete(getApiUrl(`/accounts/${id}`)), false);
   },
 
   // GET /api/accounts/all - Get all accounts (Admin only)
   getAllAccounts() {
     return service(axios.get(getApiUrl("/accounts/all")), true);
+  },
+
+  // GET /api/accounts/{id} - Get account by ID (Admin only)
+  getAccountById(id: string) {
+    return service(axios.get(getApiUrl(`/accounts/${id}`)), true);
   },
 };
 

@@ -45,6 +45,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const getMessage = useMessageByApiCode();
   const setIsLoggedIn = useAuthStore.getState().setIsLoggedIn;
@@ -144,15 +145,28 @@ export default function AdminLoginPage() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Nhập mật khẩu"
-                            type="password"
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e);
-                              setError("");
-                            }}
-                          />
+                          <div className="relative">
+                            <Input
+                              placeholder="Nhập mật khẩu"
+                              type={showPassword ? "text" : "password"}
+                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setError("");
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

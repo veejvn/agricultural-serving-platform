@@ -1,4 +1,4 @@
-package javaweb.my_project.dto;
+package javaweb.my_project.dto.payment;
 
 import lombok.Data;
 import lombok.experimental.FieldDefaults;

@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -140,13 +141,14 @@ public class ProductService {
     }
 
     public List<ProductResponse> getAllByAdmin() {
-        List<Product> products = productRepository.findAll();
+        List<Product> products = productRepository.findAll(Sort.by("createdAt").descending());
         return productMapper.toListProductResponse(products);
     }
 
     public List<ProductResponse> getAllByFarmer() {
         String farmerId = securityUtil.getFarmerId();
-        List<Product> products = productRepository.findAllByFarmerIdAndStatusNot(farmerId, ProductStatus.DELETED,
+        List<Product> products = productRepository.findAllByFarmerIdAndStatusNot(farmerId,
+                ProductStatus.DELETED,
                 Sort.by("createdAt").descending());
         return productMapper.toListProductResponse(products);
     }
@@ -155,7 +157,8 @@ public class ProductService {
         if (farmerId == null || farmerId.isEmpty()) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Farmer ID cannot be null or empty", "farmer-e-01");
         }
-        List<Product> products = productRepository.findAllByFarmerIdAndStatusNot(farmerId, ProductStatus.DELETED,
+        List<Product> products = productRepository.findAllByFarmerIdAndStatusNot(farmerId,
+                ProductStatus.DELETED,
                 Sort.by("createdAt").descending());
         return productMapper.toListProductResponse(products);
     }
@@ -197,11 +200,32 @@ public class ProductService {
         validateProductOwnership(product);
 
         product.setStatus(ProductStatus.DELETED);
+        product.setDeletedAt(LocalDateTime.now());
         productRepository.save(product);
     }
 
     @Transactional
-    public ProductResponse adminChangeProductStatus(ChangeProductStatusRequest request) {
+    public ProductResponse changeProductStatus(ChangeProductStatusRequest request) {
+        Product product = findProductById(request.getId());
+
+        Set<ProductStatus> allowedStatuses = Set.of(
+                ProductStatus.ACTIVE,
+                ProductStatus.REJECTED,
+                ProductStatus.BLOCKED);
+
+        ProductStatus newStatus = request.getStatus();
+        if (!allowedStatuses.contains(newStatus)) {
+            throw new AppException(HttpStatus.FORBIDDEN,
+                    "You don't have permission to change product to this status.", "product-e-02");
+        }
+
+        product.setStatus(newStatus);
+        productRepository.save(product);
+        return productMapper.toProductResponse(product);
+    }
+
+    @Transactional
+    public ProductResponse changeProductStatusByAdmin(ChangeProductStatusRequest request) {
         Product product = findProductById(request.getId());
 
         Set<ProductStatus> allowedStatuses = Set.of(

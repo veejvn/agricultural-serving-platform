@@ -71,8 +71,8 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2">
+      <div className="container flex h-20 items-center px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 w-100">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon" className="mr-2">
@@ -120,36 +120,37 @@ export default function Header() {
               )}
             </SheetContent>
           </Sheet>
-          <Link href="/" className="hidden lg:flex items-center w-40">
+          <Link href="/" className="hidden lg:flex items-center mx-auto w-50 h-20 overflow-hidden">
             <Image
-              src={"/images/logo.png"}
+              src={"/images/logo2.png"}
               alt="Logo Nông Nghiệp Xanh"
-              className="mx-auto"
-              width={70}
-              height={70}
+              className="w-full h-full object-cover"
+              width={200}
+              height={200}
             />
           </Link>
         </div>
-        <nav className="hidden lg:flex lg:items-center lg:gap-6">
-          {routes.map((route) => (
-            <Link
-              key={route.path}
-              href={route.path}
-              className={cn(
-                "flex items-center gap-1 text-sm font-medium transition-colors hover:text-green-600 dark:hover:text-green-500",
-                pathname === route.path
-                  ? "text-green-600 dark:text-green-500"
-                  : "text-muted-foreground"
-              )}
-            >
-              {route.icon}
-              {route.name}
-            </Link>
-          ))}
-        </nav>
-        <div className="flex items-center gap-2">
-          <ModeToggle />
-          {/* <Button
+        <div className="flex items-center justify-between flex-1">
+          <nav className="hidden lg:flex lg:items-center lg:gap-6">
+            {routes.map((route) => (
+              <Link
+                key={route.path}
+                href={route.path}
+                className={cn(
+                  "flex items-center gap-1 text-sm font-medium transition-colors hover:text-green-600 dark:hover:text-green-500",
+                  pathname === route.path
+                    ? "text-green-600 dark:text-green-500"
+                    : "text-muted-foreground"
+                )}
+              >
+                {route.icon}
+                {route.name}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            <ModeToggle />
+            {/* <Button
             asChild
             variant="ghost"
             size="icon"
@@ -160,27 +161,28 @@ export default function Header() {
               <span className="sr-only">Tài khoản</span>
             </Link>
           </Button> */}
-          {!isLoggedIn ? (
-            pathname === "/register" ? (
-              <Button
-                asChild
-                className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
-              >
-                <Link href="/login">Đăng nhập</Link>
-              </Button>
+            {!isLoggedIn ? (
+              pathname === "/register" ? (
+                <Button
+                  asChild
+                  className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
+                >
+                  <Link href="/login">Đăng nhập</Link>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
+                >
+                  <Link href="/register">Đăng ký</Link>
+                </Button>
+              )
             ) : (
-              <Button
-                asChild
-                className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
-              >
-                <Link href="/register">Đăng ký</Link>
-              </Button>
-            )
-          ) : (
-            <div className="mr-2">
-              <UserMenu />
-            </div>
-          )}
+              <div className="mr-2">
+                <UserMenu />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
