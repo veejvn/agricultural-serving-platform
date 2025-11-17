@@ -7,4 +7,6 @@ import lombok.Data;
 public class CategoryUpdateRequest {
     @NotBlank(message = "Category name is required")
     String name;
+
+    String parentId;
 }

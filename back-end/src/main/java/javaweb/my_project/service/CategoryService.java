@@ -23,32 +23,31 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
-    public Category create(CategoryRequest request){
+    public Category create(CategoryRequest request) {
         Category category = categoryMapper.toCategory(request);
-        if(request.getParentId() != null){
+        if (request.getParentId() != null) {
             Category categoryParent = categoryRepository.findById(request.getParentId()).orElseThrow(
-                    () -> new AppException(HttpStatus.NOT_FOUND, "Parent category not found", "category-e-01")
-            );
-            category.setLevel(categoryParent.getLevel() +  1);
-        }else {
+                    () -> new AppException(HttpStatus.NOT_FOUND, "Parent category not found", "category-e-01"));
+            category.setLevel(categoryParent.getLevel() + 1);
+        } else {
             category.setLevel(0);
         }
         return categoryRepository.save(category);
     }
 
-    public List<CategoryTreeNode> buildTree(List<Category> categories){
+    public List<CategoryTreeNode> buildTree(List<Category> categories) {
         Map<String, CategoryTreeNode> categoryMap = new HashMap<>();
         List<CategoryTreeNode> tree = new ArrayList<>();
-        for (Category category : categories){
+        for (Category category : categories) {
             CategoryTreeNode node = categoryMapper.toCategoryTreeNode(category);
             categoryMap.put(category.getId(), node);
         }
-        for (CategoryTreeNode node: categoryMap.values()){
-            if(node.getParentId() == null){
+        for (CategoryTreeNode node : categoryMap.values()) {
+            if (node.getParentId() == null) {
                 tree.add(node);
-            }else {
+            } else {
                 CategoryTreeNode parentNode = categoryMap.get(node.getParentId());
-                if (parentNode != null){
+                if (parentNode != null) {
                     parentNode.getChildren().add(node);
                 }
             }
@@ -56,23 +55,30 @@ public class CategoryService {
         return tree;
     }
 
-    public List<CategoryTreeNode> getTree(){
+    public List<CategoryTreeNode> getTree() {
         List<Category> categories = categoryRepository.findAll();
         return buildTree(categories);
     }
 
-    public Category update(String id, CategoryUpdateRequest request){
+    public Category update(String id, CategoryUpdateRequest request) {
         Category category = categoryRepository.findById(id).orElseThrow(
-                () -> new AppException(HttpStatus.NOT_FOUND, "Category not found", "category-e-02")
-        );
+                () -> new AppException(HttpStatus.NOT_FOUND, "Category not found", "category-e-02"));
         category.setName(request.getName());
+        if (request.getParentId() != null) {
+            Category parentCategory = categoryRepository.findById(request.getParentId()).orElseThrow(
+                    () -> new AppException(HttpStatus.NOT_FOUND, "Parent category not found", "category-e-01"));
+            category.setParentId(request.getParentId());
+            category.setLevel(parentCategory.getLevel() + 1);
+        } else {
+            category.setParentId(null);
+            category.setLevel(0);
+        }
         return categoryRepository.save(category);
     }
 
-    public void delete(String id){
+    public void delete(String id) {
         Category category = categoryRepository.findById(id).orElseThrow(
-                () -> new AppException(HttpStatus.NOT_FOUND, "Category not found", "category-e-02")
-        );
+                () -> new AppException(HttpStatus.NOT_FOUND, "Category not found", "category-e-02"));
         List<Category> childCategory = categoryRepository.findAllByParentId(id);
         categoryRepository.deleteAll(childCategory);
         categoryRepository.delete(category);
