@@ -175,7 +175,7 @@ export default function AdminCategoryPage() {
     }
 
     try {
-      const updateRequest: UpdateCategoryRequest = { 
+      const updateRequest: UpdateCategoryRequest = {
         name: formData.name,
         parentId: formData.parentId,
       };

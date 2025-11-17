@@ -18,6 +18,7 @@ import {
   Table2,
   ChartColumn,
 } from "lucide-react";
+import { PiFarm } from "react-icons/pi";
 import {
   Tooltip,
   TooltipContent,
@@ -54,25 +55,25 @@ const menuItems = [
     title: "Danh mục sản phẩm",
   },
   {
-    href: "/admin/order",
-    icon: ShoppingCart,
-    title: "Đơn hàng",
+    href: "/admin/farm",
+    icon: PiFarm,
+    title: "Trang Trại",
   },
-  {
-    href: "/admin/forum",
-    icon: MessageSquare,
-    title: "Diễn đàn",
-  },
-  {
-    href: "/admin/notification",
-    icon: Bell,
-    title: "Thông báo",
-  },
-  {
-    href: "/admin/setting",
-    icon: Settings,
-    title: "Cài đặt",
-  },
+  // {
+  //   href: "/admin/forum",
+  //   icon: MessageSquare,
+  //   title: "Diễn đàn",
+  // },
+  // {
+  //   href: "/admin/notification",
+  //   icon: Bell,
+  //   title: "Thông báo",
+  // },
+  // {
+  //   href: "/admin/setting",
+  //   icon: Settings,
+  //   title: "Cài đặt",
+  // },
 ];
 
 export function AdminSidebar() {

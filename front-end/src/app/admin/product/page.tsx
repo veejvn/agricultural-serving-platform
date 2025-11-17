@@ -296,7 +296,7 @@ const ProductListPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-full">
         <LoadingSpinner size="lg" />
       </div>
     );

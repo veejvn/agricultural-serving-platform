@@ -110,6 +110,11 @@ public class OrderService {
         return orderMapper.toOrderResponseList(orders);
     }
 
+    public List<OrderResponse> getOrdersByFarmerId(String farmerId) {
+        List<Order> orders = orderRepository.findAllByFarmerId(farmerId, Sort.by("createdAt").descending());
+        return orderMapper.toOrderResponseList(orders);
+    }
+
     @Transactional
     public OrderResponse consumerChangeStatus(ChangeOrderStatusRequest request) {
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow(

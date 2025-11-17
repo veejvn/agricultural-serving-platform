@@ -1,9 +1,11 @@
 package javaweb.my_project.service;
 
+import javaweb.my_project.dto.farmer.ChangeFarmerStatusRequest;
 import javaweb.my_project.dto.farmer.FarmerUpdateInfoPatchRequest;
 import javaweb.my_project.dto.farmer.FarmerUpdateInfoPutRequest;
 import javaweb.my_project.dto.farmer.FarmerResponse;
 import javaweb.my_project.entities.Farmer;
+import javaweb.my_project.enums.FarmerStatus;
 import javaweb.my_project.exception.AppException;
 import javaweb.my_project.mapper.FarmerMapper;
 import javaweb.my_project.repository.FarmerRepository;
@@ -13,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +62,24 @@ public class FarmerService {
         if (request.getDescription() != null) {
             farmer.setDescription(request.getDescription());
         }
+        farmerRepository.save(farmer);
+        return farmerMapper.toFarmerResponse(farmer);
+    }
+
+    public FarmerResponse changeFarmerStatus(String farmerId, ChangeFarmerStatusRequest request) {
+        Farmer farmer = farmerRepository.findById(farmerId).orElseThrow(
+                () -> new AppException(HttpStatus.NOT_FOUND, "Farmer not found", "farmer-e-01"));
+
+        Set<FarmerStatus> allowedStatuses = Set.of(
+                FarmerStatus.ACTIVE,
+                FarmerStatus.SELF_BLOCK,
+                FarmerStatus.ADMIN_BLOCK
+        );
+
+        if (!allowedStatuses.contains(request.getStatus())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Invalid farmer status", "farmer-e-02");
+        }
+        farmer.setStatus(request.getStatus());
         farmerRepository.save(farmer);
         return farmerMapper.toFarmerResponse(farmer);
     }

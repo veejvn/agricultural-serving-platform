@@ -61,11 +61,23 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @GetMapping("/farmer/{farmerId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllByFarmerId(
+            @PathVariable("farmerId") String farmerId) {
+        ApiResponse<List<OrderResponse>> apiResponse = ApiResponse.<List<OrderResponse>>builder()
+                .code("order-s-04")
+                .message("Get all order by farmer id successfully")
+                .data(orderService.getOrdersByFarmerId(farmerId))
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
     @PostMapping("/consumer/change-status")
     public ResponseEntity<ApiResponse<OrderResponse>> consumerChangeStatus(
             @RequestBody @Valid ChangeOrderStatusRequest request) {
         ApiResponse<OrderResponse> apiResponse = ApiResponse.<OrderResponse>builder()
-                .code("order-s-04")
+                .code("order-s-05")
                 .message("Change order status successfully")
                 .data(orderService.consumerChangeStatus(request))
                 .build();
@@ -76,7 +88,7 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResponse>> farmerChangeStatus(
             @RequestBody @Valid ChangeOrderStatusRequest request) {
         ApiResponse<OrderResponse> apiResponse = ApiResponse.<OrderResponse>builder()
-                .code("order-s-05")
+                .code("order-s-06")
                 .message("Change order status successfully")
                 .data(orderService.farmerChangeStatus(request))
                 .build();

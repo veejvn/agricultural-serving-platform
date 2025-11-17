@@ -2,6 +2,7 @@ package javaweb.my_project.controller;
 
 import jakarta.validation.Valid;
 import javaweb.my_project.dto.api.ApiResponse;
+import javaweb.my_project.dto.farmer.ChangeFarmerStatusRequest;
 import javaweb.my_project.dto.farmer.FarmerUpdateInfoPatchRequest;
 import javaweb.my_project.dto.farmer.FarmerUpdateInfoPutRequest;
 import javaweb.my_project.dto.farmer.FarmerResponse;
@@ -73,6 +74,19 @@ public class FarmerController {
                 .code("farmer-s-05")
                 .message("Update farmer successfully")
                 .data(farmerService.updateFarmerInfoPatch(request))
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @PostMapping("/{id}/status" )
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FARMER')")
+    public ResponseEntity<ApiResponse<FarmerResponse>> changeFarmerStatus(
+            @PathVariable("id") String farmerId,
+            @RequestBody @Valid ChangeFarmerStatusRequest request) {
+        ApiResponse<FarmerResponse> apiResponse = ApiResponse.<FarmerResponse>builder()
+                .code("farmer-s-06")
+                .message("Change farmer status successfully")
+                .data(farmerService.changeFarmerStatus(farmerId, request))
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
