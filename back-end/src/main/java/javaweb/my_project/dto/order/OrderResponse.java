@@ -3,7 +3,6 @@ package javaweb.my_project.dto.order;
 import javaweb.my_project.dto.account.AccountResponse;
 import javaweb.my_project.dto.address.AddressResponse;
 import javaweb.my_project.dto.farmer.FarmerResponse;
-import javaweb.my_project.dto.product.ProductResponse;
 import javaweb.my_project.entities.embeddedId.OrderItemId;
 import javaweb.my_project.enums.OrderStatus;
 import javaweb.my_project.enums.PaymentMethod;

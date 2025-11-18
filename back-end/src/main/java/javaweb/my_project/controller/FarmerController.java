@@ -45,6 +45,7 @@ public class FarmerController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<FarmerResponse>>> getAllFarmers() {
         ApiResponse<List<FarmerResponse>> apiResponse = ApiResponse.<List<FarmerResponse>>builder()
                 .code("farmer-s-03")

@@ -34,7 +34,7 @@ export default function AdminUsers() {
       if (result) {
         // Lọc bỏ tài khoản có vai trò ADMIN
         const nonAdminUsers = result.filter(
-          (user : IAccountResponse) => !user.roles.includes(Role.ADMIN)
+          (user: IAccountResponse) => !user.roles.includes(Role.ADMIN)
         );
         setAllUsers(nonAdminUsers);
       } else {
@@ -91,7 +91,8 @@ export default function AdminUsers() {
     setSelectedUserIdToDelete(null);
   };
 
-  const columns: ColumnDef<IAccountResponse>[] = [ // Added ColumnDef type
+  const columns: ColumnDef<IAccountResponse>[] = [
+    // Added ColumnDef type
     {
       accessorKey: "displayName",
       header: "Tên người dùng",
@@ -180,15 +181,6 @@ export default function AdminUsers() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Quản lý người dùng</h1>
-
-      <div className="flex items-center justify-between">
-        <Input
-          placeholder="Tìm kiếm người dùng..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="max-w-sm"
-        />
-      </div>
 
       <DataTable columns={columns} data={filteredUsers} />
 

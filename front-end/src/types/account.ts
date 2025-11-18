@@ -11,8 +11,9 @@ export interface IAccountResponse {
   displayName: string;
   phone: string;
   avatar: string;
-  dob: string; // ISO date string
-  roles: Role[]; // Assuming roles are represented as an array of strings
+  dob: string;
+  roles: Role[];
+  createdAt: string;
 }
 
 // Define interfaces for request/response types

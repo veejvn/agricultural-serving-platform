@@ -49,7 +49,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/common/loading-spinner";
 
-const STATUS : Record<string, string> = {
+const STATUS: Record<string, string> = {
   ACTIVE: "Đang hoạt động",
   PENDING: "Đang chờ duyệt",
   REJECTED: "Bị từ chối",
@@ -116,7 +116,8 @@ const ProductListPage = () => {
       } else {
         toast({
           title: "Lỗi",
-          description: err?.message || "Không thể thay đổi trạng thái sản phẩm.",
+          description:
+            err?.message || "Không thể thay đổi trạng thái sản phẩm.",
           variant: "destructive",
         });
       }
@@ -316,7 +317,9 @@ const ProductListPage = () => {
           className="max-w-sm"
         />
         <Select
-          onValueChange={(value: ProductStatus | "ALL") => setStatusFilter(value)}
+          onValueChange={(value: ProductStatus | "ALL") =>
+            setStatusFilter(value)
+          }
           value={statusFilter}
         >
           <SelectTrigger className="w-[180px]">
@@ -362,14 +365,20 @@ const ProductListPage = () => {
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   Không có kết quả.
                 </TableCell>
               </TableRow>
@@ -437,7 +446,9 @@ const ProductListPage = () => {
             </div>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDialogClose}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleDialogClose}>
+              Hủy
+            </AlertDialogCancel>
             <AlertDialogAction onClick={handleStatusChange}>
               Thay đổi trạng thái
             </AlertDialogAction>

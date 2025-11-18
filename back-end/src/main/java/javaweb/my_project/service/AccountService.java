@@ -2,7 +2,6 @@ package javaweb.my_project.service;
 
 import javaweb.my_project.dto.account.AccountRequest;
 import javaweb.my_project.dto.account.AccountResponse;
-import javaweb.my_project.dto.account.DeleteAccountRequest;
 import javaweb.my_project.dto.account.UpgradeToFarmerRequest;
 import javaweb.my_project.dto.farmer.UpgradeToFarmerResponse;
 import javaweb.my_project.entities.Account;
@@ -107,8 +106,6 @@ public class AccountService {
             account.getCartItems().clear();
 
             // Clear other collections
-            account.getForumComments().clear();
-            account.getForums().clear();
             account.getOrders().clear();
             account.getAddresses().clear();
 

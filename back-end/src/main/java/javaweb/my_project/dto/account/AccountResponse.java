@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -18,4 +19,5 @@ public class AccountResponse {
     String avatar;
     LocalDate dob;
     Set<Role> roles;
+    LocalDateTime createdAt;
 }

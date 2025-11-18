@@ -23,7 +23,7 @@ export type ProductStatus =
   | "DELETED";
 
 // Interface cho dữ liệu sản phẩm
-export interface IProductResponese {
+export interface IProductResponse {
   id: string;
   name: string;
   description: string;
@@ -111,4 +111,4 @@ export interface IChangeProductStatusRequest {
 }
 
 // Interface cho response sản phẩm admin (có thể dùng lại IProductResponese nếu đủ)
-export interface IProductAdminResponse extends IProductResponese {}
+export interface IProductAdminResponse extends IProductResponse {}

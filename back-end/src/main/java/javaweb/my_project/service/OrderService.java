@@ -92,7 +92,7 @@ public class OrderService {
         return orderMapper.toOrderResponse(order);
     }
 
-    public List<OrderResponse> getAll() {
+    public List<OrderResponse> getAllOfAccount() {
         String accountId = securityUtil.getAccountId();
         List<Order> orders = orderRepository.findAllByAccountId(accountId, Sort.by("createdAt").descending());
         return orderMapper.toOrderResponseList(orders);
@@ -104,7 +104,7 @@ public class OrderService {
         return orderMapper.toOrderResponse(order);
     }
 
-    public List<OrderResponse> getAllByFarmer() {
+    public List<OrderResponse> getAllOfFarmer() {
         String farmerId = securityUtil.getFarmerId();
         List<Order> orders = orderRepository.findAllByFarmerId(farmerId, Sort.by("createdAt").descending());
         return orderMapper.toOrderResponseList(orders);
@@ -112,6 +112,11 @@ public class OrderService {
 
     public List<OrderResponse> getOrdersByFarmerId(String farmerId) {
         List<Order> orders = orderRepository.findAllByFarmerId(farmerId, Sort.by("createdAt").descending());
+        return orderMapper.toOrderResponseList(orders);
+    }
+
+    public List<OrderResponse> getAllOrders(){
+        List<Order> orders = orderRepository.findAll(Sort.by("createdAt").descending());
         return orderMapper.toOrderResponseList(orders);
     }
 

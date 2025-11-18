@@ -3,6 +3,8 @@ import { getApiUrl } from "@/tools/url.tool";
 import {
   IFarmerUpdateInfoPatchRequest,
   IFarmerUpdateInfoPutRequest,
+  IChangeFarmerStatusRequest,
+  IFarmerResponse,
 } from "@/types/farmer";
 
 const FarmerService = {
@@ -28,6 +30,14 @@ const FarmerService = {
   // Cập nhật một phần thông tin farmer (FARMER, PATCH)
   updateFarmerInfoPatch(data: IFarmerUpdateInfoPatchRequest) {
     return service(axios.patch(getApiUrl("/farmers"), data), true);
+  },
+
+  // Thay đổi trạng thái farmer (ADMIN)
+  changeFarmerStatus(farmerId: string, data: IChangeFarmerStatusRequest) {
+    return service(
+      axios.post(getApiUrl(`/farmers/${farmerId}/status`), data),
+      true
+    );
   },
 };
 

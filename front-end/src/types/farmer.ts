@@ -8,6 +8,7 @@ export interface IFarmerResponse {
   rating: number;
   description?: string;
   status: IFarmerStatus;
+  createdAt: string;
 }
 
 export interface IUpgradeToFarmerResponse {
@@ -28,4 +29,8 @@ export interface IFarmerUpdateInfoPatchRequest {
   avatar?: string;
   coverImage?: string;
   description?: string;
+}
+
+export interface IChangeFarmerStatusRequest {
+  status: IFarmerStatus;
 }

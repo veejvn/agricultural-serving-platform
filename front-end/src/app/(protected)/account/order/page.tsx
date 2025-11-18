@@ -99,7 +99,7 @@ export default function OrdersPage() {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const [ordersData, error] = await OrderService.getAll();
+        const [ordersData, error] = await OrderService.getMyOrders();
         console.log("Fetched orders:", ordersData, error);
         if (error) {
           setOrders([]);
@@ -134,7 +134,10 @@ export default function OrdersPage() {
             tracking: "",
           },
           payment: {
-            method: order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng" : "Thanh toán bằng VNPAY",
+            method:
+              order.paymentMethod === "COD"
+                ? "Thanh toán khi nhận hàng"
+                : "Thanh toán bằng VNPAY",
             status: getPaymentStatus(order.paymentStatus),
           },
         }));
@@ -161,7 +164,7 @@ export default function OrdersPage() {
       default:
         return "Không rõ";
     }
-  }
+  };
 
   // Filter orders based on search term and status
   const filteredOrders = orders.filter((order) => {
@@ -391,7 +394,9 @@ export default function OrdersPage() {
                               {order.shipping.address}
                             </p>
                             <p>
-                              <span className="font-medium">Phương thức vận chuyển:</span>{" "}
+                              <span className="font-medium">
+                                Phương thức vận chuyển:
+                              </span>{" "}
                               {order.shipping.method}
                             </p>
                             {order.shipping.tracking && (
@@ -408,7 +413,9 @@ export default function OrdersPage() {
                           </h4>
                           <div className="text-sm space-y-1">
                             <p>
-                              <span className="font-medium">Phương thức thanh toán:</span>{" "}
+                              <span className="font-medium">
+                                Phương thức thanh toán:
+                              </span>{" "}
                               {order.payment.method}
                             </p>
                             <p>

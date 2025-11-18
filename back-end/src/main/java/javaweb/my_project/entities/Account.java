@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,8 +17,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = { "farmer", "orders", "cartItems", "forumComments", "forums", "addresses", "refreshToken" })
-@EqualsAndHashCode(exclude = { "farmer", "orders", "cartItems", "forumComments", "forums", "addresses",
+@ToString(exclude = { "farmer", "orders", "cartItems", "addresses", "refreshToken" })
+@EqualsAndHashCode(exclude = { "farmer", "orders", "cartItems", "addresses",
         "refreshToken" })
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Account {
@@ -38,6 +39,8 @@ public class Account {
 
     LocalDate dob;
 
+    LocalDateTime createdAt;
+
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "account_roles", joinColumns = @JoinColumn(name = "account_id"))
@@ -50,15 +53,15 @@ public class Account {
     @JsonIgnore
     Farmer farmer;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval = true)
-    @JsonIgnore
-    @Builder.Default
-    Set<ForumComment> forumComments = new HashSet<>();
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval = true)
-    @JsonIgnore
-    @Builder.Default
-    Set<Forum> forums = new HashSet<>();
+//    @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval = true)
+//    @JsonIgnore
+//    @Builder.Default
+//    Set<ForumComment> forumComments = new HashSet<>();
+//
+//    @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval = true)
+//    @JsonIgnore
+//    @Builder.Default
+//    Set<Forum> forums = new HashSet<>();
 
     // @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval =
     // true)
@@ -89,4 +92,8 @@ public class Account {
     @JsonIgnore
     RefreshToken refreshToken;
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

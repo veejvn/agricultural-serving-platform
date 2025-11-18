@@ -13,8 +13,8 @@ const OrderService = {
   },
 
   // Lấy danh sách tất cả đơn hàng
-  getAll() {
-    return service(axios.get(getApiUrl("/orders")), true);
+  getMyOrders() {
+    return service(axios.get(getApiUrl("/orders/account")), true);
   },
 
   // Lấy thông tin đơn hàng theo ID
@@ -25,6 +25,11 @@ const OrderService = {
   // Lấy danh sách đơn hàng của farmer
   getAllByFarmer() {
     return service(axios.get(getApiUrl("/orders/farmer")), true);
+  },
+
+  // Lấy danh sách đơn hàng theo farmer ID (ADMIN)
+  getOrdersByFarmerId(farmerId: string) {
+    return service(axios.get(getApiUrl(`/orders/farmer/${farmerId}`)), true);
   },
 
   // Consumer thay đổi trạng thái đơn hàng
@@ -41,6 +46,11 @@ const OrderService = {
       axios.post(getApiUrl("/orders/farmer/change-status"), data),
       true
     );
+  },
+
+  // Lấy tất cả đơn hàng (ADMIN)
+  getAllOrders() {
+    return service(axios.get(getApiUrl("/orders")), true);
   },
 };
 

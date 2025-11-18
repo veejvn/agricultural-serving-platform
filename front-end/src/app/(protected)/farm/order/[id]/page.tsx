@@ -595,7 +595,9 @@ export default function FarmerOrderDetailPage() {
                     src={order.account.avatar || "/placeholder.svg"}
                   />
                   <AvatarFallback>
-                    {order.account.displayName ? order.account.displayName.charAt(0) : "C"}
+                    {order.account.displayName
+                      ? order.account.displayName.charAt(0)
+                      : "C"}
                   </AvatarFallback>
                 </Avatar>
                 <div>

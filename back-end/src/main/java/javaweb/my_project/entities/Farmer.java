@@ -6,6 +6,7 @@ import javaweb.my_project.enums.FarmerStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,6 +34,8 @@ public class Farmer {
     Double rating;
 
     String description;
+
+    LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -66,5 +69,6 @@ public class Farmer {
     void onCreate() {
         this.status = FarmerStatus.ACTIVE;
         this.rating = 5.0;
+        this.createdAt = LocalDateTime.now();
     }
 }

@@ -124,7 +124,7 @@ export const useOrderStore = create<OrderState>()(
       fetchAllOrders: async () => {
         try {
           set({ isLoading: true, error: null });
-          const [result, error] = await OrderService.getAll();
+          const [result, error] = await OrderService.getMyOrders();
 
           if (error) {
             set({ error: error as string });

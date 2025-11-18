@@ -55,6 +55,11 @@ const menuItems = [
     title: "Danh mục sản phẩm",
   },
   {
+    href: "/admin/order",
+    icon: ShoppingCart,
+    title: "Đơn hàng",
+  },
+  {
     href: "/admin/farm",
     icon: PiFarm,
     title: "Trang Trại",

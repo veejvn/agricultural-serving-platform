@@ -1,13 +1,11 @@
 package javaweb.my_project.util;
 
 import jakarta.servlet.http.HttpServletRequest;
-import javaweb.my_project.config.VNPayConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -15,8 +13,6 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class VNPayUtil {
-
-    private final VNPayConfig vnPayConfig;
 
     public static String hmacSHA512(String key, String data) {
         try {
