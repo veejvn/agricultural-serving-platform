@@ -55,7 +55,18 @@ interface ProductForm {
   imagePaths: string[];
 }
 
-const units = ["kg", "gram", "lạng", "tấn", "quả", "bó", "túi", "hộp", "chai", "bao"];
+const units = [
+  "kg",
+  "gram",
+  "lạng",
+  "tấn",
+  "quả",
+  "bó",
+  "túi",
+  "hộp",
+  "chai",
+  "bao",
+];
 
 export default function AddProductPage() {
   const router = useRouter();

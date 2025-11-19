@@ -174,6 +174,11 @@ public class ProductService {
         return productMapper.toProductResponse(product);
     }
 
+    public List<ProductNameResponse> getProductNames() {
+        List<Product> products = productRepository.findAllByStatus(ProductStatus.ACTIVE, Sort.by("name").descending());
+        return productMapper.toListProductNameResponse(products);
+    }
+
     @Transactional
     public ProductResponse update(String id, ProductUpdateRequest request) {
         // Find product and validate ownership

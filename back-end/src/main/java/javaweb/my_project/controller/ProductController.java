@@ -94,6 +94,16 @@ public class ProductController {
                 return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
         }
 
+        @GetMapping("/names")
+        public ResponseEntity<ApiResponse<List<ProductNameResponse>>> getProductNames() {
+                ApiResponse<List<ProductNameResponse>> apiResponse = ApiResponse.<List<ProductNameResponse>>builder()
+                                .code("product-s-10")
+                                .message("Get product names successfully")
+                                .data(productService.getProductNames())
+                                .build();
+                return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        }
+
         @PutMapping("/{id}")
         @PreAuthorize("hasRole('FARMER')")
         public ResponseEntity<ApiResponse<ProductResponse>> update(@PathVariable String id,

@@ -48,15 +48,21 @@ export default function AdminFarmerDetail() {
   const [error, setError] = useState<string | null>(null);
 
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
-  const [actionType, setActionType] = useState<"block" | "unblock" | null>(null);
+  const [actionType, setActionType] = useState<"block" | "unblock" | null>(
+    null
+  );
 
   const fetchFarmerDetails = async () => {
     setIsLoading(true);
     setError(null);
 
     const [farmerData, farmerErr] = await FarmerService.getFarmer(farmerId);
-    const [productsData, productsErr] = await ProductService.getAllByFarmerId(farmerId); // Đã sửa tên hàm
-    const [ordersData, ordersErr] = await OrderService.getOrdersByFarmerId(farmerId); // Đã sửa tên hàm
+    const [productsData, productsErr] = await ProductService.getAllByFarmerId(
+      farmerId
+    ); // Đã sửa tên hàm
+    const [ordersData, ordersErr] = await OrderService.getOrdersByFarmerId(
+      farmerId
+    ); // Đã sửa tên hàm
 
     if (farmerErr) {
       setError(getMessageByApiCode(farmerErr.code));
@@ -105,7 +111,8 @@ export default function AdminFarmerDetail() {
     if (!farmer || !actionType) return;
 
     const newStatus = actionType === "block" ? "ADMIN_BLOCK" : "ACTIVE";
-    const [data, err] = await FarmerService.changeFarmerStatus(farmer.id, { // Đã sửa tên hàm
+    const [data, err] = await FarmerService.changeFarmerStatus(farmer.id, {
+      // Đã sửa tên hàm
       status: newStatus,
     });
 
@@ -119,7 +126,9 @@ export default function AdminFarmerDetail() {
     } else {
       toast({
         title: "Thành công",
-        description: `Đã ${actionType === "block" ? "khóa" : "bỏ khóa"} nông dân ${data.name}`,
+        description: `Đã ${
+          actionType === "block" ? "khóa" : "bỏ khóa"
+        } nông dân ${data.name}`,
       });
       fetchFarmerDetails(); // Refresh the details
     }
@@ -152,7 +161,8 @@ export default function AdminFarmerDetail() {
     }
   };
 
-  const productColumns: ColumnDef<IProductResponse>[] = [ // Đã sửa tên interface
+  const productColumns: ColumnDef<IProductResponse>[] = [
+    // Đã sửa tên interface
     {
       accessorKey: "name",
       header: "Tên sản phẩm",
@@ -190,7 +200,9 @@ export default function AdminFarmerDetail() {
     {
       accessorKey: "totalPrice",
       header: "Tổng tiền",
-      cell: ({ row }) => <span>{row.original.totalPrice.toLocaleString()} VNĐ</span>,
+      cell: ({ row }) => (
+        <span>{row.original.totalPrice.toLocaleString()} VNĐ</span>
+      ),
     },
     {
       accessorKey: "status",
@@ -211,7 +223,11 @@ export default function AdminFarmerDetail() {
   ];
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-full">Đang tải thông tin nông dân...</div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        Đang tải thông tin nông dân...
+      </div>
+    );
   }
 
   if (error) {
@@ -229,11 +245,8 @@ export default function AdminFarmerDetail() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Chi tiết nông dân: {farmer.name}
-          </h1>
-          <p className="text-muted-foreground">
             Thông tin chi tiết và hoạt động của nông dân
-          </p>
+          </h1>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" asChild>
@@ -254,7 +267,7 @@ export default function AdminFarmerDetail() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -262,7 +275,9 @@ export default function AdminFarmerDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{getStatusBadge(farmer.status)}</div>
+            <div className="text-2xl font-bold">
+              {getStatusBadge(farmer.status)}
+            </div>
             <p className="text-xs text-muted-foreground">
               Trạng thái hoạt động hiện tại
             </p>
@@ -341,7 +356,9 @@ export default function AdminFarmerDetail() {
 
       <Tabs defaultValue="products" className="w-full">
         <TabsList>
-          <TabsTrigger value="products">Sản phẩm ({products.length})</TabsTrigger>
+          <TabsTrigger value="products">
+            Sản phẩm ({products.length})
+          </TabsTrigger>
           <TabsTrigger value="orders">Đơn hàng ({orders.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="products">
@@ -359,7 +376,9 @@ export default function AdminFarmerDetail() {
           <Card>
             <CardHeader>
               <CardTitle>Danh sách đơn hàng</CardTitle>
-              <CardDescription>Các đơn hàng đã đặt từ nông dân này</CardDescription>
+              <CardDescription>
+                Các đơn hàng đã đặt từ nông dân này
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <DataTable columns={orderColumns} data={orders} />
@@ -377,8 +396,8 @@ export default function AdminFarmerDetail() {
             <AlertDialogDescription>
               Bạn có chắc chắn muốn{" "}
               {actionType === "block" ? "khóa" : "bỏ khóa"} nông dân{" "}
-              <span className="font-bold">{farmer.name}</span> không?
-              Hành động này sẽ thay đổi trạng thái hoạt động của họ.
+              <span className="font-bold">{farmer.name}</span> không? Hành động
+              này sẽ thay đổi trạng thái hoạt động của họ.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

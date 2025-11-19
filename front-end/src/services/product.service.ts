@@ -45,11 +45,17 @@ const ProductService = {
   },
 
   // Thay đổi trạng thái sản phẩm (ADMIN)
-  adminChangeStatus(data: any) { // Sử dụng any cho data
+  adminChangeStatus(data: any) {
+    // Sử dụng any cho data
     return service(
       axios.post(getApiUrl("/products/admin/change-status"), data),
       true
     );
+  },
+
+  // Lấy danh sách tên sản phẩm (public)
+  getProductNames() {
+    return service(axios.get(getApiUrl("/products/names")), true);
   },
 };
 

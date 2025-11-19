@@ -15,4 +15,6 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     Page<Product> findByStatus(ProductStatus status, Pageable pageable);
 
     List<Product> findAllByFarmerIdAndStatusNot(String farmerId, ProductStatus status, Sort sort);
+
+    List<Product> findAllByStatus(ProductStatus status, Sort sort);
 }

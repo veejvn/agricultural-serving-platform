@@ -64,6 +64,11 @@ const menuItems = [
     icon: PiFarm,
     title: "Trang Trại",
   },
+  {
+    href: "/admin/market-price",
+    icon: Table2,
+    title: "Giá thị trường",
+  }
   // {
   //   href: "/admin/forum",
   //   icon: MessageSquare,

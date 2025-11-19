@@ -1,10 +1,7 @@
 package javaweb.my_project.mapper;
 
 import javaweb.my_project.dto.image.ImageResponse;
-import javaweb.my_project.dto.product.ProductRequest;
-import javaweb.my_project.dto.product.ProductResponse;
-import javaweb.my_project.dto.product.ProductTagResponse;
-import javaweb.my_project.dto.product.ProductUpdateRequest;
+import javaweb.my_project.dto.product.*;
 import javaweb.my_project.entities.Image;
 import javaweb.my_project.entities.Product;
 import org.mapstruct.Mapper;
@@ -29,4 +26,6 @@ public interface ProductMapper {
     void updateProduct(@MappingTarget Product product, ProductUpdateRequest request);
 
     List<ProductResponse> toListProductResponse(List<Product> products);
+
+    List <ProductNameResponse> toListProductNameResponse(List<Product> products);
 }

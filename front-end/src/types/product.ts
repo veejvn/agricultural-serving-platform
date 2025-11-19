@@ -110,5 +110,10 @@ export interface IChangeProductStatusRequest {
   status: ProductStatus;
 }
 
+export interface IProductNameResponse {
+  id: string;
+  name: string;
+}
+
 // Interface cho response sản phẩm admin (có thể dùng lại IProductResponese nếu đủ)
 export interface IProductAdminResponse extends IProductResponse {}

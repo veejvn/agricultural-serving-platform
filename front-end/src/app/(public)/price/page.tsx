@@ -357,8 +357,8 @@ export default function MarketPricePage() {
                 <SelectItem value="dong-bang-song-cuu-long">
                   Đồng bằng sông Cửu Long
                 </SelectItem>
-                <SelectItem value="tay-nguyen">Tây Nguyên</SelectItem>
                 <SelectItem value="dong-nam-bo">Đông Nam Bộ</SelectItem>
+                <SelectItem value="tay-nguyen">Tây Nguyên</SelectItem>
                 <SelectItem value="dong-bang-song-hong">
                   Đồng bằng sông Hồng
                 </SelectItem>
