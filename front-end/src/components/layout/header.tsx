@@ -20,17 +20,20 @@ import {
   ShoppingBag,
   User,
   Home,
+  ShoppingCart,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 import UserMenu from "@/components/layout/user-menu";
 import Image from "next/image";
+import { useCart } from "@/hooks/useCart";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const { totalItems } = useCart();
 
   if (
     pathname.startsWith("/admin/login") ||
@@ -120,7 +123,10 @@ export default function Header() {
               )}
             </SheetContent>
           </Sheet>
-          <Link href="/" className="hidden lg:flex items-center mx-auto w-50 h-20 overflow-hidden">
+          <Link
+            href="/"
+            className="hidden lg:flex items-center mx-auto w-50 h-20 overflow-hidden"
+          >
             <Image
               src={"/images/logo2.png"}
               alt="Logo Nông Nghiệp Xanh"
@@ -150,6 +156,23 @@ export default function Header() {
           </nav>
           <div className="flex items-center gap-2">
             <ModeToggle />
+            {/* Cart Button */}
+            {isLoggedIn && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-950"
+                  asChild
+                >
+                  <Link href="/cart" className="relative">
+                    <ShoppingCart className="h-4 w-4" />
+                    <div className="absolute size-3 top-1 right-2 rounded-full bg-red-500 flex items-center justify-center">
+                      <span className="text-xs text-white">{totalItems}</span>
+                    </div>
+                  </Link>
+                </Button>
+              </div>
+            )}
             {/* <Button
             asChild
             variant="ghost"

@@ -21,7 +21,6 @@ import { ProductCard } from "@/components/product/product-card";
 import { useCart } from "@/hooks/useCart";
 
 export default function ProductsPage() {
-  const { totalItems, fetchCartItems } = useCart();
 
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(12); // Số sản phẩm trên mỗi trang
@@ -584,24 +583,8 @@ export default function ProductsPage() {
   };
 
   return (
-    <>
-      {/* Cart Button */}
-      <div className="flex fixed bottom-8 right-4 z-50 items-center gap-2">
-        <Button
-          variant="outline"
-          className="border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-950"
-          asChild
-        >
-          <Link href="/cart" className="relative">
-            <ShoppingCart className="h-4 w-4"/>
-            <div className="absolute size-3 top-1 right-2 rounded-full bg-red-500 flex items-center justify-center">
-              <span className="text-xs text-white">{totalItems}</span>
-            </div>
-          </Link>
-        </Button>
-      </div>
-      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* <div className="mb-8">
+    <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      {/* <div className="mb-8">
         <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
           Sản Phẩm Nông Nghiệp
         </h1>
@@ -610,89 +593,87 @@ export default function ProductsPage() {
         </p>
       </div> */}
 
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-              <Input
-                type="text"
-                placeholder="Tìm kiếm sản phẩm..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-              />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  onClick={() => handleSearchChange("")}
-                >
-                  ✕
-                </Button>
-              )}
-            </div>
-            <Select value={sortBy} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Sắp xếp theo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Tên A-Z</SelectItem>
-                <SelectItem value="price-asc">Giá thấp đến cao</SelectItem>
-                <SelectItem value="price-desc">Giá cao đến thấp</SelectItem>
-                <SelectItem value="rating">Đánh giá cao nhất</SelectItem>
-                <SelectItem value="sold">Bán chạy nhất</SelectItem>
-              </SelectContent>
-            </Select>
-            <CategorySelector />
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row gap-4 flex-1">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <Input
+              type="text"
+              placeholder="Tìm kiếm sản phẩm..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={() => handleSearchChange("")}
+              >
+                ✕
+              </Button>
+            )}
           </div>
+          <Select value={sortBy} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Sắp xếp theo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Tên A-Z</SelectItem>
+              <SelectItem value="price-asc">Giá thấp đến cao</SelectItem>
+              <SelectItem value="price-desc">Giá cao đến thấp</SelectItem>
+              <SelectItem value="rating">Đánh giá cao nhất</SelectItem>
+              <SelectItem value="sold">Bán chạy nhất</SelectItem>
+            </SelectContent>
+          </Select>
+          <CategorySelector />
         </div>
+      </div>
 
-        <div className="mb-8">
-          {getSearchInfo()}
+      <div className="mb-8">
+        {getSearchInfo()}
 
-          {/* Product Grid */}
-          {isLoading || isFiltering ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"
-                />
-              ))}
+        {/* Product Grid */}
+        {isLoading || isFiltering ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"
+              />
+            ))}
+          </div>
+        ) : products.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+            {products.map((product: IProductTag) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+              <ShoppingCart className="h-12 w-12 text-gray-400" />
             </div>
-          ) : products.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-              {products.map((product: IProductTag) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-                <ShoppingCart className="h-12 w-12 text-gray-400" />
-              </div>
-              <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
-                {searchQuery
-                  ? "Không tìm thấy sản phẩm"
-                  : "Chưa có sản phẩm nào"}
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                {searchQuery
-                  ? `Không tìm thấy sản phẩm nào phù hợp với từ khóa "${searchQuery}"`
-                  : "Hiện tại chưa có sản phẩm nào trong danh mục này"}
-                {selectedCategory !== "all" && selectedCategoryData.name && (
-                  <span> trong danh mục "{selectedCategoryData.name}"</span>
-                )}
-              </p>
-            </div>
-          )}
+            <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+              {searchQuery ? "Không tìm thấy sản phẩm" : "Chưa có sản phẩm nào"}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchQuery
+                ? `Không tìm thấy sản phẩm nào phù hợp với từ khóa "${searchQuery}"`
+                : "Hiện tại chưa có sản phẩm nào trong danh mục này"}
+              {selectedCategory !== "all" && selectedCategoryData.name && (
+                <span> trong danh mục "{selectedCategoryData.name}"</span>
+              )}
+            </p>
+          </div>
+        )}
 
-          {/* Thêm component phân trang */}
-          <PaginationComponent />
-        </div>
+        {/* Thêm component phân trang */}
+        <PaginationComponent />
+      </div>
 
-        {/* <div className="mt-12 rounded-lg bg-green-50 p-6 dark:bg-green-900">
+      {/* <div className="mt-12 rounded-lg bg-green-50 p-6 dark:bg-green-900">
         <h2 className="mb-4 text-2xl font-bold text-green-800 dark:text-green-300">
           Sản phẩm đề xuất cho mùa vụ hiện tại
         </h2>
@@ -702,7 +683,6 @@ export default function ProductsPage() {
           ))}
         </div>
       </div> */}
-      </div>
-    </>
+    </div>
   );
 }

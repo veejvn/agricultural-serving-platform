@@ -6,6 +6,7 @@ import Providers from "@/app/providers";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import RootClientLayout from "@/components/layout/root-client-layout";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 const inter = Inter({ subsets: ["vietnamese"] });
 
@@ -26,9 +27,12 @@ export default function RootLayout({
           <RootClientLayout>
             <div className="flex min-h-screen flex-col">
               <Header />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1">
+                {children}
+              </main>
               <Footer />
             </div>
+            <ChatWidget />
           </RootClientLayout>
         </Providers>
       </body>
