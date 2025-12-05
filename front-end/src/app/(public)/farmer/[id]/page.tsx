@@ -24,7 +24,7 @@ import {
   Verified,
 } from "lucide-react";
 import { IFarmerResponse, IFarmerStatus } from "@/types/farmer";
-import { IProductResponese } from "@/types/product";
+import { IProductResponse } from "@/types/product";
 import { ProductCard } from "@/components/product/product-card";
 
 export default function FarmerDetailPage() {
@@ -33,7 +33,7 @@ export default function FarmerDetailPage() {
   const farmerId = params.id as string;
 
   const [farmer, setFarmer] = useState<IFarmerResponse | null>(null);
-  const [products, setProducts] = useState<IProductResponese[]>([]);
+  const [products, setProducts] = useState<IProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("products");
 

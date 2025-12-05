@@ -407,13 +407,13 @@ export default function AdminCategoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Quản lý danh mục
-          </h1>
-          <p className="text-muted-foreground">
-            Quản lý các danh mục sản phẩm với cấu trúc phân cấp
-          </p>
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Tìm kiếm danh mục..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-128"
+          />
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -479,16 +479,6 @@ export default function AdminCategoryPage() {
           </DialogContent>
         </Dialog>
       </div>
-
-      <div className="flex items-center gap-2 mb-4">
-        <Input
-          placeholder="Tìm kiếm danh mục..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Danh sách danh mục</CardTitle>

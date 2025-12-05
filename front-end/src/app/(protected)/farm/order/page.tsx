@@ -174,15 +174,8 @@ export default function FarmerOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Quản lý đơn hàng</h1>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
         <div className="w-full md:w-64">
-          <label
-            htmlFor="statusFilter"
-            className="block text-sm font-medium mb-1"
-          >
-            Lọc theo trạng thái
-          </label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Trạng thái" />

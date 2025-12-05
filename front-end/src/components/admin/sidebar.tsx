@@ -128,7 +128,7 @@ export function AdminSidebar() {
       <div
         className={cn(
           "flex min-h-screen flex-col border-r bg-white dark:bg-gray-950 dark:border-gray-800 transition-all duration-300",
-          isCollapsed ? "w-20" : "w-64"
+          isCollapsed ? "w-20" : "w-52"
         )}
       >
         {/* Header with toggle button */}

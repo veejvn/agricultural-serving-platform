@@ -40,7 +40,8 @@ export default function Header() {
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password")
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/farm")
   ) {
     return null; // Không hiển thị header trên các trang đăng nhập hoặc đăng ký
   }

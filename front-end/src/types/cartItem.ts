@@ -1,4 +1,4 @@
-import { IProductResponese } from "@/types/product";
+import { IProductResponse } from "@/types/product";
 
 export interface ICartItemRequest {
   productId: string;
@@ -8,6 +8,6 @@ export interface ICartItemRequest {
 export interface ICartItemResponse {
   id: string;
   quantity: number;
-  product: IProductResponese;
+  product: IProductResponse;
   createdAt: string;
 }

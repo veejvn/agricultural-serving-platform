@@ -45,7 +45,7 @@ import ProductService from "@/services/product.service";
 import categoryService from "@/services/category.service";
 import UploadService from "@/services/upload.service";
 import LoadingSpinner from "@/components/common/loading-spinner";
-import { ICategory, IProductResponese, ImageResponse } from "@/types/product";
+import { ICategory, IProductResponse, ImageResponse } from "@/types/product";
 
 // interface ICategory {
 //   id: string;

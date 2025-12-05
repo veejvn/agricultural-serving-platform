@@ -28,7 +28,7 @@ import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import ProductService from "@/services/product.service";
-import type { IProductResponese, Review, ProductStats } from "@/types/product";
+import type { IProductResponse, Review, ProductStats } from "@/types/product";
 
 // Định dạng giá tiền
 function formatPrice(price: number): string {
@@ -106,7 +106,7 @@ export default function FarmerProductDetailPage({
   const productId = resolvedParams.id;
 
   // State cho sản phẩm và loading
-  const [product, setProduct] = useState<IProductResponese | null>(null);
+  const [product, setProduct] = useState<IProductResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -297,7 +297,7 @@ export default function FarmerProductDetailPage({
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <div className="container mx-auto px-4 py-2 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
@@ -309,7 +309,11 @@ export default function FarmerProductDetailPage({
           </Link>
         </div>
         <div className="flex gap-2">
-          <Link href={`/product/${product.id}`} target="_blank" rel="noopener noreferrer">
+          <Link
+            href={`/product/${product.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Button variant="outline" size="sm">
               <Eye className="mr-2 h-4 w-4" />
               Xem trang công khai
@@ -341,7 +345,7 @@ export default function FarmerProductDetailPage({
       </div>
 
       {/* Status and Quick Stats */}
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -357,7 +361,7 @@ export default function FarmerProductDetailPage({
             </div>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900">
@@ -373,7 +377,7 @@ export default function FarmerProductDetailPage({
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">

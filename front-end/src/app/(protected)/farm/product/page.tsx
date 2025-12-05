@@ -9,13 +9,13 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import ProductService from "@/services/product.service";
-import { IProductResponese } from "@/types/product";
+import { IProductResponse } from "@/types/product";
 
 export default function FarmerProducts() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [products, setProducts] = useState<IProductResponese[]>([]);
+  const [products, setProducts] = useState<IProductResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
@@ -177,14 +177,14 @@ export default function FarmerProducts() {
     {
       accessorKey: "categoryName",
       header: "Danh mục",
-      cell: ({ row }: { row: { original: IProductResponese } }) => {
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
         return row.original.category || "Chưa phân loại";
       },
     },
     {
       accessorKey: "price",
       header: "Giá",
-      cell: ({ row }: { row: { original: IProductResponese } }) => {
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
         return `${formatPrice(row.original.price)}/${row.original.unitPrice}`;
       },
     },
@@ -199,7 +199,7 @@ export default function FarmerProducts() {
     {
       accessorKey: "rating",
       header: "Đánh giá",
-      cell: ({ row }: { row: { original: IProductResponese } }) => {
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
         return (
           <div className="flex items-center">
             <span className="mr-1">⭐</span>
@@ -211,14 +211,14 @@ export default function FarmerProducts() {
     {
       accessorKey: "status",
       header: "Trạng thái",
-      cell: ({ row }: { row: { original: IProductResponese } }) => {
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
         return getStatusBadge(row.original.status);
       },
     },
     {
       id: "actions",
       header: "Thao tác",
-      cell: ({ row }: { row: { original: IProductResponese } }) => {
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
         const product = row.original;
         return (
           <div className="flex space-x-2">
@@ -260,9 +260,6 @@ export default function FarmerProducts() {
           <h1 className="text-3xl font-bold tracking-tight">
             Quản lý sản phẩm
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Quản lý danh sách sản phẩm của bạn
-          </p>
         </div>
         <Button
           className="flex items-center gap-1"

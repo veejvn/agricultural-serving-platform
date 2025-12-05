@@ -596,22 +596,13 @@ export default function AddProductPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-4">
         <Link href="/farm/product">
           <Button variant="outline" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Quay lại
           </Button>
         </Link>
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
-            Thêm sản phẩm mới
-          </h1>
-          <p className="text-gray-600">
-            Điền thông tin chi tiết để thêm sản phẩm vào cửa hàng
-          </p>
-        </div>
-        <div className="w-28"></div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

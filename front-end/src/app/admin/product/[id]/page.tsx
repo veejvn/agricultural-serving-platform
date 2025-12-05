@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductService from "@/services/product.service";
-import { IProductResponese, ProductStatus } from "@/types/product";
+import { IProductResponse, ProductStatus } from "@/types/product";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -13,13 +13,27 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { format } from "date-fns";
 import LoadingSpinner from "@/components/common/loading-spinner";
 import Link from "next/link";
-import { ArrowLeft, DollarSign, Package, Star, Tag, User, CalendarDays, Clock, CircleCheck, CircleAlert, CircleX, Ban, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  DollarSign,
+  Package,
+  Star,
+  Tag,
+  User,
+  CalendarDays,
+  Clock,
+  CircleCheck,
+  CircleAlert,
+  CircleX,
+  Ban,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
-  const [product, setProduct] = useState<IProductResponese | null>(null);
+  const [product, setProduct] = useState<IProductResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -314,7 +314,7 @@ export default function FarmerOrderDetailPage() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Button
@@ -553,7 +553,7 @@ export default function FarmerOrderDetailPage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-2">
           {/* Earnings Summary */}
           <Card>
             <CardHeader>

@@ -118,5 +118,5 @@ export interface IProductNameResponse {
   name: string;
 }
 
-// Interface cho response sản phẩm admin (có thể dùng lại IProductResponese nếu đủ)
+// Interface cho response sản phẩm admin (có thể dùng lại IProductResponse nếu đủ)
 export interface IProductAdminResponse extends IProductResponse {}

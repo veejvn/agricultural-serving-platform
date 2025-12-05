@@ -102,7 +102,7 @@ export default function AdminLoginPage() {
         <Card className="shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center text-green-800 dark:text-green-300">
-              Đăng nhập Admin
+              Đăng nhập Quản trị viên
             </CardTitle>
             <CardDescription className="text-center">
               Nhập thông tin đăng nhập để truy cập hệ thống quản trị

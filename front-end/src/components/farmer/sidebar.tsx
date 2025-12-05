@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Tractor,
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +67,12 @@ export function FarmerSidebar() {
       active: pathname === "/farm/setting",
     },
   ];
+
+  const homeRoute = {
+    href: "/",
+    icon: Home,
+    title: "Trang chủ",
+  };
 
   return (
     <TooltipProvider>
@@ -145,6 +152,39 @@ export function FarmerSidebar() {
 
               return LinkComponent;
             })}
+            
+            <div className="my-2 border-t"></div>
+
+            {(() => {
+                const LinkComponent = (
+                    <Link
+                    href={homeRoute.href}
+                    className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-green-600 dark:hover:text-green-500",
+                        "text-gray-500 dark:text-gray-400",
+                        isCollapsed ? "justify-center" : ""
+                    )}
+                    >
+                    <homeRoute.icon className="h-4 w-4 flex-shrink-0" />
+                    {!isCollapsed && (
+                        <span className="truncate">{homeRoute.title}</span>
+                    )}
+                    </Link>
+                );
+
+                if (isCollapsed) {
+                    return (
+                    <Tooltip>
+                        <TooltipTrigger asChild>{LinkComponent}</TooltipTrigger>
+                        <TooltipContent side="right">
+                        <p>{homeRoute.title}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                    );
+                }
+
+                return LinkComponent;
+            })()}
           </nav>
         </div>
       </div>
