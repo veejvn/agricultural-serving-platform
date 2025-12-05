@@ -47,10 +47,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+    <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-4 sm:px-6 lg:px-8">
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">
         <div className="hidden lg:block">
-          <div className="relative h-[600px] w-full overflow-hidden rounded-xl">
+          <div className="relative h-[520px] w-full overflow-hidden rounded-xl">
             <Image
               src="/images/authenticate_image.png"
               alt="Nông dân đang chăm sóc cây trồng"
@@ -72,15 +72,6 @@ export default function RegisterPage() {
           </div>
         </div>
         <div className="flex flex-col justify-center">
-          <div className="mb-2 text-center lg:text-left">
-            <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-xl">
-              Chào mừng bạn đến với Nông Nghiệp Xanh
-            </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Đăng ký hoặc đăng nhập để trải nghiệm đầy đủ các tính năng
-            </p>
-          </div>
-
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-green-800 dark:text-green-300">
@@ -90,7 +81,7 @@ export default function RegisterPage() {
                 Nhập thông tin của bạn để tạo tài khoản
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-2">
               <Form<RegisterFormData>
                 schema={registerSchema}
                 onSubmit={handleSubmit}
@@ -140,76 +131,8 @@ export default function RegisterPage() {
                   Tạo tài khoản
                 </SubmitButton>
               </Form>
-
-              {/* <div className="space-y-2">
-                <Label htmlFor="display-name">Tên hiển thị</Label>
-                <Input id="display-name" placeholder="Nguyễn Văn A" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="example@gmail.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Số điện thoại</Label>
-                <Input id="phone" type="tel" placeholder="0912345678" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Mật khẩu</Label>
-                <Input id="password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Xác nhận mật khẩu</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="region">Khu vực canh tác</Label>
-                <Select>
-                  <SelectTrigger id="region">
-                    <SelectValue placeholder="Chọn khu vực" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mekong-delta">
-                      Đồng bằng sông Cửu Long
-                    </SelectItem>
-                    <SelectItem value="red-river-delta">
-                      Đồng bằng sông Hồng
-                    </SelectItem>
-                    <SelectItem value="central-highlands">
-                      Tây Nguyên
-                    </SelectItem>
-                    <SelectItem value="southeast">Đông Nam Bộ</SelectItem>
-                    <SelectItem value="north-central">Bắc Trung Bộ</SelectItem>
-                    <SelectItem value="south-central">Nam Trung Bộ</SelectItem>
-                    <SelectItem value="northwest">Tây Bắc</SelectItem>
-                    <SelectItem value="northeast">Đông Bắc</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="terms" />
-                <Label htmlFor="terms" className="text-sm">
-                  Tôi đồng ý với{" "}
-                  <Link
-                    href="#"
-                    className="text-green-600 hover:underline dark:text-green-500"
-                  >
-                    Điều khoản sử dụng
-                  </Link>{" "}
-                  và{" "}
-                  <Link
-                    href="#"
-                    className="text-green-600 hover:underline dark:text-green-500"
-                  >
-                    Chính sách bảo mật
-                  </Link>
-                </Label>
-              </div> */}
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
+            <CardFooter className="flex flex-col space-y-2">
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Bạn đã có tài khoản?{" "}
@@ -221,20 +144,6 @@ export default function RegisterPage() {
                   </Link>
                 </p>
               </div>
-              {/* <Button className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600">
-                Đăng Ký
-              </Button>
-              <div className="flex items-center justify-content-center">
-                <div className="w-full">
-                  <span className="text-sm">Đã có tài khoản? </span>
-                  <Link
-                    href="/login"
-                    className="text-sm text-green-600 hover:underline dark:text-green-500"
-                  >
-                    Đăng nhập ngay
-                  </Link>
-                </div>
-              </div> */}
               <div>
                 <Link
                   href="/"

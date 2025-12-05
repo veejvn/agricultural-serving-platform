@@ -26,7 +26,7 @@ export default function WeatherForecastChart({
   const chartData = data || buildChartData(forcast, type);
 
   return (
-    <div className="h-[300px] w-full">
+    <div className="h-[240px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={chartData}
@@ -106,7 +106,6 @@ export function buildChartData(
         target = item;
       }
     }
-    console.log("target WeatherForecastChart", target);
     const dateObj = new Date(target.dt * 1000);
     const day = dateObj.toLocaleDateString("vi-VN", { weekday: "short" });
     let value = 0;

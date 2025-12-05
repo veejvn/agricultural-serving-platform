@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
       }
 
       // Success - redirect to login with success message
-      router.push("/login?message=reset-password-success");
+      router.push("/reset-password/success");
     } catch (err) {
       console.error("Error resetting password:", err);
       setError("Có lỗi xảy ra khi đặt lại mật khẩu.");

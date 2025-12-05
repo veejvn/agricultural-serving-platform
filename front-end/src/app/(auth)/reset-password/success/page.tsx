@@ -9,12 +9,6 @@ export default function ResetSuccessPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Đặt lại mật khẩu thành công</h2>
-          <p className="mt-2 text-sm text-gray-600">Mật khẩu của bạn đã được cập nhật thành công</p>
-        </div>
-
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">

@@ -108,14 +108,7 @@ export default function PasswordPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold">Đổi mật khẩu</h2>
-        <p className="text-sm text-muted-foreground">
-          Cập nhật mật khẩu của bạn để bảo mật tài khoản
-        </p>
-      </div>
-
+    <div>
       <Card>
         <CardHeader>
           <CardTitle>Mật khẩu</CardTitle>

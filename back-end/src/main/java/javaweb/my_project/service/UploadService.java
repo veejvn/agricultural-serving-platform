@@ -65,12 +65,12 @@ public class UploadService {
         String type = urlParts[urlParts.length - 2]; // Lấy thư mục loại tệp (video hoặc images)
         String publicId;
         if ("images".equals(type)) {
-            publicId = CLOUDINARY_FOLDER + "/" + userId + "/" + type + "/" + fileName.replaceFirst("\\.[^\\.]+$", ""); // Bỏ phần mở rộng
+            publicId = CLOUDINARY_FOLDER + "/" + userId + "/" + type + "/" + fileName.replaceFirst("\\.[^\\.]+$", "");
             System.out.println("Public ID to delete: " + publicId);
             Map<String, Object> result = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
             System.out.println("Delete result: " + result); // Ghi lại kết quả
         } else if ("videos".equals(type)) {
-            publicId = CLOUDINARY_FOLDER + "/" + userId + "/" + type + "/" + fileName.replaceFirst("\\.[^\\.]+$", ""); // Bỏ phần mở rộng
+            publicId = CLOUDINARY_FOLDER + "/" + userId + "/" + type + "/" + fileName.replaceFirst("\\.[^\\.]+$", "");
             System.out.println("Public ID to delete: " + publicId);
             Map<String, Object> options = ObjectUtils.asMap("resource_type", "video");
             Map<String, Object> result = cloudinary.uploader().destroy(publicId, options);

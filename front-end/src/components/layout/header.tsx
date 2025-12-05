@@ -36,10 +36,11 @@ export default function Header() {
   const { totalItems } = useCart();
 
   if (
-    pathname.startsWith("/admin/login") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/login") ||
-    pathname.startsWith("/register")
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password")
   ) {
     return null; // Không hiển thị header trên các trang đăng nhập hoặc đăng ký
   }
@@ -115,8 +116,8 @@ export default function Header() {
                     asChild
                     className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                   >
-                    <Link href="/register" onClick={() => setIsOpen(false)}>
-                      Đăng ký
+                    <Link href="/login" onClick={() => setIsOpen(false)}>
+                      Đăng nhập
                     </Link>
                   </Button>
                 </div>
@@ -185,21 +186,12 @@ export default function Header() {
             </Link>
           </Button> */}
             {!isLoggedIn ? (
-              pathname === "/register" ? (
-                <Button
-                  asChild
-                  className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
-                >
-                  <Link href="/login">Đăng nhập</Link>
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
-                >
-                  <Link href="/register">Đăng ký</Link>
-                </Button>
-              )
+              <Button
+                asChild
+                className="hidden bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 sm:flex mr-4"
+              >
+                <Link href="/login">Đăng nhập</Link>
+              </Button>
             ) : (
               <div className="mr-2">
                 <UserMenu />

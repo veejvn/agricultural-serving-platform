@@ -577,8 +577,9 @@ export default function CheckoutPage() {
         if (paymentMethod === "VNPAY") {
           // Lấy ID của đơn hàng đầu tiên để tạo URL thanh toán
           const firstOrderId = fulfilledOrders[0].id;
-          const [paymentResult, paymentError] = await PaymentService.createPaymentUrl(firstOrderId);
-          
+          const [paymentResult, paymentError] =
+            await PaymentService.createPaymentUrl(firstOrderId);
+
           if (paymentError) {
             toast.error("Không thể tạo liên kết thanh toán");
             return;
@@ -653,15 +654,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
-          Thanh Toán
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          Hoàn tất thông tin giao hàng và phương thức thanh toán
-        </p>
-      </div>
-
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="space-y-8">
@@ -1306,7 +1298,7 @@ export default function CheckoutPage() {
                 </span>
               </div>
 
-              <div className="mt-4 rounded-lg bg-green-50 p-4 dark:bg-green-900/30">
+              {/* <div className="mt-4 rounded-lg bg-green-50 p-4 dark:bg-green-900/30">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                   <strong>Thông tin đơn hàng:</strong>
                 </p>
@@ -1335,7 +1327,7 @@ export default function CheckoutPage() {
                   </Link>{" "}
                   của chúng tôi.
                 </p>
-              </div>
+              </div> */}
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button

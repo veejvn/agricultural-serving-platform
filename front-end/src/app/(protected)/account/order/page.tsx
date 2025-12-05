@@ -233,13 +233,6 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold">Đơn hàng của tôi</h2>
-        <p className="text-sm text-muted-foreground">
-          Xem và theo dõi tất cả đơn hàng của bạn
-        </p>
-      </div>
-
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

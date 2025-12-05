@@ -155,7 +155,7 @@ export default function FarmerDashboard() {
         Tổng quan trang trại
       </h1>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <StatsCard
           title="Tổng sản phẩm"
           value={stats.productCount.toLocaleString()}
@@ -179,7 +179,7 @@ export default function FarmerDashboard() {
         />
       </div>
 
-      <div className="flex flex-col gap-4 mb-4">
+      <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard
           title="Doanh thu theo thời gian"
           description="Biểu đồ doanh thu 6 tháng gần nhất"
@@ -213,8 +213,8 @@ export default function FarmerDashboard() {
           title="Sản phẩm bán chạy"
           description="Top 5 sản phẩm bán chạy nhất"
           chart={
-            <div className="h-[350px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={350}>
+            <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+              <ResponsiveContainer width="100%" height={300}>
                 <ReBarChart
                   data={productSoldData}
                   layout="vertical"
@@ -244,16 +244,16 @@ export default function FarmerDashboard() {
         />
       </div>
 
-      <div className="flex flex-col gap-4 mb-4">
-        <Card>
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Đơn hàng gần đây</CardTitle>
             <CardDescription>Danh sách 5 đơn hàng gần nhất</CardDescription>
           </CardHeader>
           <CardContent className="p-2">
             <div className="overflow-x-auto">
-              <div className="grid grid-cols-5 gap-2 font-semibold text-gray-600 mb-2 px-2">
-                <div>Mã đơn</div>
+              <div className="grid grid-cols-6 gap-2 font-semibold text-gray-600 mb-2 px-2">
+                <div className="col-span-2">Mã đơn</div>
                 <div>Khách hàng</div>
                 <div className="text-right">Tổng tiền</div>
                 <div className="text-center">Ngày</div>
@@ -263,11 +263,11 @@ export default function FarmerDashboard() {
                 {recentOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="grid grid-cols-5 gap-1 items-center px-2 py-1"
+                    className="grid grid-cols-6 gap-1 items-center px-2 py-1"
                   >
                     <Link
                       href={`/farm/order/${order.id}`}
-                      className="font-medium hover:underline hover:text-blue-600"
+                      className="col-span-2 font-medium hover:underline hover:text-blue-600"
                     >
                       #ORDER_{order.id.slice(0, 8)}
                     </Link>
@@ -320,7 +320,7 @@ export default function FarmerDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Sản phẩm bán chạy</CardTitle>
             <CardDescription>Top 5 sản phẩm bán chạy nhất</CardDescription>

@@ -11,10 +11,11 @@ import { usePathname } from "next/navigation";
 export default function Footer() {
   const pathname = usePathname();
   if (
-    pathname.startsWith("/admin/login") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/login") ||
-    pathname.startsWith("/register")
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password")
   ) {
     return null; // Không hiển thị footer trên các trang đăng nhập hoặc đăng ký
   }
@@ -229,8 +230,8 @@ export default function Footer() {
         <div className="mt-8 border-t pt-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Nông Nghiệp Xanh. Tất cả
-              quyền được bảo lưu.
+              &copy; {new Date().getFullYear()} Nông Nghiệp Xanh. Tất cả quyền
+              được bảo lưu.
             </p>
             <div className="flex gap-4 text-sm">
               <Link

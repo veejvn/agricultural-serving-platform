@@ -124,15 +124,6 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
-          Giỏ Hàng
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          Xem lại các sản phẩm bạn đã chọn trước khi thanh toán
-        </p>
-      </div>
-
       {isCartEmpty ? (
         <CartEmpty />
       ) : (

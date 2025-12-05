@@ -75,10 +75,10 @@ export default function LoginPage() {
   };
   
   return (
-    <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+    <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-4 sm:px-6 lg:px-8">
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">
         <div className="hidden lg:block">
-          <div className="relative h-[600px] w-full overflow-hidden rounded-xl">
+          <div className="relative h-[550px] w-full overflow-hidden rounded-xl">
             <Image
               src="/images/authenticate_image.png"
               alt="Nông dân đang chăm sóc cây trồng"
@@ -100,15 +100,6 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="flex flex-col justify-center">
-          <div className="mb-2 text-center lg:text-left">
-            <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-xl">
-              Chào mừng bạn đến với Nông Nghiệp Xanh
-            </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Đăng ký hoặc đăng nhập để trải nghiệm đầy đủ các tính năng
-            </p>
-          </div>
-
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-green-800 dark:text-green-300">

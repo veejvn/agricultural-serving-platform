@@ -14,7 +14,6 @@ const SUGGESTED_PROMPTS = [
   "Lịch thời vụ",
 ];
 
-
 const allowedPaths = ["/", "/product", "/weather", "/price"];
 
 const ChatWidget: React.FC = () => {
@@ -97,7 +96,7 @@ const ChatWidget: React.FC = () => {
       {/* Chat Dialog */}
       <div
         className={`
-          w-[calc(100vw-2rem)] sm:w-96 h-[60vh] sm:h-[70vh] max-h-[700px] 
+          w-[calc(100vw-2rem)] sm:w-96 h-[60vh] sm:h-[80vh] max-h-[700px] 
           bg-white dark:bg-[#1C2C19] rounded-xl shadow-2xl flex flex-col overflow-hidden 
           border border-gray-200 dark:border-gray-700 transition-all duration-300 origin-bottom-right
           ${

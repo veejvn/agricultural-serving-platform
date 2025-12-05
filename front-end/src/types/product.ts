@@ -27,6 +27,7 @@ export interface IProductResponse {
   id: string;
   name: string;
   description: string;
+  longDescription?: string; // Thêm trường này
   price: number;
   inventory: number;
   sold: number;
@@ -37,6 +38,8 @@ export interface IProductResponse {
   images: ImageResponse[];
   category: string;
   farmer: IFarmerResponse;
+  specifications?: Record<string, string>; // Thêm trường này
+  usage?: string; // Thêm trường này
   createdAt: string;
   deletedAt?: string; // Thêm trường này cho soft delete
 }

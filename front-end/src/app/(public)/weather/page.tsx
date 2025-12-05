@@ -119,7 +119,7 @@ export default function WeatherPage() {
         toast({
           title: "Không tìm thấy địa điểm",
           description: "Vui lòng kiểm tra lại tên thành phố.",
-          variant: "destructive",
+          variant: "error",
         });
         return;
       }
@@ -132,14 +132,14 @@ export default function WeatherPage() {
         toast({
           title: "Không lấy được vị trí địa lý",
           description: "Vui lòng thử lại với một địa điểm khác.",
-          variant: "destructive",
+          variant: "error",
         });
       }
     } catch (err) {
       toast({
         title: "Lỗi khi tìm kiếm vị trí",
         description: "Đã xảy ra lỗi khi tìm kiếm vị trí thời tiết.",
-        variant: "destructive",
+        variant: "error",
       });
       console.error("Lỗi khi gọi API tìm kiếm vị trí:", err);
     } finally {
@@ -148,18 +148,9 @@ export default function WeatherPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
-          Dự Báo Thời Tiết
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          Thông tin thời tiết chính xác cho hoạt động nông nghiệp
-        </p>
-      </div>
-
+    <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
       {/* Ô tìm kiếm vị trí */}
-      <div className="mb-8 flex w-full max-w-md items-center gap-2 rounded-lg border bg-white px-3 py-2 shadow-sm dark:bg-gray-900">
+      <div className="mb-4 flex w-full max-w-md items-center gap-2 rounded-lg border bg-white px-3 py-2 shadow-sm dark:bg-gray-900">
         <input
           type="text"
           className="flex-1 bg-transparent outline-none text-base text-gray-800 dark:text-gray-100"

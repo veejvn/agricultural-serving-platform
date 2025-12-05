@@ -356,7 +356,6 @@ export default function UpgradeToFarmerPage() {
                         </p>
                         <p>• Tuân thủ các quy định về bán hàng trên nền tảng</p>
                         <p>• Chịu trách nhiệm về chất lượng sản phẩm đã bán</p>
-                        <p>• Phí hoa hồng 5% cho mỗi giao dịch thành công</p>
                       </div>
                     </div>
 

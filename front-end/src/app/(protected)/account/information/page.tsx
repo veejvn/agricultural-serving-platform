@@ -88,13 +88,13 @@ export default function ProfilePage() {
           toast({
             title: "Lỗi",
             description: getMessageByApiCode(error.code),
-            variant: "destructive",
+            variant: "error",
           });
         } else {
           toast({
             title: "Lỗi",
             description: "Không thể tải thông tin tài khoản",
-            variant: "destructive",
+            variant: "error",
           });
         }
         console.error("Error loading account data:", error);
@@ -116,7 +116,7 @@ export default function ProfilePage() {
       toast({
         title: "Lỗi",
         description: "Có lỗi xảy ra khi tải thông tin tài khoản",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsLoadingData(false);
@@ -134,7 +134,7 @@ export default function ProfilePage() {
       toast({
         title: "Lỗi",
         description: "Vui lòng chọn file ảnh (JPG, PNG, GIF, WebP)",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -145,7 +145,7 @@ export default function ProfilePage() {
       toast({
         title: "Lỗi",
         description: "File ảnh không được vượt quá 5MB",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -160,7 +160,7 @@ export default function ProfilePage() {
         toast({
           title: "Lỗi",
           description: "Không thể tải lên ảnh đại diện",
-          variant: "destructive",
+          variant: "error",
         });
         return;
       }
@@ -176,13 +176,13 @@ export default function ProfilePage() {
             toast({
               title: "Lỗi",
               description: getMessageByApiCode(updateError.code),
-              variant: "destructive",
+              variant: "error",
             });
           } else {
             toast({
               title: "Lỗi",
               description: "Không thể cập nhật ảnh đại diện",
-              variant: "destructive",
+              variant: "error",
             });
           }
           return;
@@ -201,7 +201,7 @@ export default function ProfilePage() {
       toast({
         title: "Lỗi",
         description: "Có lỗi xảy ra khi tải lên ảnh đại diện",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsUploadingAvatar(false);
@@ -235,14 +235,14 @@ export default function ProfilePage() {
           toast({
             title: "Lỗi",
             description: getMessageByApiCode(error.code),
-            variant: "destructive",
+            variant: "error",
           });
         } else {
           toast({
             title: "Lỗi",
             description:
               error.message || "Có lỗi xảy ra khi cập nhật thông tin",
-            variant: "destructive",
+            variant: "error",
           });
         }
         console.error("Error updating account:", error);
@@ -261,7 +261,7 @@ export default function ProfilePage() {
       toast({
         title: "Lỗi",
         description: "Có lỗi xảy ra khi cập nhật thông tin",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsLoading(false);

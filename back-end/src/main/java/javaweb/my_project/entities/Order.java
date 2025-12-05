@@ -48,6 +48,8 @@ public class Order {
     @Column(nullable = false)
     PaymentMethod paymentMethod;
 
+    LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
     @JsonBackReference
@@ -82,8 +84,6 @@ public class Order {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Payment payment;
-
-    LocalDateTime createdAt;
 
     @PrePersist
     void onCreate() {
