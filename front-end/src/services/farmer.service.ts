@@ -6,6 +6,7 @@ import {
   IChangeFarmerStatusRequest,
   IFarmerResponse,
 } from "@/types/farmer";
+import { IAddressRequest, IAddressResponse } from "@/types/address"; // Added import for Address types
 
 const FarmerService = {
   // Lấy thông tin farmer theo id (public)
@@ -20,6 +21,22 @@ const FarmerService = {
 
   getAllFarmers() {
     return service(axios.get(getApiUrl("/farmers")), true);
+  },
+
+  // Farmer Address Management
+  createAddress(data: IAddressRequest) {
+    return service(axios.post(getApiUrl("/farmers/address"), data), true);
+  },
+
+  updateAddress(addressId: string, data: IAddressRequest) {
+    return service(
+      axios.patch(getApiUrl(`/farmers/address/${addressId}`), data),
+      true
+    );
+  },
+
+  deleteAddress(addressId: string) {
+    return service(axios.delete(getApiUrl(`/farmers/address/${addressId}`)), true);
   },
 
   // Cập nhật toàn bộ thông tin farmer (FARMER, PUT)

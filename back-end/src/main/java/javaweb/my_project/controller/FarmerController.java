@@ -1,6 +1,8 @@
 package javaweb.my_project.controller;
 
 import jakarta.validation.Valid;
+import javaweb.my_project.dto.address.AddressRequest;
+import javaweb.my_project.dto.address.AddressResponse;
 import javaweb.my_project.dto.api.ApiResponse;
 import javaweb.my_project.dto.farmer.ChangeFarmerStatusRequest;
 import javaweb.my_project.dto.farmer.FarmerUpdateInfoPatchRequest;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/farmers")
+@RequestMapping("/api/farmers") // Đã giữ nguyên /api/farmers
 @RequiredArgsConstructor
 //@PreAuthorize("authenticated()")
 public class FarmerController {
@@ -34,7 +36,7 @@ public class FarmerController {
     }
 
     @GetMapping("/owner")
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasRole(\'FARMER\')")
     public ResponseEntity<ApiResponse<FarmerResponse>> getFarmerByOwner() {
         ApiResponse<FarmerResponse> apiResponse = ApiResponse.<FarmerResponse>builder()
                 .code("farmer-s-02")
@@ -45,7 +47,7 @@ public class FarmerController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole(\'ADMIN\')")
     public ResponseEntity<ApiResponse<List<FarmerResponse>>> getAllFarmers() {
         ApiResponse<List<FarmerResponse>> apiResponse = ApiResponse.<List<FarmerResponse>>builder()
                 .code("farmer-s-03")
@@ -55,8 +57,42 @@ public class FarmerController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    // New endpoints for Farmer Address Management
+    @PostMapping("/address")
+    @PreAuthorize("hasRole(\'FARMER\')")
+    public ResponseEntity<ApiResponse<FarmerResponse>> createAddress(@RequestBody @Valid AddressRequest request) {
+        ApiResponse<FarmerResponse> apiResponse = ApiResponse.<FarmerResponse>builder()
+                .code("farmer-s-07")
+                .message("Create farmer address successfully")
+                .data(farmerService.createAddress(request))
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
+    @PatchMapping("/address/{id}")
+    @PreAuthorize("hasRole(\'FARMER\')")
+    public ResponseEntity<ApiResponse<AddressResponse>> updateAddress(@PathVariable("id") String addressId, @RequestBody @Valid AddressRequest request) {
+        ApiResponse<AddressResponse> apiResponse = ApiResponse.<AddressResponse>builder()
+                .code("farmer-s-08")
+                .message("Update farmer address successfully")
+                .data(farmerService.updateAddress(addressId, request))
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @DeleteMapping("/address/{id}")
+    @PreAuthorize("hasRole(\'FARMER\')")
+    public ResponseEntity<ApiResponse<Void>> deleteAddress(@PathVariable("id") String addressId) {
+        farmerService.deleteAddress(addressId);
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .code("farmer-s-09")
+                .message("Delete farmer address successfully")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
     @PutMapping
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasRole(\'FARMER\')")
     public ResponseEntity<ApiResponse<FarmerResponse>> updateFarmerInfoPut(
             @RequestBody @Valid FarmerUpdateInfoPutRequest request) {
         ApiResponse<FarmerResponse> apiResponse = ApiResponse.<FarmerResponse>builder()
@@ -68,7 +104,7 @@ public class FarmerController {
     }
 
     @PatchMapping
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasRole(\'FARMER\')")
     public ResponseEntity<ApiResponse<FarmerResponse>> updateFarmerInfoPatch(
             @RequestBody @Valid FarmerUpdateInfoPatchRequest request) {
         ApiResponse<FarmerResponse> apiResponse = ApiResponse.<FarmerResponse>builder()
@@ -80,7 +116,7 @@ public class FarmerController {
     }
 
     @PostMapping("/{id}/status" )
-    @PreAuthorize("hasRole('ADMIN') or hasRole('FARMER')")
+    @PreAuthorize("hasRole(\'ADMIN\') or hasRole(\'FARMER\')")
     public ResponseEntity<ApiResponse<FarmerResponse>> changeFarmerStatus(
             @PathVariable("id") String farmerId,
             @RequestBody @Valid ChangeFarmerStatusRequest request) {

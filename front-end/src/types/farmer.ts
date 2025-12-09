@@ -1,3 +1,5 @@
+import { IAddressResponse } from "@/types/address";
+
 export type IFarmerStatus = "ACTIVE" | "SELF_BLOCK" | "ADMIN_BLOCK";
 
 export interface IFarmerResponse {
@@ -8,6 +10,7 @@ export interface IFarmerResponse {
   rating: number;
   description?: string;
   status: IFarmerStatus;
+  address: IAddressResponse;
   createdAt: string;
 }
 

@@ -1,13 +1,18 @@
 package javaweb.my_project.service;
 
+import javaweb.my_project.dto.address.AddressRequest;
+import javaweb.my_project.dto.address.AddressResponse;
 import javaweb.my_project.dto.farmer.ChangeFarmerStatusRequest;
 import javaweb.my_project.dto.farmer.FarmerUpdateInfoPatchRequest;
 import javaweb.my_project.dto.farmer.FarmerUpdateInfoPutRequest;
 import javaweb.my_project.dto.farmer.FarmerResponse;
+import javaweb.my_project.entities.Address;
 import javaweb.my_project.entities.Farmer;
 import javaweb.my_project.enums.FarmerStatus;
 import javaweb.my_project.exception.AppException;
+import javaweb.my_project.mapper.AddressMapper;
 import javaweb.my_project.mapper.FarmerMapper;
+import javaweb.my_project.repository.AddressRepository;
 import javaweb.my_project.repository.FarmerRepository;
 import javaweb.my_project.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -24,6 +30,8 @@ public class FarmerService {
     private final SecurityUtil securityUtil;
     private final FarmerRepository farmerRepository;
     private final FarmerMapper farmerMapper;
+    private final AddressMapper addressMapper;
+    private final AddressRepository addressRepository;
 
     public FarmerResponse getFarmer(String id) {
         Farmer farmer = farmerRepository.findById(id).orElseThrow(
@@ -39,6 +47,52 @@ public class FarmerService {
     public List<FarmerResponse> getAllFarmers() {
         List<Farmer> farmers = farmerRepository.findAll();
         return farmerMapper.toFarmerResponseList(farmers);
+    }
+
+    public FarmerResponse createAddress(AddressRequest request) {
+        Farmer farmer = securityUtil.getFarmer();
+
+        if (farmer.getAddress() != null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Farmer already has an address", "farmer-e-07");
+        }
+
+        Address address = addressMapper.toAddress(request);
+        address.setIsDefault(true);
+        address.setAccount(farmer.getAccount()); // Link to account for consistency, though not strictly used for farmer address
+        Address savedAddress = addressRepository.save(address);
+
+        farmer.setAddress(savedAddress);
+        farmerRepository.save(farmer);
+
+        return farmerMapper.toFarmerResponse(farmer);
+    }
+
+    public AddressResponse updateAddress(String addressId, AddressRequest request) {
+        Farmer farmer = securityUtil.getFarmer();
+
+        if (farmer.getAddress() == null || !Objects.equals(farmer.getAddress().getId(), addressId)) {
+            throw new AppException(HttpStatus.NOT_FOUND, "Farmer's address not found or not owned by farmer", "farmer-e-08");
+        }
+
+        Address address = farmer.getAddress();
+        addressMapper.updateAddress(address, request);
+        address.setIsDefault(true); // Farmer's address is always default
+        Address updatedAddress = addressRepository.save(address);
+
+        return addressMapper.toAddressResponse(updatedAddress);
+    }
+
+    public void deleteAddress(String addressId) {
+        Farmer farmer = securityUtil.getFarmer();
+
+        if (farmer.getAddress() == null || !Objects.equals(farmer.getAddress().getId(), addressId)) {
+            throw new AppException(HttpStatus.NOT_FOUND, "Farmer's address not found or not owned by farmer", "farmer-e-09");
+        }
+
+        Address addressToDelete = farmer.getAddress();
+        farmer.setAddress(null);
+        farmerRepository.save(farmer);
+        addressRepository.delete(addressToDelete);
     }
 
     public FarmerResponse updateFarmerInfoPut(FarmerUpdateInfoPutRequest request) {

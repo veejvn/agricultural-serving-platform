@@ -1,5 +1,6 @@
 package javaweb.my_project.dto.farmer;
 
+import javaweb.my_project.dto.address.AddressResponse;
 import javaweb.my_project.enums.FarmerStatus;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -17,5 +18,6 @@ public class FarmerResponse {
     Double rating;
     String description;
     FarmerStatus status;
+    AddressResponse address;
     LocalDateTime createdAt;
 }

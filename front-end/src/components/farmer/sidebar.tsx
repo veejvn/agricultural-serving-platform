@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Tractor,
   Home,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,6 +66,12 @@ export function FarmerSidebar() {
       icon: Settings,
       title: "Cài đặt",
       active: pathname === "/farm/setting",
+    },
+    {
+      href: "/farm/address",
+      icon: MapPin,
+      title: "Địa chỉ",
+      active: pathname === "/farm/address",
     },
   ];
 

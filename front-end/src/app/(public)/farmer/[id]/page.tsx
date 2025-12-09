@@ -23,6 +23,7 @@ import {
   MessageCircle,
   Verified,
 } from "lucide-react";
+import addressData from "@/json/address.json"; // Added import for address data
 import { IFarmerResponse, IFarmerStatus } from "@/types/farmer";
 import { IProductResponse } from "@/types/product";
 import { ProductCard } from "@/components/product/product-card";
@@ -36,6 +37,50 @@ export default function FarmerDetailPage() {
   const [products, setProducts] = useState<IProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("products");
+
+  // Helper functions to get names from codes for display
+  function getProvinceNameFromCode(code: string): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === code
+    ) as any;
+    return province?.name_with_type || code;
+  }
+
+  function getDistrictNameFromCode(
+    provinceCode: string,
+    districtCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    return district?.name_with_type || districtCode;
+  }
+
+  function getWardNameFromCode(
+    provinceCode: string,
+    districtCode: string,
+    wardCode: string
+  ): string {
+    const province = Object.values(addressData).find(
+      (p: any) => p.code === provinceCode
+    ) as any;
+    const district =
+      province?.district &&
+      (Object.values(province.district).find(
+        (d: any) => d.code === districtCode
+      ) as any);
+    const ward =
+      district?.ward &&
+      (Object.values(district.ward).find(
+        (w: any) => w.code === wardCode
+      ) as any);
+    return ward?.name_with_type || wardCode;
+  }
 
   useEffect(() => {
     const fetchFarmerData = async () => {
@@ -281,11 +326,31 @@ export default function FarmerDetailPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-gray-600">
                       <MapPin className="h-4 w-4" />
-                      <span>Đồng Tháp, Việt Nam</span>
+                      <span>
+                        {farmer.address ? (
+                          `
+                          ${farmer.address.detail},
+                          ${getWardNameFromCode(
+                            farmer.address.province,
+                            farmer.address.district,
+                            farmer.address.ward
+                          )},
+                          ${getDistrictNameFromCode(
+                            farmer.address.province,
+                            farmer.address.district
+                          )},
+                          ${getProvinceNameFromCode(farmer.address.province)}
+                          `
+                        ) : (
+                          "Chưa có địa chỉ"
+                        )}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <Phone className="h-4 w-4" />
-                      <span>0123 456 789</span>
+                      <span>
+                        {farmer.address ? farmer.address.receiverPhone : "Chưa có số điện thoại"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <Mail className="h-4 w-4" />
