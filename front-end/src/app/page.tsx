@@ -73,8 +73,8 @@ export default function Home() {
             <div className="relative mx-auto w-full max-w-2xl lg:max-w-none">
               <HeroCarousel
                 images={CAUROUSEL_IMAGES}
-                autoPlay={true}
-                autoPlayInterval={5000}
+                // autoPlay={true}
+                // autoPlayInterval={5000}
               />
             </div>
           </div>

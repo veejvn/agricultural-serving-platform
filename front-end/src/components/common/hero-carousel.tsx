@@ -13,7 +13,7 @@ interface HeroCarouselProps {
 
 export default function HeroCarousel({
   images,
-  autoPlay = true,
+  autoPlay = false,
   autoPlayInterval = 5000,
   className = "",
 }: HeroCarouselProps) {
