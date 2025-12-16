@@ -53,15 +53,17 @@ public class Account {
     @JsonIgnore
     Farmer farmer;
 
-//    @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval = true)
-//    @JsonIgnore
-//    @Builder.Default
-//    Set<ForumComment> forumComments = new HashSet<>();
-//
-//    @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval = true)
-//    @JsonIgnore
-//    @Builder.Default
-//    Set<Forum> forums = new HashSet<>();
+    // @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval =
+    // true)
+    // @JsonIgnore
+    // @Builder.Default
+    // Set<ForumComment> forumComments = new HashSet<>();
+    //
+    // @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval =
+    // true)
+    // @JsonIgnore
+    // @Builder.Default
+    // Set<Forum> forums = new HashSet<>();
 
     // @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval =
     // true)

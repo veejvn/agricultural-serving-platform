@@ -56,18 +56,22 @@ public class Product {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonManagedReference
+    @Builder.Default
     Set<Image> images = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", orphanRemoval = true)
     @JsonIgnore
+    @Builder.Default
     Set<Review> reviews = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", orphanRemoval = true)
     @JsonIgnore
+    @Builder.Default
     Set<CartItem> cartItems = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", orphanRemoval = true)
     @JsonIgnore
+    @Builder.Default
     Set<OrderItem> orderItems = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

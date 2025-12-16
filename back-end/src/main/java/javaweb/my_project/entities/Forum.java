@@ -37,6 +37,7 @@ public class Forum {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "forum", orphanRemoval = true)
     @JsonIgnore
+    @Builder.Default
     Set<ForumComment> forumComments = new HashSet<>();
 
 }
