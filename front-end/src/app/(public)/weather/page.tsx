@@ -106,6 +106,8 @@ export default function WeatherPage() {
     }
   }, [location]);
 
+  console.log("weatherData", weatherData);
+
   const handleSearch = async () => {
     try {
       setLoading(true);

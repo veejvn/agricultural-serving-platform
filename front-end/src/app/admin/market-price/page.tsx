@@ -357,16 +357,24 @@ export default function AdminMarketPricePage() {
       accessorKey: "dateRecorded",
       header: "Ngày ghi nhận",
       cell: ({ row }) => {
-        const date = new Date(row.getValue("dateRecorded") + "Z"); // Thêm 'Z' để đảm bảo được hiểu là UTC
-        return date.toLocaleString("vi-VN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false, // Đảm bảo hiển thị định dạng 24 giờ
-        });
+        const value = row.getValue("dateRecorded");
+        if (!value) return "";
+
+        // Parse UTC
+        const utcDate = new Date(value as string);
+        if (isNaN(utcDate.getTime())) return "";
+
+        // Cộng 7 giờ (VN = UTC+7)
+        const vnDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+
+        const year = vnDate.getFullYear();
+        const month = String(vnDate.getMonth() + 1).padStart(2, "0");
+        const day = String(vnDate.getDate()).padStart(2, "0");
+        const hours = String(vnDate.getHours()).padStart(2, "0");
+        const minutes = String(vnDate.getMinutes()).padStart(2, "0");
+        const seconds = String(vnDate.getSeconds()).padStart(2, "0");
+
+        return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
       },
     },
     {
@@ -549,9 +557,45 @@ export default function AdminMarketPricePage() {
                                 ? new Date(field.value)
                                 : undefined
                             }
-                            onSelect={(date) =>
-                              field.onChange(date ? date.toISOString() : "")
-                            }
+                            onSelect={(date) => {
+                              if (!date) {
+                                field.onChange("");
+                                return;
+                              }
+
+                              const now = new Date();
+
+                              const localDateTime = new Date(
+                                date.getFullYear(),
+                                date.getMonth(),
+                                date.getDate(),
+                                now.getHours(),
+                                now.getMinutes(),
+                                now.getSeconds(),
+                                0
+                              );
+
+                              const yyyy = localDateTime.getFullYear();
+                              const MM = String(
+                                localDateTime.getMonth() + 1
+                              ).padStart(2, "0");
+                              const dd = String(
+                                localDateTime.getDate()
+                              ).padStart(2, "0");
+                              const HH = String(
+                                localDateTime.getHours()
+                              ).padStart(2, "0");
+                              const mm = String(
+                                localDateTime.getMinutes()
+                              ).padStart(2, "0");
+                              const ss = String(
+                                localDateTime.getSeconds()
+                              ).padStart(2, "0");
+
+                              field.onChange(
+                                `${yyyy}-${MM}-${dd}T${HH}:${mm}:${ss}`
+                              );
+                            }}
                             initialFocus
                           />
                         </PopoverContent>
@@ -788,9 +832,20 @@ export default function AdminMarketPricePage() {
                               ? new Date(field.value)
                               : undefined
                           }
-                          onSelect={(date) =>
-                            field.onChange(date ? date.toISOString() : "")
-                          }
+                          onSelect={(date) => {
+                            if (date) {
+                              const utcDate = new Date(
+                                Date.UTC(
+                                  date.getFullYear(),
+                                  date.getMonth(),
+                                  date.getDate()
+                                )
+                              );
+                              field.onChange(utcDate.toISOString());
+                            } else {
+                              field.onChange("");
+                            }
+                          }}
                           initialFocus
                         />
                       </PopoverContent>

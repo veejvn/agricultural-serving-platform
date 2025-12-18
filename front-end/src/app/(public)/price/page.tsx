@@ -348,7 +348,7 @@ export default function MarketPricePage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:w-60">
             <Select value={selectedRegion} onValueChange={setSelectedRegion}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khu vực" />

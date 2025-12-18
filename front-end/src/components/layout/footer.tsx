@@ -203,7 +203,7 @@ export default function Footer() {
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 text-green-600 dark:text-green-500" />
                 <span className="text-muted-foreground">
-                  123 Đường Nông Nghiệp, Quận 1, TP. Hồ Chí Minh
+                  Đường 3/2, phường Xuân Khánh, quận Ninh Kiều, TP. Cần Thơ.
                 </span>
               </li>
               <li className="flex items-center gap-2">

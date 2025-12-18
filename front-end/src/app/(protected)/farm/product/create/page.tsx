@@ -505,7 +505,7 @@ export default function AddProductPage() {
       description:
         "Vú sữa Hoàng Kim, còn gọi là vú sữa Abiu, là một loại trái cây có nguồn gốc từ Đài Loan và được du nhập vào Việt Nam",
       price: "25000",
-      inventory: "50",
+      inventory: "100",
       thumbnail:
         "https://bizweb.dktcdn.net/100/482/702/products/2.jpg?v=1750734146287",
       unitPrice: "kg",
