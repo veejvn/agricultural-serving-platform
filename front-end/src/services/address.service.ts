@@ -1,6 +1,8 @@
 import axios, { service } from "@/tools/axios.tool";
 import { getApiUrl } from "@/tools/url.tool";
 import { IAddressRequest } from "@/types/address";
+import provincesData from "@/json/province.json";
+import wardsData from "@/json/ward.json";
 
 const AddressService = {
   // POST /api/addresses - Create new address
@@ -31,6 +33,18 @@ const AddressService = {
   // DELETE /api/addresses/{id} - Delete address
   delete(id: string) {
     return service(axios.delete(getApiUrl(`/addresses/${id}`)), false);
+  },
+
+  // Get all provinces
+  getProvinces() {
+    return Object.values(provincesData);
+  },
+
+  // Get wards by province code
+  getWardsByProvinceCode(provinceCode: string) {
+    return Object.values(wardsData).filter(
+      (ward: any) => ward.parent_code === provinceCode
+    );
   },
 };
 

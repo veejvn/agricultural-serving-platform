@@ -28,7 +28,7 @@ import {
   IPaymentStatus,
 } from "@/types/order";
 import { IAddressResponse } from "@/types/address";
-import addressData from "@/json/address.json";
+import AddressService from "@/services/address.service"; // Added import for AddressService
 import { useSearchParams } from "next/navigation";
 import PaymentService from "@/services/payment.service";
 
@@ -205,45 +205,12 @@ export default function OrderCompletePage() {
 
   // Helper functions to get names from codes for display
   function getProvinceNameFromCode(code: string): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === code
-    ) as any;
+    const province = AddressService.getProvinces().find((p: any) => p.code === code) as any;
     return province?.name_with_type || code;
   }
 
-  function getDistrictNameFromCode(
-    provinceCode: string,
-    districtCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
-    ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    return district?.name_with_type || districtCode;
-  }
-
-  function getWardNameFromCode(
-    provinceCode: string,
-    districtCode: string,
-    wardCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
-    ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    const ward =
-      district?.ward &&
-      (Object.values(district.ward).find(
-        (w: any) => w.code === wardCode
-      ) as any);
+  function getWardNameFromCode(wardCode: string, provinceCode: string): string {
+    const ward = AddressService.getWardsByProvinceCode(provinceCode).find((w: any) => w.code === wardCode) as any;
     return ward?.name_with_type || wardCode;
   }
 
@@ -457,16 +424,7 @@ export default function OrderCompletePage() {
                     </p>
                     <p className="font-medium">
                       {orderData.address
-                        ? `${orderData.address.detail}, ${getWardNameFromCode(
-                            orderData.address.province,
-                            orderData.address.district,
-                            orderData.address.ward
-                          )}, ${getDistrictNameFromCode(
-                            orderData.address.province,
-                            orderData.address.district
-                          )}, ${getProvinceNameFromCode(
-                            orderData.address.province
-                          )}`
+                        ? `${orderData.address.detail}, ${getWardNameFromCode(orderData.address.ward, orderData.address.province)}, ${getProvinceNameFromCode(orderData.address.province)}`
                         : "-"}
                     </p>
                   </div>

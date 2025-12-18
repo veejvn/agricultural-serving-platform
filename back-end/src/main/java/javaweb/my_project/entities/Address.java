@@ -19,8 +19,6 @@ public class Address {
     @Column(nullable = false)
     String province;
     @Column(nullable = false)
-    String district;
-    @Column(nullable = false)
     String ward;
     @Column(nullable = false)
     String detail;

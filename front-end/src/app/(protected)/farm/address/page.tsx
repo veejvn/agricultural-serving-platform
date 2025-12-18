@@ -7,9 +7,8 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Edit, Plus, Trash, MapPin } from "lucide-react";
 
-// Import address data
-import addressData from "@/json/address.json";
-import FarmerService from "@/services/farmer.service"; // Using FarmerService
+import AddressService from "@/services/address.service";
+import FarmerService from "@/services/farmer.service";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +28,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -57,7 +55,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { IAddressRequest, IAddressResponse } from "@/types/address";
+import { IAddressRequest } from "@/types/address";
 import { IFarmerResponse } from "@/types/farmer";
 
 const addressFormSchema = z.object({
@@ -69,9 +67,6 @@ const addressFormSchema = z.object({
   }),
   provinceCode: z.string().min(1, {
     message: "Vui lòng chọn tỉnh/thành phố.",
-  }),
-  districtCode: z.string().min(1, {
-    message: "Vui lòng chọn quận/huyện.",
   }),
   wardCode: z.string().min(1, {
     message: "Vui lòng chọn phường/xã.",
@@ -92,13 +87,12 @@ export default function FarmerAddressPage() {
 
   // Address data state
   const [selectedProvince, setSelectedProvince] = useState<string>("");
-  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
   const [selectedWard, setSelectedWard] = useState<string>("");
-  const [availableDistricts, setAvailableDistricts] = useState<
-    Array<{ code: string; name: string }>
+  const [availableProvinces, setAvailableProvinces] = useState<
+    Array<{ code: string; name_with_type: string }>
   >([]);
   const [availableWards, setAvailableWards] = useState<
-    Array<{ code: string; name: string }>
+    Array<{ code: string; name_with_type: string }>
   >([]);
 
   // Load farmer and its address from API
@@ -126,110 +120,53 @@ export default function FarmerAddressPage() {
     }
   };
 
-  // Get provinces from address data and sort alphabetically
-  const provinces = Object.values(addressData)
-    .map((province: any) => ({
-      code: province.code,
-      name: province.name_with_type,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name, "vi", { numeric: true }));
+  // Load provinces and wards when component mounts
+  useEffect(() => {
+    setAvailableProvinces(
+      AddressService.getProvinces().sort((a: any, b: any) =>
+        a.name_with_type.localeCompare(b.name_with_type, "vi", {
+          numeric: true,
+        })
+      )
+    );
+  }, []);
 
-  // Update districts when province changes
+  // Update wards when province changes
   useEffect(() => {
     if (selectedProvince) {
-      const provinceData = Object.values(addressData).find(
-        (p: any) => p.code === selectedProvince
-      ) as any;
-      if (provinceData?.district) {
-        const districts = Object.values(provinceData.district)
-          .map((district: any) => ({
-            code: district.code,
-            name: district.name_with_type,
-          }))
-          .sort((a, b) =>
-            a.name.localeCompare(b.name, "vi", { numeric: true })
-          );
-        setAvailableDistricts(districts);
-      } else {
-        setAvailableDistricts([]);
-      }
-      setSelectedDistrict("");
-      setAvailableWards([]);
+      setAvailableWards(
+        AddressService.getWardsByProvinceCode(selectedProvince).sort(
+          (a: any, b: any) =>
+            a.name_with_type.localeCompare(b.name_with_type, "vi", { numeric: true })
+        )
+      );
     } else {
-      setAvailableDistricts([]);
       setAvailableWards([]);
     }
   }, [selectedProvince]);
-
-  // Update wards when district changes
-  useEffect(() => {
-    if (selectedProvince && selectedDistrict) {
-      const provinceData = Object.values(addressData).find(
-        (p: any) => p.code === selectedProvince
-      ) as any;
-      const districtData =
-        provinceData?.district &&
-        (Object.values(provinceData.district).find(
-          (d: any) => d.code === selectedDistrict
-        ) as any);
-      if (districtData?.ward) {
-        const wards = Object.values(districtData.ward)
-          .map((ward: any) => ({
-            code: ward.code,
-            name: ward.name_with_type,
-          }))
-          .sort((a, b) =>
-            a.name.localeCompare(b.name, "vi", { numeric: true })
-          );
-        setAvailableWards(wards);
-      } else {
-        setAvailableWards([]);
-      }
-    } else {
-      setAvailableWards([]);
-    }
-  }, [selectedProvince, selectedDistrict]);
 
   // Handle edit address data loading
   useEffect(() => {
     if (farmer?.address && isEditDialogOpen) {
       // Reset wards first
-      setAvailableWards([]);
+      //setAvailableWards([]);
 
       // Set province first
       setSelectedProvince(farmer.address.province);
     }
   }, [farmer, isEditDialogOpen]);
 
-  // Set district after province is set
-  useEffect(() => {
-    if (
-      farmer?.address &&
-      isEditDialogOpen &&
-      selectedProvince === farmer.address.province
-    ) {
-      setSelectedDistrict(farmer.address.district);
-    }
-  }, [farmer, selectedProvince, isEditDialogOpen]);
-
-  // Set ward after district is set and wards are loaded
+  // Set ward after province is set and wards are loaded
   useEffect(() => {
     if (
       farmer?.address &&
       isEditDialogOpen &&
       selectedProvince === farmer.address.province &&
-      selectedDistrict === farmer.address.district &&
       availableWards.length > 0
     ) {
       setSelectedWard(farmer.address.ward);
     }
-  }, [
-    farmer,
-    selectedProvince,
-    selectedDistrict,
-    availableWards,
-    isEditDialogOpen,
-  ]);
+  }, [farmer, selectedProvince, availableWards, isEditDialogOpen]);
 
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressFormSchema),
@@ -237,7 +174,6 @@ export default function FarmerAddressPage() {
       receiverName: "",
       receiverPhone: "",
       provinceCode: "",
-      districtCode: "",
       wardCode: "",
       detail: "",
     },
@@ -253,7 +189,6 @@ export default function FarmerAddressPage() {
         receiverName: data.receiverName,
         receiverPhone: data.receiverPhone,
         province: data.provinceCode,
-        district: data.districtCode,
         ward: data.wardCode,
         detail: data.detail,
         isDefault: true, // Farmer's address is always default
@@ -275,7 +210,9 @@ export default function FarmerAddressPage() {
         }
       } else {
         // Add new address
-        const [result, error] = await FarmerService.createAddress(addressRequest);
+        const [result, error] = await FarmerService.createAddress(
+          addressRequest
+        );
         if (error) {
           console.error("Error creating farmer address:", error);
           toast.error("Không thể thêm địa chỉ trang trại mới");
@@ -288,7 +225,6 @@ export default function FarmerAddressPage() {
 
       form.reset();
       setSelectedProvince("");
-      setSelectedDistrict("");
       setSelectedWard("");
     } catch (error) {
       console.error("Error submitting farmer address:", error);
@@ -304,7 +240,6 @@ export default function FarmerAddressPage() {
         receiverName: farmer.address.receiverName,
         receiverPhone: farmer.address.receiverPhone,
         provinceCode: farmer.address.province,
-        districtCode: farmer.address.district,
         wardCode: farmer.address.ward,
         detail: farmer.address.detail,
       });
@@ -319,14 +254,6 @@ export default function FarmerAddressPage() {
   function handleProvinceChange(provinceCode: string) {
     setSelectedProvince(provinceCode);
     form.setValue("provinceCode", provinceCode);
-    form.setValue("districtCode", "");
-    form.setValue("wardCode", "");
-  }
-
-  // Handle district change
-  function handleDistrictChange(districtCode: string) {
-    setSelectedDistrict(districtCode);
-    form.setValue("districtCode", districtCode);
     form.setValue("wardCode", "");
   }
 
@@ -338,52 +265,25 @@ export default function FarmerAddressPage() {
 
   // Helper functions to get names from codes for display
   function getProvinceNameFromCode(code: string): string {
-    const province = Object.values(addressData).find(
+    const province = AddressService.getProvinces().find(
       (p: any) => p.code === code
     ) as any;
     return province?.name_with_type || code;
   }
 
-  function getDistrictNameFromCode(
-    provinceCode: string,
-    districtCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
+  function getWardNameFromCode(wardCode: string, provinceCode: string): string {
+    const ward = AddressService.getWardsByProvinceCode(provinceCode).find(
+      (w: any) => w.code === wardCode
     ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    return district?.name_with_type || districtCode;
-  }
-
-  function getWardNameFromCode(
-    provinceCode: string,
-    districtCode: string,
-    wardCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
-    ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    const ward =
-      district?.ward &&
-      (Object.values(district.ward).find(
-        (w: any) => w.code === wardCode
-      ) as any);
     return ward?.name_with_type || wardCode;
   }
 
   async function handleDelete() {
     if (!farmer?.address?.id) return;
     try {
-      const [result, error] = await FarmerService.deleteAddress(farmer.address.id);
+      const [result, error] = await FarmerService.deleteAddress(
+        farmer.address.id
+      );
       if (error) {
         console.error("Error deleting farmer address:", error);
         toast.error("Không thể xóa địa chỉ trang trại");
@@ -403,15 +303,11 @@ export default function FarmerAddressPage() {
       receiverName: "",
       receiverPhone: "",
       provinceCode: "",
-      districtCode: "",
       wardCode: "",
       detail: "",
     });
     setSelectedProvince("");
-    setSelectedDistrict("");
     setSelectedWard("");
-    setAvailableDistricts([]);
-    setAvailableWards([]);
   }
 
   // Handle opening add dialog with clean state
@@ -506,50 +402,13 @@ export default function FarmerAddressPage() {
                                 <SelectValue placeholder="Chọn tỉnh/thành phố" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="max-h-70">
-                              {provinces.map((province) => (
+                            <SelectContent className="max-h-60">
+                              {availableProvinces.map((province) => (
                                 <SelectItem
                                   key={province.code}
                                   value={province.code}
                                 >
-                                  {province.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="districtCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quận/Huyện</FormLabel>
-                          <Select
-                            onValueChange={handleDistrictChange}
-                            value={field.value}
-                            disabled={!selectedProvince}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue
-                                  placeholder={
-                                    !selectedProvince
-                                      ? "Vui lòng chọn tỉnh/thành phố trước"
-                                      : "Chọn quận/huyện"
-                                  }
-                                />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="max-h-70">
-                              {availableDistricts.map((district) => (
-                                <SelectItem
-                                  key={district.code}
-                                  value={district.code}
-                                >
-                                  {district.name}
+                                  {province.name_with_type}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -567,7 +426,7 @@ export default function FarmerAddressPage() {
                           <Select
                             onValueChange={handleWardChange}
                             value={field.value}
-                            disabled={!selectedDistrict}
+                            disabled={!selectedProvince}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -575,17 +434,15 @@ export default function FarmerAddressPage() {
                                   placeholder={
                                     !selectedProvince
                                       ? "Vui lòng chọn tỉnh/thành phố trước"
-                                      : !selectedDistrict
-                                      ? "Vui lòng chọn quận/huyện trước"
                                       : "Chọn phường/xã"
                                   }
                                 />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="max-h-70">
+                            <SelectContent className="max-h-60">
                               {availableWards.map((ward) => (
                                 <SelectItem key={ward.code} value={ward.code}>
-                                  {ward.name}
+                                  {ward.name_with_type}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -602,7 +459,10 @@ export default function FarmerAddressPage() {
                       <FormItem>
                         <FormLabel>Địa chỉ cụ thể</FormLabel>
                         <FormControl>
-                          <Input placeholder="Số nhà, tên đường..." {...field} />
+                          <Input
+                            placeholder="Số nhà, tên đường..."
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -675,50 +535,13 @@ export default function FarmerAddressPage() {
                               <SelectValue placeholder="Chọn tỉnh/thành phố" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="max-h-70">
-                            {provinces.map((province) => (
+                          <SelectContent className="max-h-60">
+                            {availableProvinces.map((province) => (
                               <SelectItem
                                 key={province.code}
                                 value={province.code}
                               >
-                                {province.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="districtCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quận/Huyện</FormLabel>
-                        <Select
-                          onValueChange={handleDistrictChange}
-                          value={field.value}
-                          disabled={!selectedProvince}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  !selectedProvince
-                                    ? "Vui lòng chọn tỉnh/thành phố trước"
-                                    : "Chọn quận/huyện"
-                                }
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-70">
-                            {availableDistricts.map((district) => (
-                              <SelectItem
-                                key={district.code}
-                                value={district.code}
-                              >
-                                {district.name}
+                                {province.name_with_type}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -736,7 +559,7 @@ export default function FarmerAddressPage() {
                         <Select
                           onValueChange={handleWardChange}
                           value={field.value}
-                          disabled={!selectedDistrict}
+                          disabled={!selectedProvince}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -744,17 +567,15 @@ export default function FarmerAddressPage() {
                                 placeholder={
                                   !selectedProvince
                                     ? "Vui lòng chọn tỉnh/thành phố trước"
-                                    : !selectedDistrict
-                                    ? "Vui lòng chọn quận/huyện trước"
                                     : "Chọn phường/xã"
                                 }
                               />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="max-h-70">
+                          <SelectContent className="max-h-60">
                             {availableWards.map((ward) => (
                               <SelectItem key={ward.code} value={ward.code}>
-                                {ward.name}
+                                {ward.name_with_type}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -803,16 +624,9 @@ export default function FarmerAddressPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center">
                   {farmer.address.receiverName}
-                  <span className="ml-2 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 px-2 py-1 rounded-full">
-                    Mặc định
-                  </span>
                 </CardTitle>
                 <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleEdit}
-                  >
+                  <Button variant="ghost" size="icon" onClick={handleEdit}>
                     <Edit className="h-4 w-4" />
                     <span className="sr-only">Chỉnh sửa</span>
                   </Button>
@@ -827,8 +641,8 @@ export default function FarmerAddressPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xóa địa chỉ</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Bạn có chắc chắn muốn xóa địa chỉ này không?
-                          Hành động này không thể hoàn tác.
+                          Bạn có chắc chắn muốn xóa địa chỉ này không? Hành động
+                          này không thể hoàn tác.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -841,20 +655,14 @@ export default function FarmerAddressPage() {
                   </AlertDialog>
                 </div>
               </div>
-              <CardDescription>{farmer.address.receiverPhone}</CardDescription>
+              <CardDescription>{farmer.address.receiverName}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm">
                 {farmer.address.detail},{" "}
                 {getWardNameFromCode(
-                  farmer.address.province,
-                  farmer.address.district,
-                  farmer.address.ward
-                )}
-                ,{" "}
-                {getDistrictNameFromCode(
-                  farmer.address.province,
-                  farmer.address.district
+                  farmer.address.ward,
+                  farmer.address.province
                 )}
                 , {getProvinceNameFromCode(farmer.address.province)}
               </p>

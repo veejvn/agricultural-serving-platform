@@ -23,7 +23,7 @@ import {
   MessageCircle,
   Verified,
 } from "lucide-react";
-import addressData from "@/json/address.json"; // Added import for address data
+import AddressService from "@/services/address.service"; // Added import for AddressService
 import { IFarmerResponse, IFarmerStatus } from "@/types/farmer";
 import { IProductResponse } from "@/types/product";
 import { ProductCard } from "@/components/product/product-card";
@@ -40,45 +40,12 @@ export default function FarmerDetailPage() {
 
   // Helper functions to get names from codes for display
   function getProvinceNameFromCode(code: string): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === code
-    ) as any;
+    const province = AddressService.getProvinces().find((p: any) => p.code === code) as any;
     return province?.name_with_type || code;
   }
 
-  function getDistrictNameFromCode(
-    provinceCode: string,
-    districtCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
-    ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    return district?.name_with_type || districtCode;
-  }
-
-  function getWardNameFromCode(
-    provinceCode: string,
-    districtCode: string,
-    wardCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
-    ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    const ward =
-      district?.ward &&
-      (Object.values(district.ward).find(
-        (w: any) => w.code === wardCode
-      ) as any);
+  function getWardNameFromCode(wardCode: string, provinceCode: string): string {
+    const ward = AddressService.getWardsByProvinceCode(provinceCode).find((w: any) => w.code === wardCode) as any;
     return ward?.name_with_type || wardCode;
   }
 
@@ -97,8 +64,7 @@ export default function FarmerDetailPage() {
         }
         setFarmer(farmerData);
 
-        const [productsData, productsError] =
-          await ProductService.getAllByFarmerId(farmerId);
+        const [productsData, productsError] = await ProductService.getAllByFarmerId(farmerId);
         if (productsError || !productsData) {
           setProducts([]);
         } else if (Array.isArray(productsData)) {
@@ -331,13 +297,8 @@ export default function FarmerDetailPage() {
                           `
                           ${farmer.address.detail},
                           ${getWardNameFromCode(
-                            farmer.address.province,
-                            farmer.address.district,
-                            farmer.address.ward
-                          )},
-                          ${getDistrictNameFromCode(
-                            farmer.address.province,
-                            farmer.address.district
+                            farmer.address.ward,
+                            farmer.address.province
                           )},
                           ${getProvinceNameFromCode(farmer.address.province)}
                           `

@@ -55,7 +55,6 @@ import * as z from "zod";
 import { toast } from "sonner";
 import { IAddressResponse, IAddressRequest } from "@/types/address";
 import AddressService from "@/services/address.service";
-import addressData from "@/json/address.json";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/utils/common/format";
 import OrderService from "@/services/order.service";
@@ -68,75 +67,15 @@ import {
 import { useOrder } from "@/hooks/useOrder";
 import PaymentService from "@/services/payment.service";
 
-// Define types for address data structure
-interface Ward {
-  name: string;
-  code: string;
-  type: string;
-  name_with_type: string;
-  path: string;
-  path_with_type: string;
-  parent_code: string;
-}
-
-interface District {
-  name: string;
-  code: string;
-  type: string;
-  name_with_type: string;
-  path: string;
-  path_with_type: string;
-  parent_code: string;
-  wards: Ward[];
-}
-
-interface Province {
-  name: string;
-  code: string;
-  type: string;
-  name_with_type: string;
-  slug: string;
-  districts: District[];
-}
 
 interface PaymentCreationResponse {
   paymentUrl: string;
 }
 
-// Convert addressData object to array
-const addressArray = Object.values(addressData as Record<string, any>).map(
-  (province: any) => ({
-    name: province.name,
-    code: province.code,
-    type: province.type,
-    name_with_type: province.name_with_type,
-    slug: province.slug,
-    districts: Object.values(province.district || {}).map((district: any) => ({
-      name: district.name,
-      code: district.code,
-      type: district.type,
-      name_with_type: district.name_with_type,
-      path: district.path,
-      path_with_type: district.path_with_type,
-      parent_code: district.parent_code,
-      wards: Object.values(district.ward || {}).map((ward: any) => ({
-        name: ward.name,
-        code: ward.code,
-        type: ward.type,
-        name_with_type: ward.name_with_type,
-        path: ward.path,
-        path_with_type: ward.path_with_type,
-        parent_code: ward.parent_code,
-      })),
-    })),
-  })
-) as Province[];
-
 const addressSchema = z.object({
   receiverName: z.string().min(1, "Họ tên không được để trống"),
   receiverPhone: z.string().min(10, "Số điện thoại không hợp lệ"),
   provinceCode: z.string().min(1, "Vui lòng chọn tỉnh/thành phố"),
-  districtCode: z.string().min(1, "Vui lòng chọn quận/huyện"),
   wardCode: z.string().min(1, "Vui lòng chọn phường/xã"),
   detail: z.string().min(1, "Địa chỉ chi tiết không được để trống"),
   isDefault: z.boolean().optional(),
@@ -157,9 +96,8 @@ export default function CheckoutPage() {
 
   // Address selection states
   const [selectedProvince, setSelectedProvince] = useState<string>("");
-  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
   const [selectedWard, setSelectedWard] = useState<string>("");
-  const [availableDistricts, setAvailableDistricts] = useState<
+  const [availableProvinces, setAvailableProvinces] = useState<
     Array<{ code: string; name: string }>
   >([]);
   const [availableWards, setAvailableWards] = useState<
@@ -204,15 +142,12 @@ export default function CheckoutPage() {
 
   const farmerGroups = Object.values(groupedByFarmer);
 
-  //console.log("Address data:", addressArray);
-
   const addressForm = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
       receiverName: "",
       receiverPhone: "",
       provinceCode: "",
-      districtCode: "",
       wardCode: "",
       detail: "",
       isDefault: false,
@@ -221,88 +156,29 @@ export default function CheckoutPage() {
 
   const { watch, setValue } = addressForm;
   const watchedProvince = watch("provinceCode");
-  const watchedDistrict = watch("districtCode");
 
   // Load existing addresses
   useEffect(() => {
     loadAddresses();
   }, []);
 
-  // Load cart items
-  // useEffect(() => {
-  //   fetchCartItems();
-  // }, [fetchCartItems]);
+  useEffect(() => {
+    setAvailableProvinces(AddressService.getProvinces().sort((a: any, b: any) => a.name.localeCompare(b.name, 'vi', { numeric: true })));
+  }, []);
 
-  // Update districts when province changes
+  // Update wards when province changes
   useEffect(() => {
     if (watchedProvince) {
       setSelectedProvince(watchedProvince);
-      setValue("districtCode", "");
       setValue("wardCode", "");
-      setSelectedDistrict("");
       setSelectedWard("");
 
-      const provinceData = Object.values(addressData).find(
-        (p: any) => p.code === watchedProvince
-      ) as any;
-      if (provinceData?.district) {
-        const districts = Object.values(provinceData.district)
-          .map((district: any) => ({
-            code: district.code,
-            name: district.name_with_type,
-          }))
-          .sort((a, b) =>
-            a.name.localeCompare(b.name, "vi", { numeric: true })
-          );
-        setAvailableDistricts(districts);
-      } else {
-        setAvailableDistricts([]);
-      }
-      setAvailableWards([]);
+      setAvailableWards(AddressService.getWardsByProvinceCode(watchedProvince).sort((a: any, b: any) => a.name.localeCompare(b.name, 'vi', { numeric: true })));
     } else {
       setSelectedProvince("");
-      setAvailableDistricts([]);
       setAvailableWards([]);
     }
   }, [watchedProvince, setValue]);
-
-  // Update wards when district changes
-  useEffect(() => {
-    if (watchedDistrict) {
-      setSelectedDistrict(watchedDistrict);
-      setValue("wardCode", "");
-      setSelectedWard("");
-
-      if (watchedProvince && watchedDistrict) {
-        const provinceData = Object.values(addressData).find(
-          (p: any) => p.code === watchedProvince
-        ) as any;
-        const districtData =
-          provinceData?.district &&
-          (Object.values(provinceData.district).find(
-            (d: any) => d.code === watchedDistrict
-          ) as any);
-        if (districtData?.ward) {
-          const wards = Object.values(districtData.ward)
-            .map((ward: any) => ({
-              code: ward.code,
-              name: ward.name_with_type,
-            }))
-            .sort((a, b) =>
-              a.name.localeCompare(b.name, "vi", { numeric: true })
-            );
-          setAvailableWards(wards);
-        } else {
-          setAvailableWards([]);
-        }
-      } else {
-        setAvailableWards([]);
-      }
-    } else {
-      setSelectedDistrict("");
-      setAvailableWards([]);
-    }
-  }, [watchedProvince, watchedDistrict, setValue]);
 
   // Sync selectedWard with form field
   useEffect(() => {
@@ -343,7 +219,6 @@ export default function CheckoutPage() {
         receiverName: data.receiverName,
         receiverPhone: data.receiverPhone,
         province: data.provinceCode,
-        district: data.districtCode,
         ward: data.wardCode,
         detail: data.detail,
         isDefault: data.isDefault || false,
@@ -372,57 +247,24 @@ export default function CheckoutPage() {
   };
 
   const getProvinces = () => {
-    return addressArray
-      .map((province: Province) => ({
-        code: province.code,
-        name: province.name_with_type,
-      }))
-      .sort((a, b) =>
+    return AddressService.getProvinces()
+      .sort((a: any, b: any) =>
         a.name.localeCompare(b.name, "vi", { sensitivity: "base" })
       );
   };
 
   // Helper functions to get names from codes for display
   function getProvinceNameFromCode(code: string): string {
-    const province = Object.values(addressData).find(
+    const province = AddressService.getProvinces().find(
       (p: any) => p.code === code
     ) as any;
     return province?.name_with_type || code;
   }
 
-  function getDistrictNameFromCode(
-    provinceCode: string,
-    districtCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
+  function getWardNameFromCode(wardCode: string, provinceCode: string): string {
+    const ward = AddressService.getWardsByProvinceCode(provinceCode).find(
+      (w: any) => w.code === wardCode
     ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    return district?.name_with_type || districtCode;
-  }
-
-  function getWardNameFromCode(
-    provinceCode: string,
-    districtCode: string,
-    wardCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
-    ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    const ward =
-      district?.ward &&
-      (Object.values(district.ward).find(
-        (w: any) => w.code === wardCode
-      ) as any);
     return ward?.name_with_type || wardCode;
   }
 
@@ -432,7 +274,8 @@ export default function CheckoutPage() {
       if (error) {
         console.error("Error deleting address:", error);
         toast.error("Không thể xóa địa chỉ");
-      } else {
+      }
+      else {
         toast.success("Địa chỉ đã được xóa");
         await loadAddresses(); // Reload addresses
       }
@@ -450,14 +293,6 @@ export default function CheckoutPage() {
   const handleProvinceChange = (provinceCode: string) => {
     setSelectedProvince(provinceCode);
     addressForm.setValue("provinceCode", provinceCode);
-    addressForm.setValue("districtCode", "");
-    addressForm.setValue("wardCode", "");
-  };
-
-  // Handle district change
-  const handleDistrictChange = (districtCode: string) => {
-    setSelectedDistrict(districtCode);
-    addressForm.setValue("districtCode", districtCode);
     addressForm.setValue("wardCode", "");
   };
 
@@ -473,15 +308,13 @@ export default function CheckoutPage() {
       receiverName: "",
       receiverPhone: "",
       provinceCode: "",
-      districtCode: "",
       wardCode: "",
       detail: "",
       isDefault: false,
     });
     setSelectedProvince("");
-    setSelectedDistrict("");
     setSelectedWard("");
-    setAvailableDistricts([]);
+    setAvailableProvinces([]);
     setAvailableWards([]);
   };
 
@@ -577,8 +410,7 @@ export default function CheckoutPage() {
         if (paymentMethod === "VNPAY") {
           // Lấy ID của đơn hàng đầu tiên để tạo URL thanh toán
           const firstOrderId = fulfilledOrders[0].id;
-          const [paymentResult, paymentError] =
-            await PaymentService.createPaymentUrl(firstOrderId);
+          const [paymentResult, paymentError] = await PaymentService.createPaymentUrl(firstOrderId);
 
           if (paymentError) {
             toast.error("Không thể tạo liên kết thanh toán");
@@ -721,18 +553,7 @@ export default function CheckoutPage() {
                                 )}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {address.detail},{" "}
-                                {getWardNameFromCode(
-                                  address.province,
-                                  address.district,
-                                  address.ward
-                                )}
-                                ,{" "}
-                                {getDistrictNameFromCode(
-                                  address.province,
-                                  address.district
-                                )}
-                                , {getProvinceNameFromCode(address.province)}
+                                {address.detail}, {getWardNameFromCode(address.ward, address.province)}, {getProvinceNameFromCode(address.province)}
                               </div>
                             </div>
                           </Label>
@@ -814,7 +635,7 @@ export default function CheckoutPage() {
                             />
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                               control={addressForm.control}
                               name="provinceCode"
@@ -831,49 +652,12 @@ export default function CheckoutPage() {
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className="max-h-70">
-                                      {getProvinces().map((province) => (
+                                      {availableProvinces.map((province) => (
                                         <SelectItem
                                           key={province.code}
                                           value={province.code}
                                         >
                                           {province.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={addressForm.control}
-                              name="districtCode"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Quận/Huyện</FormLabel>
-                                  <Select
-                                    onValueChange={handleDistrictChange}
-                                    value={field.value}
-                                    disabled={!selectedProvince}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue
-                                          placeholder={
-                                            !selectedProvince
-                                              ? "Vui lòng chọn tỉnh/thành phố trước"
-                                              : "Chọn quận/huyện"
-                                          }
-                                        />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent className="max-h-70">
-                                      {availableDistricts.map((district) => (
-                                        <SelectItem
-                                          key={district.code}
-                                          value={district.code}
-                                        >
-                                          {district.name}
                                         </SelectItem>
                                       ))}
                                     </SelectContent>
@@ -891,7 +675,7 @@ export default function CheckoutPage() {
                                   <Select
                                     onValueChange={handleWardChange}
                                     value={field.value}
-                                    disabled={!selectedDistrict}
+                                    disabled={!selectedProvince}
                                   >
                                     <FormControl>
                                       <SelectTrigger>
@@ -899,8 +683,6 @@ export default function CheckoutPage() {
                                           placeholder={
                                             !selectedProvince
                                               ? "Vui lòng chọn tỉnh/thành phố trước"
-                                              : !selectedDistrict
-                                              ? "Vui lòng chọn quận/huyện trước"
                                               : "Chọn phường/xã"
                                           }
                                         />
@@ -1149,18 +931,7 @@ export default function CheckoutPage() {
                           </span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {address.detail},{" "}
-                          {getWardNameFromCode(
-                            address.province,
-                            address.district,
-                            address.ward
-                          )}
-                          ,{" "}
-                          {getDistrictNameFromCode(
-                            address.province,
-                            address.district
-                          )}
-                          , {getProvinceNameFromCode(address.province)}
+                          {address.detail},{getWardNameFromCode(address.ward, address.province)},{getProvinceNameFromCode(address.province)}
                         </div>
                       </div>
                     ) : null;
