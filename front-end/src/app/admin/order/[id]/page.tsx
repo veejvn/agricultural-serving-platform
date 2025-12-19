@@ -26,7 +26,7 @@ import type { IOrderResponse, IOrderStatus } from "@/types/order";
 import OrderService from "@/services/order.service";
 import { formatPrice } from "@/utils/common/format";
 import LoadingSpinner from "@/components/common/loading-spinner";
-import addressData from "@/json/address.json";
+import AddressService from "@/services/address.service"; // Thay đổi import
 
 const statusConfig = {
   PENDING: {
@@ -113,45 +113,16 @@ export default function AdminOrderDetailPage() {
   };
 
   function getProvinceNameFromCode(code: string): string {
-    const province = Object.values(addressData).find(
+    const province = AddressService.getProvinces().find(
       (p: any) => p.code === code
     ) as any;
     return province?.name_with_type || code;
   }
 
-  function getDistrictNameFromCode(
-    provinceCode: string,
-    districtCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
+  function getWardNameFromCode(wardCode: string, provinceCode: string): string {
+    const ward = AddressService.getWardsByProvinceCode(provinceCode).find(
+      (w: any) => w.code === wardCode
     ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    return district?.name_with_type || districtCode;
-  }
-
-  function getWardNameFromCode(
-    provinceCode: string,
-    districtCode: string,
-    wardCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
-    ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    const ward =
-      district?.ward &&
-      (Object.values(district.ward).find(
-        (w: any) => w.code === wardCode
-      ) as any);
     return ward?.name_with_type || wardCode;
   }
 
@@ -414,18 +385,7 @@ export default function AdminOrderDetailPage() {
                 SĐT: {order.address.receiverPhone}
               </p>
               <p className="text-sm text-gray-700">
-                Địa chỉ: {order.address.detail},{" "}
-                {getWardNameFromCode(
-                  order.address.province,
-                  order.address.district,
-                  order.address.ward
-                )}
-                ,{" "}
-                {getDistrictNameFromCode(
-                  order.address.province,
-                  order.address.district
-                )}
-                , {getProvinceNameFromCode(order.address.province)}
+                Địa chỉ: {order.address.detail}, {getWardNameFromCode(order.address.ward, order.address.province)}, {getProvinceNameFromCode(order.address.province)}
               </p>
             </CardContent>
           </Card>

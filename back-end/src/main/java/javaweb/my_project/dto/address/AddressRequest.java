@@ -14,9 +14,6 @@ public class AddressRequest {
     @NotBlank(message = "Province is required")
     String province;
 
-    @NotBlank(message = "District is required")
-    String district;
-
     @NotBlank(message = "Ward is required")
     String ward;
 

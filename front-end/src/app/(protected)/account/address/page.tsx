@@ -7,8 +7,6 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Edit, Plus, Trash } from "lucide-react";
 
-// Import address data
-import addressData from "@/json/address.json";
 import AddressService from "@/services/address.service";
 
 import { Button } from "@/components/ui/button";
@@ -69,9 +67,6 @@ const addressFormSchema = z.object({
   provinceCode: z.string().min(1, {
     message: "Vui lòng chọn tỉnh/thành phố.",
   }),
-  districtCode: z.string().min(1, {
-    message: "Vui lòng chọn quận/huyện.",
-  }),
   wardCode: z.string().min(1, {
     message: "Vui lòng chọn phường/xã.",
   }),
@@ -97,13 +92,12 @@ export default function AddressPage() {
 
   // Address data state
   const [selectedProvince, setSelectedProvince] = useState<string>("");
-  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
   const [selectedWard, setSelectedWard] = useState<string>("");
-  const [availableDistricts, setAvailableDistricts] = useState<
-    Array<{ code: string; name: string }>
+  const [availableProvinces, setAvailableProvinces] = useState<
+    Array<{ code: string; name_with_type: string }>
   >([]);
   const [availableWards, setAvailableWards] = useState<
-    Array<{ code: string; name: string }>
+    Array<{ code: string; name_with_type: string }>
   >([]);
 
   // Load addresses from API
@@ -129,110 +123,55 @@ export default function AddressPage() {
     }
   };
 
-  // Get provinces from address data and sort alphabetically
-  const provinces = Object.values(addressData)
-    .map((province: any) => ({
-      code: province.code,
-      name: province.name_with_type,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name, "vi", { numeric: true }));
+  // Load provinces and wards when component mounts
+  useEffect(() => {
+    setAvailableProvinces(
+      AddressService.getProvinces().sort((a: any, b: any) =>
+        a.name_with_type.localeCompare(b.name_with_type, "vi", {
+          numeric: true,
+        })
+      )
+    );
+  }, []);
 
-  // Update districts when province changes
+  // Update wards when province changes
   useEffect(() => {
     if (selectedProvince) {
-      const provinceData = Object.values(addressData).find(
-        (p: any) => p.code === selectedProvince
-      ) as any;
-      if (provinceData?.district) {
-        const districts = Object.values(provinceData.district)
-          .map((district: any) => ({
-            code: district.code,
-            name: district.name_with_type,
-          }))
-          .sort((a, b) =>
-            a.name.localeCompare(b.name, "vi", { numeric: true })
-          );
-        setAvailableDistricts(districts);
-      } else {
-        setAvailableDistricts([]);
-      }
-      setSelectedDistrict("");
-      setAvailableWards([]);
+      setAvailableWards(
+        AddressService.getWardsByProvinceCode(selectedProvince).sort(
+          (a: any, b: any) =>
+            a.name_with_type.localeCompare(b.name_with_type, "vi", {
+              numeric: true,
+            })
+        )
+      );
     } else {
-      setAvailableDistricts([]);
       setAvailableWards([]);
     }
   }, [selectedProvince]);
-
-  // Update wards when district changes
-  useEffect(() => {
-    if (selectedProvince && selectedDistrict) {
-      const provinceData = Object.values(addressData).find(
-        (p: any) => p.code === selectedProvince
-      ) as any;
-      const districtData =
-        provinceData?.district &&
-        (Object.values(provinceData.district).find(
-          (d: any) => d.code === selectedDistrict
-        ) as any);
-      if (districtData?.ward) {
-        const wards = Object.values(districtData.ward)
-          .map((ward: any) => ({
-            code: ward.code,
-            name: ward.name_with_type,
-          }))
-          .sort((a, b) =>
-            a.name.localeCompare(b.name, "vi", { numeric: true })
-          );
-        setAvailableWards(wards);
-      } else {
-        setAvailableWards([]);
-      }
-    } else {
-      setAvailableWards([]);
-    }
-  }, [selectedProvince, selectedDistrict]);
 
   // Handle edit address data loading
   useEffect(() => {
     if (editingAddress && isEditDialogOpen) {
       // Reset wards first
-      setAvailableWards([]);
+      //setAvailableWards([]);
 
       // Set province first
       setSelectedProvince(editingAddress.province);
     }
   }, [editingAddress, isEditDialogOpen]);
 
-  // Set district after province is set
-  useEffect(() => {
-    if (
-      editingAddress &&
-      isEditDialogOpen &&
-      selectedProvince === editingAddress.province
-    ) {
-      setSelectedDistrict(editingAddress.district);
-    }
-  }, [editingAddress, selectedProvince, isEditDialogOpen]);
-
-  // Set ward after district is set and wards are loaded
+  // Set ward after province is set and wards are loaded
   useEffect(() => {
     if (
       editingAddress &&
       isEditDialogOpen &&
       selectedProvince === editingAddress.province &&
-      selectedDistrict === editingAddress.district &&
       availableWards.length > 0
     ) {
       setSelectedWard(editingAddress.ward);
     }
-  }, [
-    editingAddress,
-    selectedProvince,
-    selectedDistrict,
-    availableWards,
-    isEditDialogOpen,
-  ]);
+  }, [editingAddress, selectedProvince, availableWards, isEditDialogOpen]);
 
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressFormSchema),
@@ -240,7 +179,6 @@ export default function AddressPage() {
       fullName: "",
       phone: "",
       provinceCode: "",
-      districtCode: "",
       wardCode: "",
       detail: "",
       isDefault: false,
@@ -257,7 +195,6 @@ export default function AddressPage() {
         receiverName: data.fullName,
         receiverPhone: data.phone,
         province: data.provinceCode,
-        district: data.districtCode,
         ward: data.wardCode,
         detail: data.detail,
         isDefault: data.isDefault,
@@ -294,7 +231,6 @@ export default function AddressPage() {
 
       form.reset();
       setSelectedProvince("");
-      setSelectedDistrict("");
       setSelectedWard("");
     } catch (error) {
       console.error("Error submitting address:", error);
@@ -309,7 +245,6 @@ export default function AddressPage() {
       fullName: address.receiverName,
       phone: address.receiverPhone,
       provinceCode: address.province,
-      districtCode: address.district,
       wardCode: address.ward,
       detail: address.detail,
       isDefault: address.isDefault,
@@ -325,14 +260,6 @@ export default function AddressPage() {
   function handleProvinceChange(provinceCode: string) {
     setSelectedProvince(provinceCode);
     form.setValue("provinceCode", provinceCode);
-    form.setValue("districtCode", "");
-    form.setValue("wardCode", "");
-  }
-
-  // Handle district change
-  function handleDistrictChange(districtCode: string) {
-    setSelectedDistrict(districtCode);
-    form.setValue("districtCode", districtCode);
     form.setValue("wardCode", "");
   }
 
@@ -343,46 +270,17 @@ export default function AddressPage() {
   }
 
   // Helper functions to get names from codes for display
-  function getProvinceNameFromCode(code: string): string {
-    const province = Object.values(addressData).find(
+  function getProvinceNameFromCode(code: string) {
+    const province = AddressService.getProvinces().find(
       (p: any) => p.code === code
     ) as any;
     return province?.name_with_type || code;
   }
 
-  function getDistrictNameFromCode(
-    provinceCode: string,
-    districtCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
+  function getWardNameFromCode(wardCode: string, provinceCode: string): string {
+    const ward = AddressService.getWardsByProvinceCode(provinceCode).find(
+      (w: any) => w.code === wardCode
     ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    return district?.name_with_type || districtCode;
-  }
-
-  function getWardNameFromCode(
-    provinceCode: string,
-    districtCode: string,
-    wardCode: string
-  ): string {
-    const province = Object.values(addressData).find(
-      (p: any) => p.code === provinceCode
-    ) as any;
-    const district =
-      province?.district &&
-      (Object.values(province.district).find(
-        (d: any) => d.code === districtCode
-      ) as any);
-    const ward =
-      district?.ward &&
-      (Object.values(district.ward).find(
-        (w: any) => w.code === wardCode
-      ) as any);
     return ward?.name_with_type || wardCode;
   }
 
@@ -424,16 +322,12 @@ export default function AddressPage() {
       fullName: "",
       phone: "",
       provinceCode: "",
-      districtCode: "",
       wardCode: "",
       detail: "",
       isDefault: false,
     });
     setSelectedProvince("");
-    setSelectedDistrict("");
     setSelectedWard("");
-    setAvailableDistricts([]);
-    setAvailableWards([]);
     setEditingAddressId(null);
     setEditingAddress(null);
   }
@@ -463,10 +357,7 @@ export default function AddressPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Địa chỉ</h2>
-          <p className="text-sm text-muted-foreground">
-            Quản lý địa chỉ giao hàng của bạn
-          </p>
+          <h2 className="text-2xl font-semibold">Địa chỉ của tôi</h2>
         </div>
 
         {/* Add Address Modal */}
@@ -529,50 +420,13 @@ export default function AddressPage() {
                               <SelectValue placeholder="Chọn tỉnh/thành phố" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="max-h-70">
-                            {provinces.map((province) => (
+                          <SelectContent className="max-h-60">
+                            {availableProvinces.map((province) => (
                               <SelectItem
                                 key={province.code}
                                 value={province.code}
                               >
-                                {province.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="districtCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quận/Huyện</FormLabel>
-                        <Select
-                          onValueChange={handleDistrictChange}
-                          value={field.value}
-                          disabled={!selectedProvince}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  !selectedProvince
-                                    ? "Vui lòng chọn tỉnh/thành phố trước"
-                                    : "Chọn quận/huyện"
-                                }
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-70">
-                            {availableDistricts.map((district) => (
-                              <SelectItem
-                                key={district.code}
-                                value={district.code}
-                              >
-                                {district.name}
+                                {province.name_with_type}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -590,7 +444,7 @@ export default function AddressPage() {
                         <Select
                           onValueChange={handleWardChange}
                           value={field.value}
-                          disabled={!selectedDistrict}
+                          disabled={!selectedProvince}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -598,17 +452,15 @@ export default function AddressPage() {
                                 placeholder={
                                   !selectedProvince
                                     ? "Vui lòng chọn tỉnh/thành phố trước"
-                                    : !selectedDistrict
-                                    ? "Vui lòng chọn quận/huyện trước"
                                     : "Chọn phường/xã"
                                 }
                               />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="max-h-70">
+                          <SelectContent className="max-h-60">
                             {availableWards.map((ward) => (
                               <SelectItem key={ward.code} value={ward.code}>
-                                {ward.name}
+                                {ward.name_with_type}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -714,50 +566,13 @@ export default function AddressPage() {
                               <SelectValue placeholder="Chọn tỉnh/thành phố" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="max-h-70">
-                            {provinces.map((province) => (
+                          <SelectContent className="max-h-60">
+                            {availableProvinces.map((province) => (
                               <SelectItem
                                 key={province.code}
                                 value={province.code}
                               >
-                                {province.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="districtCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quận/Huyện</FormLabel>
-                        <Select
-                          onValueChange={handleDistrictChange}
-                          value={field.value}
-                          disabled={!selectedProvince}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  !selectedProvince
-                                    ? "Vui lòng chọn tỉnh/thành phố trước"
-                                    : "Chọn quận/huyện"
-                                }
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-70">
-                            {availableDistricts.map((district) => (
-                              <SelectItem
-                                key={district.code}
-                                value={district.code}
-                              >
-                                {district.name}
+                                {province.name_with_type}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -775,7 +590,7 @@ export default function AddressPage() {
                         <Select
                           onValueChange={handleWardChange}
                           value={field.value}
-                          disabled={!selectedDistrict}
+                          disabled={!selectedProvince}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -783,17 +598,15 @@ export default function AddressPage() {
                                 placeholder={
                                   !selectedProvince
                                     ? "Vui lòng chọn tỉnh/thành phố trước"
-                                    : !selectedDistrict
-                                    ? "Vui lòng chọn quận/huyện trước"
                                     : "Chọn phường/xã"
                                 }
                               />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="max-h-70">
+                          <SelectContent className="max-h-60">
                             {availableWards.map((ward) => (
                               <SelectItem key={ward.code} value={ward.code}>
-                                {ward.name}
+                                {ward.name_with_type}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -926,22 +739,13 @@ export default function AddressPage() {
                       )}
                     </div>
                   </div>
-                  <CardDescription>{address.receiverPhone}</CardDescription>
+                  <CardDescription>{address.receiverName}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm">
-                    {address.detail},{" "}
-                    {getWardNameFromCode(
-                      address.province,
-                      address.district,
-                      address.ward
-                    )}
-                    ,{" "}
-                    {getDistrictNameFromCode(
-                      address.province,
-                      address.district
-                    )}
-                    , {getProvinceNameFromCode(address.province)}
+                    {address.detail}, {" "}
+                    {getWardNameFromCode(address.ward, address.province)},
+                    {getProvinceNameFromCode(address.province)}
                   </p>
                 </CardContent>
                 {!address.isDefault && (

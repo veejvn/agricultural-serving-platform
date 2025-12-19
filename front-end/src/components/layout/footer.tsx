@@ -16,7 +16,8 @@ export default function Footer() {
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/reset-password") ||
-    pathname.startsWith("/farm")
+    pathname.startsWith("/farm") ||
+    pathname.startsWith("/account")
   ) {
     return null; // Không hiển thị footer trên các trang đăng nhập hoặc đăng ký
   }
@@ -221,7 +222,7 @@ export default function Footer() {
                   href="mailto:info@nongnghiepthongminh.vn"
                   className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
                 >
-                  info@nongnghiepthongminh.vn
+                  agricultural.service.platform@gmail.com
                 </Link>
               </li>
             </ul>
