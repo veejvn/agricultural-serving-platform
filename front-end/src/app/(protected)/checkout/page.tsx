@@ -67,7 +67,6 @@ import {
 import { useOrder } from "@/hooks/useOrder";
 import PaymentService from "@/services/payment.service";
 
-
 interface PaymentCreationResponse {
   paymentUrl: string;
 }
@@ -163,7 +162,11 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    setAvailableProvinces(AddressService.getProvinces().sort((a: any, b: any) => a.name.localeCompare(b.name, 'vi', { numeric: true })));
+    setAvailableProvinces(
+      AddressService.getProvinces().sort((a: any, b: any) =>
+        a.name.localeCompare(b.name, "vi", { numeric: true })
+      )
+    );
   }, []);
 
   // Update wards when province changes
@@ -173,7 +176,12 @@ export default function CheckoutPage() {
       setValue("wardCode", "");
       setSelectedWard("");
 
-      setAvailableWards(AddressService.getWardsByProvinceCode(watchedProvince).sort((a: any, b: any) => a.name.localeCompare(b.name, 'vi', { numeric: true })));
+      setAvailableWards(
+        AddressService.getWardsByProvinceCode(watchedProvince).sort(
+          (a: any, b: any) =>
+            a.name.localeCompare(b.name, "vi", { numeric: true })
+        )
+      );
     } else {
       setSelectedProvince("");
       setAvailableWards([]);
@@ -247,10 +255,9 @@ export default function CheckoutPage() {
   };
 
   const getProvinces = () => {
-    return AddressService.getProvinces()
-      .sort((a: any, b: any) =>
-        a.name.localeCompare(b.name, "vi", { sensitivity: "base" })
-      );
+    return AddressService.getProvinces().sort((a: any, b: any) =>
+      a.name.localeCompare(b.name, "vi", { sensitivity: "base" })
+    );
   };
 
   // Helper functions to get names from codes for display
@@ -274,8 +281,7 @@ export default function CheckoutPage() {
       if (error) {
         console.error("Error deleting address:", error);
         toast.error("Không thể xóa địa chỉ");
-      }
-      else {
+      } else {
         toast.success("Địa chỉ đã được xóa");
         await loadAddresses(); // Reload addresses
       }
@@ -410,7 +416,8 @@ export default function CheckoutPage() {
         if (paymentMethod === "VNPAY") {
           // Lấy ID của đơn hàng đầu tiên để tạo URL thanh toán
           const firstOrderId = fulfilledOrders[0].id;
-          const [paymentResult, paymentError] = await PaymentService.createPaymentUrl(firstOrderId);
+          const [paymentResult, paymentError] =
+            await PaymentService.createPaymentUrl(firstOrderId);
 
           if (paymentError) {
             toast.error("Không thể tạo liên kết thanh toán");
@@ -553,7 +560,12 @@ export default function CheckoutPage() {
                                 )}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {address.detail}, {getWardNameFromCode(address.ward, address.province)}, {getProvinceNameFromCode(address.province)}
+                                {address.detail},{" "}
+                                {getWardNameFromCode(
+                                  address.ward,
+                                  address.province
+                                )}
+                                , {getProvinceNameFromCode(address.province)}
                               </div>
                             </div>
                           </Label>
@@ -931,7 +943,9 @@ export default function CheckoutPage() {
                           </span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {address.detail},{getWardNameFromCode(address.ward, address.province)},{getProvinceNameFromCode(address.province)}
+                          {address.detail}, {" "}
+                          {getWardNameFromCode(address.ward, address.province)}, {" "}
+                          {getProvinceNameFromCode(address.province)}
                         </div>
                       </div>
                     ) : null;

@@ -743,7 +743,7 @@ export default function AddressPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm">
-                    {address.detail},
+                    {address.detail}, {" "}
                     {getWardNameFromCode(address.ward, address.province)},
                     {getProvinceNameFromCode(address.province)}
                   </p>
