@@ -1,6 +1,7 @@
 package javaweb.my_project.repository;
 
 import javaweb.my_project.entities.Product;
+import javaweb.my_project.enums.OcopStatus;
 import javaweb.my_project.enums.ProductStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,4 +18,6 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findAllByFarmerIdAndStatusNot(String farmerId, ProductStatus status, Sort sort);
 
     List<Product> findAllByStatus(ProductStatus status, Sort sort);
+
+    List<Product> findByOcopStatus(OcopStatus status);
 }

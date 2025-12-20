@@ -85,8 +85,11 @@ public class Product {
     @JsonBackReference
     Farmer farmer;
 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "product", fetch = FetchType.LAZY)
+    Ocop ocop;
+
     @PrePersist
-    void onCreate(){
+    void onCreate() {
         this.status = ProductStatus.PENDING;
         this.rating = 5.0;
         this.sold = 0;

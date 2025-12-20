@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Added CardHeader
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +13,8 @@ import {
   Star,
   Truck,
   Frown, // Add Frown icon for "not found" state
+  Award,
+  Building2
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -26,12 +28,14 @@ import { useRouter, usePathname } from "next/navigation";
 import { ROUTES } from "@/contants/router";
 import ProductService from "@/services/product.service";
 import type { IProductResponse } from "@/types/product";
+import { OcopStatus } from "@/types/OcopStatus";
 import { ProductReviewForm } from "@/components/product/product-review-form";
 import {
   ProductReviewsList,
   type Review,
 } from "@/components/product/product-reviews-list";
 import LoadingSpinner from "@/components/common/loading-spinner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 // Định dạng giá tiền
 function formatPrice(price: number): string {
@@ -41,288 +45,8 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
-const products = [
-  {
-    id: 1,
-    name: "Hạt giống lúa ST25",
-    description: "Giống lúa thơm đạt giải gạo ngon nhất thế giới",
-    longDescription:
-      "Hạt giống lúa ST25 là giống lúa thơm cao cấp đã đạt giải gạo ngon nhất thế giới năm 2019. Giống lúa này có đặc điểm nổi bật là hạt dài, thon, trong mờ và có mùi thơm tự nhiên đặc trưng. Khi nấu chín, cơm mềm, dẻo và giữ được hương thơm lâu.",
-    price: 120000,
-    discount: 0,
-    unit: "1kg",
-    image: "/placeholder.svg?height=600&width=600",
-    category: "seeds",
-    stock: 50,
-    rating: 4.8,
-    reviews: 124,
-    specifications: {
-      "Xuất xứ": "Việt Nam",
-      "Thời gian sinh trưởng": "95-105 ngày",
-      "Năng suất trung bình": "7-8 tấn/ha",
-      "Khả năng chống chịu": "Chống đổ tốt, kháng rầy nâu, đạo ôn",
-      "Phù hợp với": "Vùng đồng bằng sông Cửu Long, đồng bằng sông Hồng",
-    },
-    usage:
-      "Ngâm hạt trong nước sạch 24 giờ trước khi gieo. Lượng giống khuyến cáo: 40-50kg/ha. Bón lót trước khi gieo với phân hữu cơ và NPK. Duy trì mực nước phù hợp theo từng giai đoạn sinh trưởng.",
-  },
-  {
-    id: 2,
-    name: "Phân bón NPK Đầu Trâu",
-    description: "Phân bón tổng hợp cho cây trồng phát triển toàn diện",
-    longDescription:
-      "Phân bón NPK Đầu Trâu là loại phân bón tổng hợp cung cấp đầy đủ các dưỡng chất thiết yếu cho cây trồng. Sản phẩm được sản xuất theo công nghệ tiên tiến, giúp cây trồng hấp thụ nhanh và hiệu quả các chất dinh dưỡng, từ đó phát triển khỏe mạnh, tăng năng suất và chất lượng nông sản.",
-    price: 250000,
-    discount: 10,
-    unit: "Bao 25kg",
-    image: "/placeholder.svg?height=600&width=600",
-    category: "fertilizers",
-    stock: 100,
-    rating: 4.5,
-    reviews: 89,
-    specifications: {
-      "Thành phần": "N:P:K = 16:16:8 + TE",
-      "Dạng phân": "Hạt",
-      "Xuất xứ": "Việt Nam",
-      "Thời hạn sử dụng": "36 tháng kể từ ngày sản xuất",
-      "Bảo quản": "Nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp",
-    },
-    usage:
-      "Bón lót: 70% lượng phân trước khi gieo trồng. Bón thúc: 30% lượng phân còn lại chia làm 2-3 lần bón vào các thời kỳ sinh trưởng quan trọng. Liều lượng tùy thuộc vào loại cây trồng, tham khảo hướng dẫn chi tiết trên bao bì.",
-  },
-  {
-    id: 3,
-    name: "Thuốc trừ sâu sinh học BT",
-    description: "An toàn cho người sử dụng và môi trường",
-    longDescription:
-      "Thuốc trừ sâu sinh học BT là sản phẩm được chiết xuất từ vi khuẩn Bacillus thuringiensis, có khả năng tiêu diệt hiệu quả các loại sâu hại như sâu xanh, sâu keo, sâu tơ, sâu róm... mà không gây hại cho thiên địch, ong mật và các sinh vật có ích khác. Sản phẩm an toàn cho người sử dụng, không gây ô nhiễm môi trường và không để lại dư lượng độc hại trên nông sản.",
-    price: 180000,
-    discount: 0,
-    unit: "Chai 1L",
-    image: "/placeholder.svg?height=600&width=600",
-    category: "pesticides",
-    stock: 75,
-    rating: 4.7,
-    reviews: 56,
-    specifications: {
-      "Thành phần chính": "Bacillus thuringiensis 10^9 CFU/ml",
-      "Dạng thuốc": "Dạng lỏng đậm đặc",
-      "Xuất xứ": "Việt Nam",
-      "Thời hạn sử dụng": "24 tháng kể từ ngày sản xuất",
-      "Phổ tác động": "Sâu ăn lá, sâu đục quả, sâu đục thân",
-    },
-    usage:
-      "Pha với nước sạch theo tỷ lệ 10-15ml/bình 16L. Phun đều lên toàn bộ tán lá, đặc biệt là mặt dưới lá nơi sâu thường trú ngụ. Phun vào buổi chiều mát để tránh ánh nắng làm giảm hiệu quả của thuốc. Phun định kỳ 7-10 ngày/lần hoặc khi phát hiện sâu hại.",
-  },
-  {
-    id: 4,
-    name: "Máy phun thuốc điện tử",
-    description: "Tiết kiệm thuốc và thời gian phun",
-    longDescription:
-      "Máy phun thuốc điện tử là thiết bị hiện đại giúp nông dân phun thuốc bảo vệ thực vật một cách hiệu quả và tiết kiệm. Máy được trang bị động cơ mạnh mẽ, bình chứa dung tích lớn và hệ thống phun áp lực cao, giúp phun thuốc đều và mịn, tiết kiệm thuốc và thời gian. Thiết kế nhẹ nhàng, tiện lợi, dễ sử dụng và bảo dưỡng.",
-    price: 1500000,
-    discount: 15,
-    unit: "Cái",
-    image: "/placeholder.svg?height=600&width=600",
-    category: "tools",
-    stock: 30,
-    rating: 4.6,
-    reviews: 42,
-    specifications: {
-      "Dung tích bình": "16L",
-      "Công suất": "12V/8AH",
-      "Thời gian sạc": "8-10 giờ",
-      "Thời gian sử dụng": "4-6 giờ liên tục",
-      "Áp lực phun": "0.15-0.4 MPa",
-      "Trọng lượng": "3.5kg (không bao gồm dung dịch)",
-      "Phụ kiện đi kèm": "Dây đeo, vòi phun, bộ sạc",
-    },
-    usage:
-      "Sạc đầy pin trước khi sử dụng. Pha thuốc theo đúng nồng độ khuyến cáo. Điều chỉnh áp lực phun phù hợp với loại cây trồng và thuốc sử dụng. Sau khi sử dụng, xả sạch thuốc còn lại và rửa kỹ bình chứa bằng nước sạch.",
-  },
-  {
-    id: 5,
-    name: "Hệ thống tưới nhỏ giọt",
-    description: "Tiết kiệm nước và tự động hóa tưới tiêu",
-    longDescription:
-      "Hệ thống tưới nhỏ giọt là giải pháp tưới tiêu hiện đại, giúp tiết kiệm nước và công sức. Hệ thống cung cấp nước trực tiếp đến gốc cây với lưu lượng nhỏ, đều đặn, giúp cây hấp thụ nước hiệu quả, giảm thiểu lượng nước bốc hơi và rửa trôi dinh dưỡng. Có thể kết hợp với bộ điều khiển tự động để tối ưu hóa thời gian tưới.",
-    price: 850000,
-    discount: 0,
-    unit: "Bộ 100m²",
-    image: "/placeholder.svg?height=600&width=600",
-    category: "irrigation",
-    stock: 25,
-    rating: 4.9,
-    reviews: 37,
-    specifications: {
-      "Diện tích phủ sóng": "100m²",
-      "Khoảng cách giữa các đầu nhỏ giọt": "30cm",
-      "Lưu lượng nước": "2-4 lít/giờ/đầu nhỏ giọt",
-      "Áp lực nước yêu cầu": "0.5-2.5 bar",
-      "Thành phần bộ kit":
-        "Ống PE 16mm, đầu nhỏ giọt, đầu nối, van khóa, bộ lọc",
-    },
-    usage:
-      "Lắp đặt ống chính và các nhánh theo sơ đồ. Đặt đầu nhỏ giọt tại vị trí gốc cây. Kết nối với nguồn nước và kiểm tra toàn bộ hệ thống trước khi sử dụng. Vệ sinh bộ lọc định kỳ để đảm bảo hệ thống hoạt động hiệu quả.",
-  },
-  {
-    id: 6,
-    name: "Hạt giống rau muống",
-    description: "Giống rau phát triển nhanh, năng suất cao",
-    longDescription:
-      "Hạt giống rau muống là giống rau ăn lá phổ biến, dễ trồng và phát triển nhanh. Cây có thân mềm, lá xanh đậm, giàu vitamin và khoáng chất. Giống rau này có khả năng chống chịu tốt với điều kiện thời tiết khắc nghiệt, ít sâu bệnh và cho thu hoạch liên tục trong thời gian dài.",
-    price: 25000,
-    discount: 0,
-    unit: "100g",
-    image: "/placeholder.svg?height=600&width=600",
-    category: "seeds",
-    stock: 200,
-    rating: 4.3,
-    reviews: 68,
-    specifications: {
-      "Xuất xứ": "Việt Nam",
-      "Thời gian nảy mầm": "3-5 ngày",
-      "Thời gian thu hoạch": "25-30 ngày sau gieo",
-      "Năng suất trung bình": "15-20kg/10m²",
-      "Tỷ lệ nảy mầm": ">85%",
-    },
-    usage:
-      "Ngâm hạt trong nước ấm 4-6 giờ trước khi gieo. Gieo hạt trực tiếp trên luống đất đã chuẩn bị sẵn, độ sâu 1-2cm, khoảng cách giữa các hạt 10-15cm. Tưới nước đều đặn, giữ đất luôn ẩm. Có thể thu hoạch bằng cách cắt ngọn hoặc nhổ cả cây.",
-  },
-  {
-    id: 7,
-    name: "Phân hữu cơ vi sinh",
-    description: "Cải tạo đất và bổ sung dinh dưỡng",
-    longDescription:
-      "Phân hữu cơ vi sinh là loại phân bón sinh học được sản xuất từ các nguyên liệu hữu cơ tự nhiên qua quá trình ủ hoai mục với sự tham gia của các vi sinh vật có ích. Sản phẩm giúp cải thiện cấu trúc đất, tăng độ phì nhiêu, kích thích hệ vi sinh vật đất hoạt động, từ đó giúp cây trồng phát triển khỏe mạnh, tăng sức đề kháng với sâu bệnh.",
-    price: 180000,
-    discount: 5,
-    unit: "Bao 10kg",
-    image: "/placeholder.svg?height=600&width=600",
-    category: "fertilizers",
-    stock: 85,
-    rating: 4.7,
-    reviews: 53,
-    specifications: {
-      "Thành phần":
-        "Hữu cơ >15%, N:P:K = 3:2:3, vi sinh vật có ích >10^6 CFU/g",
-      "Dạng phân": "Dạng bột mịn",
-      "Xuất xứ": "Việt Nam",
-      "Thời hạn sử dụng": "24 tháng kể từ ngày sản xuất",
-      "Bảo quản": "Nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp",
-    },
-    usage:
-      "Bón lót: 0.5-1kg/m² trước khi trồng. Bón thúc: 0.3-0.5kg/m² sau mỗi đợt thu hoạch hoặc 1-2 tháng/lần. Có thể trộn với đất trồng chậu theo tỷ lệ 1:10 (phân:đất) để cải thiện chất lượng đất.",
-  },
-  {
-    id: 8,
-    name: "Thuốc phòng bệnh đạo ôn",
-    description: "Phòng trừ hiệu quả bệnh đạo ôn trên lúa",
-    longDescription:
-      "Thuốc phòng bệnh đạo ôn là sản phẩm chuyên dụng để phòng và trị bệnh đạo ôn - một trong những bệnh nguy hiểm nhất trên cây lúa. Thuốc có tác dụng tiêu diệt nấm Pyricularia oryzae gây bệnh đạo ôn trên lá, cổ bông và thân lúa. Sử dụng thuốc đúng cách sẽ giúp bảo vệ cây lúa, tăng năng suất và chất lượng lúa gạo.",
-    price: 220000,
-    discount: 0,
-    unit: "Gói 500g",
-    image: "/placeholder.svg?height=600&width=600",
-    category: "pesticides",
-    stock: 60,
-    rating: 4.6,
-    reviews: 41,
-    specifications: {
-      "Hoạt chất chính": "Tricyclazole 75% WP",
-      "Dạng thuốc": "Bột thấm nước",
-      "Xuất xứ": "Việt Nam",
-      "Thời hạn sử dụng": "36 tháng kể từ ngày sản xuất",
-      "Phổ tác động": "Nấm Pyricularia oryzae gây bệnh đạo ôn",
-    },
-    usage:
-      "Pha 10-15g thuốc với 16 lít nước sạch. Phun đều lên toàn bộ cây lúa. Phun phòng khi lúa bắt đầu đẻ nhánh và trước khi lúa trổ bông 7-10 ngày. Phun trị khi phát hiện bệnh. Không phun thuốc khi trời sắp mưa hoặc đang có gió lớn.",
-  },
-];
-
-// Dữ liệu mẫu cho đánh giá
-const sampleReviews: Record<string, Review[]> = {
-  "1": [
-    {
-      id: "101",
-      productId: "1",
-      userName: "Nguyễn Văn An",
-      rating: 5,
-      comment:
-        "Hạt giống chất lượng cao, tỷ lệ nảy mầm tốt. Cây lúa phát triển khỏe mạnh và cho năng suất cao. Rất hài lòng với sản phẩm này!",
-      date: new Date(2023, 5, 15),
-    },
-    {
-      id: "102",
-      productId: "1",
-      userName: "Trần Thị Bình",
-      rating: 4,
-      comment:
-        "Giống lúa phát triển tốt, kháng sâu bệnh khá tốt. Tuy nhiên, thời gian sinh trưởng hơi lâu hơn so với mô tả một chút.",
-      date: new Date(2023, 6, 20),
-    },
-    {
-      id: "103",
-      productId: "1",
-      userName: "Lê Văn Cường",
-      rating: 5,
-      comment:
-        "Gạo thu hoạch được có mùi thơm đặc trưng, hạt gạo dài và đẹp. Đúng là giống lúa chất lượng cao, sẽ tiếp tục mua trong vụ sau.",
-      date: new Date(2023, 7, 5),
-    },
-  ],
-  "2": [
-    {
-      id: "201",
-      productId: "2",
-      userName: "Phạm Thị Dung",
-      rating: 5,
-      comment:
-        "Phân bón hiệu quả, cây trồng phát triển xanh tốt sau khi bón. Giá cả hợp lý so với chất lượng.",
-      date: new Date(2023, 4, 10),
-    },
-    {
-      id: "202",
-      productId: "2",
-      userName: "Hoàng Văn Em",
-      rating: 4,
-      comment:
-        "Sản phẩm tốt, dễ sử dụng. Tuy nhiên, bao bì đôi khi bị rách trong quá trình vận chuyển.",
-      date: new Date(2023, 5, 25),
-    },
-  ],
-  "3": [
-    {
-      id: "301",
-      productId: "3",
-      userName: "Vũ Thị Giang",
-      rating: 5,
-      comment:
-        "Thuốc trừ sâu sinh học rất hiệu quả mà không gây hại cho môi trường. Sâu hại giảm đáng kể sau khi sử dụng.",
-      date: new Date(2023, 3, 18),
-    },
-  ],
-  "4": [
-    {
-      id: "401",
-      productId: "4",
-      userName: "Đặng Văn Hùng",
-      rating: 4,
-      comment:
-        "Máy phun thuốc hoạt động tốt, pin trâu. Tuy nhiên, hơi nặng khi sử dụng trong thời gian dài.",
-      date: new Date(2023, 2, 12),
-    },
-    {
-      id: "402",
-      productId: "4",
-      userName: "Ngô Thị Lan",
-      rating: 5,
-      comment:
-        "Máy phun thuốc chất lượng cao, áp lực phun mạnh và đều. Tiết kiệm được nhiều thời gian so với phun thủ công.",
-      date: new Date(2023, 3, 5),
-    },
-  ],
-};
+// const products = [...]; // Removed hardcoded products
+// const sampleReviews = {...}; // Removed hardcoded reviews
 
 export default function ProductDetailPage({
   params,
@@ -344,9 +68,13 @@ export default function ProductDetailPage({
   const [selectedImage, setSelectedImage] = useState(0);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // State cho đánh giá (sử dụng sampleReviews)
-  const [reviews, setReviews] = useState<Review[]>(sampleReviews["1"] || []);
+  // State cho đánh giá (sử dụng một mảng rỗng ban đầu)
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [quantity, setQuantity] = useState(1);
+  const [viewOcopImagesDialog, setViewOcopImagesDialog] = useState({
+    open: false,
+    images: [] as { url: string }[],
+  });
 
   // Load sản phẩm theo ID
   useEffect(() => {
@@ -362,13 +90,16 @@ export default function ProductDetailPage({
               "Không thể tải thông tin sản phẩm. " + (error.message || ""),
             variant: "destructive",
           });
-          notFound();
+          // notFound(); // Removed direct call to notFound to allow rendering loading state
+          setProduct(null); // Explicitly set product to null on error
           return;
         }
 
         setProduct(data);
         // Cập nhật selected image khi có dữ liệu
         setSelectedImage(0);
+        // TODO: Load actual reviews for this product
+        // setReviews(data?.reviews || []); // Assuming product response includes reviews
       } catch (error) {
         console.error("Error loading product:", error);
         toast({
@@ -376,7 +107,7 @@ export default function ProductDetailPage({
           description: "Có lỗi xảy ra khi tải sản phẩm",
           variant: "destructive",
         });
-        notFound();
+        setProduct(null); // Explicitly set product to null on error
       } finally {
         setIsLoading(false);
       }
@@ -465,6 +196,19 @@ export default function ProductDetailPage({
     } finally {
       setIsAddingToCart(false);
     }
+  };
+
+  // View OCOP images
+  const handleViewOcopImages = (images: { url: string }[]) => {
+    setViewOcopImagesDialog({
+      open: true,
+      images,
+    });
+  };
+
+  // Close OCOP image dialog
+  const closeViewOcopImagesDialog = () => {
+    setViewOcopImagesDialog({ open: false, images: [] });
   };
 
   if (!product)
@@ -704,6 +448,75 @@ export default function ProductDetailPage({
         </div>
       </div>
 
+      {/* OCOP Certification Section */}
+      {product.ocop && product.ocop.status === "VERIFIED" && (
+        <div className="mt-12 lg:mt-16">
+          <Card className="shadow-sm rounded-lg">
+            <CardHeader className="border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 flex items-center gap-2">
+                <Award className="w-6 h-6" />
+                Chứng nhận OCOP
+              </h2>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Sản phẩm đạt chứng nhận OCOP (Chương trình Mỗi xã một sản phẩm) với chất lượng và nguồn gốc rõ ràng.
+              </p>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-base">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">Số sao:</span>
+                  <div className="flex items-center gap-1 text-yellow-500">
+                    {[...Array(product.ocop.star)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-yellow-500" />
+                    ))}
+                    <span className="text-gray-900 dark:text-gray-100">({product.ocop.star} sao)</span>
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">Số chứng nhận:</span>
+                  <span className="text-gray-900 dark:text-gray-100">{product.ocop.certificateNumber}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">Năm cấp:</span>
+                  <span className="text-gray-900 dark:text-gray-100">{product.ocop.issuedYear}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">Đơn vị cấp:</span>
+                  <span className="text-gray-900 dark:text-gray-100 flex items-center gap-2"><Building2 className="w-4 h-4 text-blue-500"/>{product.ocop.issuer}</span>
+                </div>
+              </div>
+
+              {product.ocop.images.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Ảnh chứng nhận:</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {product.ocop.images.map((image, index) => (
+                      <div key={index} className="relative w-full aspect-square border rounded-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                        <Image
+                          src={image.url}
+                          alt={`Chứng nhận OCOP ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          onClick={() => handleViewOcopImages(product.ocop?.images || [])}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Green Agriculture Message */}
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950 rounded-lg text-green-800 dark:text-green-200 flex items-center gap-3">
+                <Star className="w-5 h-5 flex-shrink-0" />
+                <p className="text-base font-medium">
+                  Mua sản phẩm OCOP giúp tăng thu nhập cho nông dân và phát triển nông nghiệp bền vững.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Product Tabs */}
       <div className="mt-12 lg:mt-16">
         <Tabs defaultValue="description">
@@ -861,6 +674,42 @@ export default function ProductDetailPage({
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialog xem ảnh chứng nhận OCOP */}
+      <Dialog
+        open={viewOcopImagesDialog.open}
+        onOpenChange={closeViewOcopImagesDialog}
+      >
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>Ảnh chứng nhận OCOP</DialogTitle>
+            <DialogDescription>
+              Các hình ảnh chứng nhận OCOP của sản phẩm.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4 max-h-[70vh] overflow-y-auto">
+            {viewOcopImagesDialog.images.length > 0 ? (
+              viewOcopImagesDialog.images.map((image, index) => (
+                <div key={index} className="relative w-full aspect-square border rounded-md overflow-hidden">
+                  <Image
+                    src={image.url}
+                    alt={`Chứng nhận OCOP ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))
+            ) : (
+              <p>Không có ảnh chứng nhận.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeViewOcopImagesDialog}>
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

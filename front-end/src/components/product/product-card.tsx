@@ -20,6 +20,8 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter, usePathname } from "next/navigation";
 import { ROUTES } from "@/contants/router";
 import { useCart } from "@/hooks/useCart";
+import { Badge } from "@/components/ui/badge"; // Already imported, but ensuring it's available
+import { OcopStatus } from "@/types/OcopStatus";
 
 export function ProductCard({
   product,
@@ -82,6 +84,12 @@ export function ProductCard({
           {product.price > 20000 && (
             <div className="absolute right-2 top-2 z-10 rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
               Hot
+            </div>
+          )}
+          {product.ocop && product.ocop.status === "VERIFIED" && (
+            <div className="absolute left-2 top-2 z-10 rounded-full bg-yellow-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm flex items-center gap-1">
+              <Star className="h-3 w-3 fill-white" />
+              OCOP {product.ocop.star} sao
             </div>
           )}
         </div>

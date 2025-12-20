@@ -3,13 +3,16 @@
 import { DataTable } from "@/components/common/data-table";
 import { DeleteDialog } from "@/components/common/delete-dialog";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, FileEdit, Trash2, Eye } from "lucide-react";
+import { PlusCircle, FileEdit, Trash2, Eye, ArrowUpDown, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import ProductService from "@/services/product.service";
 import { IProductResponse } from "@/types/product";
+import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { OcopStatus } from "@/types/OcopStatus";
 
 export default function FarmerProducts() {
   const router = useRouter();
@@ -126,8 +129,8 @@ export default function FarmerProducts() {
     }).format(price);
   };
 
-  // Format trạng thái
-  const getStatusBadge = (status: string) => {
+  // Format trạng thái chung của sản phẩm
+  const getProductStatusBadge = (status: string) => {
     switch (status?.toUpperCase()) {
       case "ACTIVE":
         return (
@@ -168,51 +171,128 @@ export default function FarmerProducts() {
     }
   };
 
+  // Format trạng thái OCOP
+  const getOcopStatusBadge = (status?: OcopStatus) => {
+    if (!status) {
+      return <Badge variant="outline">Không có OCOP</Badge>;
+    }
+    switch (status) {
+      case "PENDING_VERIFY":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
+            OCOP Chờ duyệt
+          </Badge>
+        );
+      case "VERIFIED":
+        return (
+          <Badge className="bg-green-100 text-green-600 dark:bg-green-700 dark:text-green-100">
+            OCOP Đã duyệt
+          </Badge>
+        );
+      case "REJECTED":
+        return (
+          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+            OCOP Bị từ chối
+          </Badge>
+        );
+      case "NONE":
+      default:
+        return <Badge variant="outline">Không có OCOP</Badge>;
+    }
+  };
+
   // Định nghĩa cột cho bảng
-  const columns = [
+  const columns: ColumnDef<IProductResponse>[] = [
     {
       accessorKey: "name",
-      header: "Tên sản phẩm",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên sản phẩm
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
     },
     {
-      accessorKey: "categoryName",
+      accessorKey: "category",
       header: "Danh mục",
       cell: ({ row }: { row: { original: IProductResponse } }) => {
         return row.original.category || "Chưa phân loại";
       },
+      size: 800,
     },
     {
       accessorKey: "price",
-      header: "Giá",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Giá
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
         return `${formatPrice(row.original.price)}/${row.original.unitPrice}`;
       },
     },
     {
       accessorKey: "inventory",
-      header: "Tồn kho",
-    },
-    {
-      accessorKey: "sold",
-      header: "Đã bán",
-    },
-    {
-      accessorKey: "rating",
-      header: "Đánh giá",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tồn kho
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
-        return (
-          <div className="flex items-center">
-            <span className="mr-1">⭐</span>
-            <span>{row.original.rating.toFixed(1)}</span>
-          </div>
-        );
+        return <div className="flex justify-center">{row.original.inventory}</div>;
       },
     },
     {
-      accessorKey: "status",
-      header: "Trạng thái",
+      accessorKey: "sold",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Đã bán
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
-        return getStatusBadge(row.original.status);
+        return <div className="flex justify-center">{row.original.sold}</div>;
+      },
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Ngày tạo
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => format(new Date(row.original.createdAt), "dd/MM/yyyy"),
+    },
+    {
+      accessorKey: "status",
+      header: "Trạng thái sản phẩm",
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
+        return getProductStatusBadge(row.original.status);
+      },
+    },
+    {
+      accessorKey: "ocop.status",
+      header: "Trạng thái OCOP",
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
+        return getOcopStatusBadge(row.original.ocop?.status);
       },
     },
     {
@@ -238,6 +318,18 @@ export default function FarmerProducts() {
             >
               <FileEdit className="h-4 w-4" />
             </Button>
+            {product.ocop && product.ocop.status === "REJECTED" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push(`/farm/product/${product.id}/ocop/update`)}
+                title="Chỉnh sửa OCOP bị từ chối"
+                className="text-blue-500 hover:text-blue-700"
+              >
+                <FileEdit className="h-4 w-4" />
+                <span className="sr-only">Chỉnh sửa OCOP</span>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"

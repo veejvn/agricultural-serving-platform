@@ -25,19 +25,21 @@ public class SecurityUtil {
         }
         return authentication.getName();
     }
-    public Account getAccount(){
-        return accountRepository.findById(this.getAccountId()).orElseThrow(()->
-                        new AppException(HttpStatus.NOT_FOUND,"Account not found", "auth-e-01")
-                );
+
+    public Account getAccount() {
+        return accountRepository.findById(this.getAccountId())
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Account not found", "auth-e-01"));
     }
+
     public String getFarmerId() {
         return this.getFarmer().getId();
     }
+
     public Farmer getFarmer() {
         Account account = this.getAccount();
-         if (!account.getRoles().contains(Role.FARMER)) {
-             throw new AppException(HttpStatus.FORBIDDEN, "Insufficient permissions", "auth-e-08");
-         }
+        if (!account.getRoles().contains(Role.FARMER)) {
+            throw new AppException(HttpStatus.FORBIDDEN, "Insufficient permissions", "auth-e-08");
+        }
         return farmerRepository.findByAccount(account)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Farmer not found", "farmer-e-01"));
     }

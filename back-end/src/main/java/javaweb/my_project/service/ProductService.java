@@ -1,15 +1,22 @@
 package javaweb.my_project.service;
 
+import javaweb.my_project.dto.ocop.OcopRequest;
+import javaweb.my_project.dto.ocop.OcopUpdateRequest;
 import javaweb.my_project.dto.product.*;
 import javaweb.my_project.entities.Category;
 import javaweb.my_project.entities.Farmer;
 import javaweb.my_project.entities.Image;
+import javaweb.my_project.entities.Ocop;
+import javaweb.my_project.entities.OcopImage;
 import javaweb.my_project.entities.Product;
+import javaweb.my_project.enums.OcopStatus;
 import javaweb.my_project.enums.ProductStatus;
 import javaweb.my_project.exception.AppException;
 import javaweb.my_project.mapper.ProductMapper;
 import javaweb.my_project.repository.CategoryRepository;
 import javaweb.my_project.repository.ProductRepository;
+import javaweb.my_project.repositories.OcopImageRepository;
+import javaweb.my_project.repositories.OcopRepository;
 import javaweb.my_project.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,9 +27,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,6 +40,8 @@ public class ProductService {
     private final SecurityUtil securityUtil;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final OcopRepository ocopRepository;
+    private final OcopImageRepository ocopImageRepository;
 
     /**
      * Validate if current farmer owns the product
@@ -117,10 +126,45 @@ public class ProductService {
                 product.getImages().add(newImage);
             }
         }
+    }
 
-        // Optional: Log the changes for debugging
-        // System.out.println("Images added: " + imagesToAdd.size() + ", Images removed:
-        // " + imagesToRemove.size());
+    /**
+     * Create OCOP and OcopImage entities from OcopRequest
+     */
+    private Ocop createOcopFromRequest(OcopRequest ocopRequest, Product product) {
+        if (ocopRequest == null || !ocopRequest.getEnabled()) {
+            return null;
+        }
+
+        // Validate required fields if OCOP is enabled
+//        if (ocopRequest.getStar() == null || ocopRequest.getStar() < 3 || ocopRequest.getStar() > 5 ||
+//                ocopRequest.getCertificateNumber() == null || ocopRequest.getCertificateNumber().isBlank() ||
+//                ocopRequest.getIssuedYear() == null || ocopRequest.getIssuer() == null || ocopRequest.getIssuer().isBlank() ||
+//                ocopRequest.getImagePaths() == null || ocopRequest.getImagePaths().isEmpty()) {
+//            throw new AppException(HttpStatus.BAD_REQUEST,
+//                    "OCOP star, certificate number, issued year, issuer, and images are required when OCOP is enabled", "ocop-e-01");
+//        }
+
+        Ocop ocop = Ocop.builder()
+                .star(ocopRequest.getStar())
+                .certificateNumber(ocopRequest.getCertificateNumber())
+                .issuedYear(ocopRequest.getIssuedYear())
+                .issuer(ocopRequest.getIssuer())
+                .status(OcopStatus.PENDING_VERIFY)
+                .product(product)
+                .build();
+
+        Set<OcopImage> ocopImages = new HashSet<>();
+        for (String imagePath : ocopRequest.getImagePaths()) {
+            OcopImage ocopImage = OcopImage.builder()
+                    .url(imagePath)
+                    .ocop(ocop)
+                    .build();
+            ocopImages.add(ocopImage);
+        }
+        ocop.setImages(ocopImages);
+
+        return ocop;
     }
 
     @Transactional
@@ -132,11 +176,67 @@ public class ProductService {
         product.setFarmer(farmer);
         product.setCategory(category);
 
-        // Handle images
+        // Handle product images
         Set<Image> images = createImagesFromPaths(request.getImagePaths(), product);
         product.setImages(images);
 
+        // Handle OCOP
+        Ocop ocop = createOcopFromRequest(request.getOcopRequest(), product);
+        if (ocop != null) {
+            product.setOcop(ocop);
+        }
+
         productRepository.save(product);
+        return productMapper.toProductResponse(product);
+    }
+
+    /**
+     * Update OCOP information for a product (only allowed if status is REJECTED)
+     */
+    @Transactional
+    public ProductResponse updateOcop(String productId, OcopUpdateRequest request) {
+        Product product = findProductById(productId);
+        validateProductOwnership(product);
+
+        Ocop ocop = product.getOcop();
+        if (ocop == null) {
+            throw new AppException(HttpStatus.NOT_FOUND, "OCOP information not found for this product", "ocop-e-02");
+        }
+
+        if (ocop.getStatus() != OcopStatus.REJECTED) {
+            throw new AppException(HttpStatus.FORBIDDEN, "OCOP information can only be updated if its status is REJECTED", "ocop-e-03");
+        }
+
+        // Update OCOP fields
+        ocop.setStar(request.getStar());
+        ocop.setCertificateNumber(request.getCertificateNumber());
+        ocop.setIssuedYear(request.getIssuedYear());
+        ocop.setIssuer(request.getIssuer());
+        ocop.setStatus(OcopStatus.PENDING_VERIFY);
+
+        // Update OCOP images
+        Set<OcopImage> currentOcopImages = ocop.getImages();
+        Set<String> newOcopImagePaths = request.getImagePaths();
+
+        // Remove images not in the new request
+        currentOcopImages.removeIf(image -> !newOcopImagePaths.contains(image.getUrl()));
+
+        // Add new images
+        Set<String> existingOcopImageUrls = currentOcopImages.stream().map(OcopImage::getUrl).collect(Collectors.toSet());
+        for (String newImagePath : newOcopImagePaths) {
+            if (!existingOcopImageUrls.contains(newImagePath)) {
+                OcopImage newOcopImage = OcopImage.builder()
+                        .url(newImagePath)
+                        .ocop(ocop)
+                        .build();
+                currentOcopImages.add(newOcopImage);
+            }
+        }
+        ocop.setImages(currentOcopImages);
+
+        ocopRepository.save(ocop);
+        productRepository.save(product); // Cascade should save ocop, but good to be explicit
+
         return productMapper.toProductResponse(product);
     }
 

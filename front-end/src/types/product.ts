@@ -1,4 +1,6 @@
 import { IFarmerResponse } from "@/types/farmer";
+import { IOcopResponse } from "./IOcopResponse";
+import { OcopStatus } from "./OcopStatus";
 
 // Interface cho dữ liệu category
 export interface ICategory {
@@ -42,6 +44,7 @@ export interface IProductResponse {
   usage?: string; // Thêm trường này
   createdAt: string;
   deletedAt?: string; // Thêm trường này cho soft delete
+  ocop?: IOcopResponse;
 }
 
 // Interface cho response phân trang
@@ -72,6 +75,7 @@ export interface IProductTag {
     description: string | null;
     status: string;
   };
+  ocop?: IOcopResponse; // Thêm trường này
 }
 
 export interface Review {
