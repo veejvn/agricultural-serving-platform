@@ -2,8 +2,8 @@ import axios, { service } from "@/tools/axios.tool";
 import { getApiUrl } from "@/tools/url.tool";
 
 const AdminOcopService = {
-  getPendingOcopProducts() {
-    return service(axios.get(getApiUrl("/admin/ocop/pending")));
+  getOcopProducts() {
+    return service(axios.get(getApiUrl("/admin/ocop")));
   },
 
   approveOcop(productId: string) {

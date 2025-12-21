@@ -14,7 +14,9 @@ import {
   Truck,
   Frown, // Add Frown icon for "not found" state
   Award,
-  Building2
+  Building2,
+  X,
+  Eye,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -35,7 +37,14 @@ import {
   type Review,
 } from "@/components/product/product-reviews-list";
 import LoadingSpinner from "@/components/common/loading-spinner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 // Định dạng giá tiền
 function formatPrice(price: number): string {
@@ -75,6 +84,7 @@ export default function ProductDetailPage({
     open: false,
     images: [] as { url: string }[],
   });
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   // Load sản phẩm theo ID
   useEffect(() => {
@@ -86,9 +96,8 @@ export default function ProductDetailPage({
         if (error) {
           toast({
             title: "Lỗi",
-            description:
-              "Không thể tải thông tin sản phẩm. " + (error.message || ""),
-            variant: "destructive",
+            description: "Không tìm thấy thông tin sản phẩm. ",
+            variant: "error",
           });
           // notFound(); // Removed direct call to notFound to allow rendering loading state
           setProduct(null); // Explicitly set product to null on error
@@ -349,9 +358,23 @@ export default function ProductDetailPage({
                   />
                 ))}
               </div>
-              <span className="text-base text-gray-600 dark:text-gray-400">
+              {/* <span className="text-base text-gray-600 dark:text-gray-400">
                 {product.rating.toFixed(1)} ({reviews.length} đánh giá)
-              </span>
+              </span> */}
+              {product.ocop && product.ocop.status === "VERIFIED" && (
+                <>
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 bg-gray-300 dark:bg-gray-600"
+                  />
+                  <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white border-none flex items-center gap-1 py-0.5 px-2">
+                    <Star className="h-3 w-3 fill-white" />
+                    <span className="text-xs font-bold">
+                      OCOP {product.ocop.star} sao
+                    </span>
+                  </Badge>
+                </>
+              )}
             </div>
             <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
               {product.description}
@@ -458,47 +481,73 @@ export default function ProductDetailPage({
                 Chứng nhận OCOP
               </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Sản phẩm đạt chứng nhận OCOP (Chương trình Mỗi xã một sản phẩm) với chất lượng và nguồn gốc rõ ràng.
+                Sản phẩm đạt chứng nhận OCOP (Chương trình Mỗi xã một sản phẩm)
+                với chất lượng và nguồn gốc rõ ràng.
               </p>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-base">
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-700 dark:text-gray-300">Số sao:</span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    Số sao:
+                  </span>
                   <div className="flex items-center gap-1 text-yellow-500">
                     {[...Array(product.ocop.star)].map((_, i) => (
                       <Star key={i} className="h-5 w-5 fill-yellow-500" />
                     ))}
-                    <span className="text-gray-900 dark:text-gray-100">({product.ocop.star} sao)</span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      ({product.ocop.star} sao)
+                    </span>
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-700 dark:text-gray-300">Số chứng nhận:</span>
-                  <span className="text-gray-900 dark:text-gray-100">{product.ocop.certificateNumber}</span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    Số chứng nhận:
+                  </span>
+                  <span className="text-gray-900 dark:text-gray-100">
+                    {product.ocop.certificateNumber}
+                  </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-700 dark:text-gray-300">Năm cấp:</span>
-                  <span className="text-gray-900 dark:text-gray-100">{product.ocop.issuedYear}</span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    Năm cấp:
+                  </span>
+                  <span className="text-gray-900 dark:text-gray-100">
+                    {product.ocop.issuedYear}
+                  </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-700 dark:text-gray-300">Đơn vị cấp:</span>
-                  <span className="text-gray-900 dark:text-gray-100 flex items-center gap-2"><Building2 className="w-4 h-4 text-blue-500"/>{product.ocop.issuer}</span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    Đơn vị cấp:
+                  </span>
+                  <span className="text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-blue-500" />
+                    {product.ocop.issuer}
+                  </span>
                 </div>
               </div>
 
               {product.ocop.images.length > 0 && (
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Ảnh chứng nhận:</h3>
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    Ảnh chứng nhận:
+                  </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {product.ocop.images.map((image, index) => (
-                      <div key={index} className="relative w-full aspect-square border rounded-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                      <div
+                        key={index}
+                        className="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-100 shadow-sm hover:border-green-500 transition-colors"
+                        onClick={() => setZoomedImage(image.url)}
+                      >
                         <Image
                           src={image.url}
                           alt={`Chứng nhận OCOP ${index + 1}`}
                           fill
-                          className="object-cover"
-                          onClick={() => handleViewOcopImages(product.ocop?.images || [])}
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                          <Eye className="text-white opacity-0 group-hover:opacity-100 h-8 w-8" />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -509,7 +558,8 @@ export default function ProductDetailPage({
               <div className="mt-6 p-4 bg-green-50 dark:bg-green-950 rounded-lg text-green-800 dark:text-green-200 flex items-center gap-3">
                 <Star className="w-5 h-5 flex-shrink-0" />
                 <p className="text-base font-medium">
-                  Mua sản phẩm OCOP giúp tăng thu nhập cho nông dân và phát triển nông nghiệp bền vững.
+                  Mua sản phẩm OCOP giúp tăng thu nhập cho nông dân và phát
+                  triển nông nghiệp bền vững.
                 </p>
               </div>
             </CardContent>
@@ -690,12 +740,16 @@ export default function ProductDetailPage({
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4 max-h-[70vh] overflow-y-auto">
             {viewOcopImagesDialog.images.length > 0 ? (
               viewOcopImagesDialog.images.map((image, index) => (
-                <div key={index} className="relative w-full aspect-square border rounded-md overflow-hidden">
+                <div
+                  key={index}
+                  className="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-100 shadow-sm cursor-zoom-in hover:border-green-500 transition-colors"
+                  onClick={() => setZoomedImage(image.url)}
+                >
                   <Image
                     src={image.url}
                     alt={`Chứng nhận OCOP ${index + 1}`}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
               ))
@@ -708,6 +762,31 @@ export default function ProductDetailPage({
               Đóng
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full-screen Zoom Modal */}
+      <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-none bg-transparent shadow-none flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {zoomedImage && (
+              <div className="relative w-full h-full min-h-[80vh] min-w-[80vw]">
+                <Image
+                  src={zoomedImage}
+                  alt="Zoomed Certificate"
+                  fill
+                  className="object-contain"
+                  quality={100}
+                />
+              </div>
+            )}
+            <Button
+              className="absolute top-4 right-4 rounded-full bg-black/50 hover:bg-black/70 text-white border-none h-10 w-10 p-0"
+              onClick={() => setZoomedImage(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

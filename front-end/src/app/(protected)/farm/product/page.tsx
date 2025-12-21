@@ -3,8 +3,22 @@
 import { DataTable } from "@/components/common/data-table";
 import { DeleteDialog } from "@/components/common/delete-dialog";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, FileEdit, Trash2, Eye, ArrowUpDown, Star } from "lucide-react";
+import {
+  PlusCircle,
+  FileEdit,
+  Trash2,
+  Eye,
+  ArrowUpDown,
+  Star,
+  Info,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -134,37 +148,37 @@ export default function FarmerProducts() {
     switch (status?.toUpperCase()) {
       case "ACTIVE":
         return (
-          <Badge className="py-2 bg-green-100 text-green-600 hover:bg-green-100 dark:bg-green-700 dark:text-green-100 whitespace-nowrap">
+          <Badge className="py-1 bg-green-100 text-green-600 hover:bg-green-400 hover:text-black dark:bg-green-700 dark:text-green-100 whitespace-nowrap">
             Đang bán
           </Badge>
         );
       case "PENDING":
         return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
+          <Badge className="py-1 bg-yellow-100 text-yellow-800 hover:bg-yellow-400 hover:text-black dark:bg-yellow-900 dark:text-yellow-100">
             Chờ duyệt
           </Badge>
         );
       case "REJECTED":
         return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+          <Badge className="py-1 bg-red-100 text-red-800 hover:bg-red-400 hover:text-black dark:bg-red-900 dark:text-red-100">
             Bị từ chối
           </Badge>
         );
       case "BLOCKED":
         return (
-          <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100">
+          <Badge className="py-1 bg-orange-100 text-orange-800 hover:bg-orange-400 hover:text-black dark:bg-orange-900 dark:text-orange-100">
             Bị khóa
           </Badge>
         );
       case "DELETED":
         return (
-          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+          <Badge className="py-1 bg-gray-100 text-gray-800 hover:bg-gray-400 hover:text-black dark:bg-gray-900 dark:text-gray-100">
             Đã xóa
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+          <Badge className="py-1 bg-gray-100 text-gray-800 hover:bg-gray-400 hover:text-black dark:bg-gray-900 dark:text-gray-100">
             {status || "Không xác định"}
           </Badge>
         );
@@ -172,32 +186,55 @@ export default function FarmerProducts() {
   };
 
   // Format trạng thái OCOP
-  const getOcopStatusBadge = (status?: OcopStatus) => {
+  const getOcopStatusBadge = (ocop?: any) => {
+    const status = ocop?.status;
     if (!status) {
-      return <Badge variant="outline">Không có OCOP</Badge>;
+      return (
+        <Badge className="py-1" variant="outline">
+          Không có
+        </Badge>
+      );
     }
     switch (status) {
       case "PENDING_VERIFY":
         return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
-            OCOP Chờ duyệt
+          <Badge className="py-1 bg-yellow-100 text-yellow-800 hover:bg-yellow-400 hover:text-black dark:bg-yellow-900 dark:text-yellow-100">
+            Chờ duyệt
           </Badge>
         );
       case "VERIFIED":
         return (
-          <Badge className="bg-green-100 text-green-600 dark:bg-green-700 dark:text-green-100">
-            OCOP Đã duyệt
+          <Badge className="py-1 bg-green-100 text-green-600 hover:bg-green-400 hover:text-black dark:bg-green-700 dark:text-green-100">
+            Đã duyệt
           </Badge>
         );
       case "REJECTED":
         return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
-            OCOP Bị từ chối
-          </Badge>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="py-1 bg-red-100 text-red-800 hover:bg-red-400 hover:text-black dark:bg-red-900 dark:text-red-100 cursor-help">
+                  <div className="flex items-center gap-1">
+                    Bị từ chối
+                  </div>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="font-semibold mb-1">Lý do từ chối:</p>
+                <p className="text-sm">
+                  {ocop.reason || "Không có lý do cụ thể."}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         );
       case "NONE":
       default:
-        return <Badge variant="outline">Không có OCOP</Badge>;
+        return (
+          <Badge className="py-1" variant="outline">
+            Không có
+          </Badge>
+        );
     }
   };
 
@@ -211,7 +248,6 @@ export default function FarmerProducts() {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Tên sản phẩm
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
     },
@@ -221,7 +257,6 @@ export default function FarmerProducts() {
       cell: ({ row }: { row: { original: IProductResponse } }) => {
         return row.original.category || "Chưa phân loại";
       },
-      size: 800,
     },
     {
       accessorKey: "price",
@@ -229,9 +264,9 @@ export default function FarmerProducts() {
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto"
         >
           Giá
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
@@ -244,13 +279,15 @@ export default function FarmerProducts() {
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto w-10"
         >
           Tồn kho
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
-        return <div className="flex justify-center">{row.original.inventory}</div>;
+        return (
+          <div className="flex justify-center">{row.original.inventory}</div>
+        );
       },
     },
     {
@@ -259,9 +296,9 @@ export default function FarmerProducts() {
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto w-10"
         >
           Đã bán
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
@@ -274,9 +311,9 @@ export default function FarmerProducts() {
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto w-10"
         >
           Ngày tạo
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => format(new Date(row.original.createdAt), "dd/MM/yyyy"),
@@ -290,18 +327,28 @@ export default function FarmerProducts() {
     },
     {
       accessorKey: "ocop.status",
-      header: "Trạng thái OCOP",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto w-20"
+        >
+          Trạng thái OCOP
+        </Button>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
-        return getOcopStatusBadge(row.original.ocop?.status);
+        return getOcopStatusBadge(row.original.ocop);
       },
     },
     {
       id: "actions",
-      header: "Thao tác",
+      header: () => (
+        <div className="flex justify-center">Thao tác</div>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
         const product = row.original;
         return (
-          <div className="flex space-x-2">
+          <div className="flex">
             <Button
               variant="ghost"
               size="icon"
@@ -318,18 +365,6 @@ export default function FarmerProducts() {
             >
               <FileEdit className="h-4 w-4" />
             </Button>
-            {product.ocop && product.ocop.status === "REJECTED" && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push(`/farm/product/${product.id}/ocop/update`)}
-                title="Chỉnh sửa OCOP bị từ chối"
-                className="text-blue-500 hover:text-blue-700"
-              >
-                <FileEdit className="h-4 w-4" />
-                <span className="sr-only">Chỉnh sửa OCOP</span>
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="icon"

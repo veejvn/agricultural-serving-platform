@@ -2,6 +2,7 @@ package javaweb.my_project.dto.product;
 
 import javaweb.my_project.dto.farmer.FarmerResponse;
 import javaweb.my_project.dto.image.ImageResponse;
+import javaweb.my_project.dto.ocop.OcopProductResponse;
 import javaweb.my_project.enums.ProductStatus;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -27,5 +28,6 @@ public class ProductResponse {
     Set<ImageResponse> images = new HashSet<>();
     String category;
     FarmerResponse farmer;
+    OcopProductResponse ocop;
     LocalDateTime createdAt;
 }

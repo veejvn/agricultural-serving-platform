@@ -86,6 +86,9 @@ public class Product {
     Farmer farmer;
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "product", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     Ocop ocop;
 
     @PrePersist

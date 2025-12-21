@@ -39,6 +39,11 @@ const ProductService = {
     return service(axios.put(getApiUrl(`/products/${id}`), data), true);
   },
 
+  // Cập nhật OCOP (FARMER)
+  updateOcop(id: string, data: any) {
+    return service(axios.put(getApiUrl(`/products/${id}/ocop`), data), true);
+  },
+
   // Xóa sản phẩm
   deleteProduct(id: string) {
     return service(axios.delete(getApiUrl(`/products/${id}`)), true);

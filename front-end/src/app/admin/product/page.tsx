@@ -33,7 +33,7 @@ import { IProductAdminResponse, ProductStatus } from "@/types/product";
 import ProductService from "@/services/product.service";
 import { format } from "date-fns";
 import Link from "next/link";
-import { ArrowUpDown, Eye, Edit } from "lucide-react";
+import { ArrowUpDown, Eye, Edit, Star } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -226,11 +226,26 @@ const ProductListPage = () => {
       cell: ({ row }) => (
         <Badge
           className={`
-            ${row.original.status === "ACTIVE" && "bg-green-600 hover:bg-green-800"}
-            ${row.original.status === "PENDING" && "bg-yellow-600 hover:bg-yellow-800"}
-            ${row.original.status === "REJECTED" && "bg-red-600 hover:bg-red-800"}
-            ${row.original.status === "BLOCKED" && "bg-gray-500 hover:bg-gray-700"}
-            ${row.original.status === "DELETED" && "bg-gray-700 hover:bg-gray-900"}
+            ${
+              row.original.status === "ACTIVE" &&
+              "bg-green-600 hover:bg-green-800"
+            }
+            ${
+              row.original.status === "PENDING" &&
+              "bg-yellow-600 hover:bg-yellow-800"
+            }
+            ${
+              row.original.status === "REJECTED" &&
+              "bg-red-600 hover:bg-red-800"
+            }
+            ${
+              row.original.status === "BLOCKED" &&
+              "bg-gray-500 hover:bg-gray-700"
+            }
+            ${
+              row.original.status === "DELETED" &&
+              "bg-gray-700 hover:bg-gray-900"
+            }
           `}
         >
           {STATUS[row.original.status]}
@@ -252,7 +267,7 @@ const ProductListPage = () => {
     },
     {
       id: "actions",
-      header: "Hành động",
+      header: "Thao tác",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <Link href={`/admin/product/${row.original.id}`}>
@@ -260,6 +275,18 @@ const ProductListPage = () => {
               <Eye className="h-4 w-4" />
             </Button>
           </Link>
+          {row.original.ocop && (
+            <Link href={`/admin/ocop?productId=${row.original.id}`}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+                title="Xem chứng chỉ OCOP"
+              >
+                <Star className="h-4 w-4 fill-yellow-600" />
+              </Button>
+            </Link>
+          )}
           <Button
             variant="outline"
             size="icon"

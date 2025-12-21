@@ -3,14 +3,10 @@ package javaweb.my_project.service;
 import javaweb.my_project.dto.ocop.OcopRequest;
 import javaweb.my_project.dto.ocop.OcopUpdateRequest;
 import javaweb.my_project.dto.product.*;
-import javaweb.my_project.entities.Category;
-import javaweb.my_project.entities.Farmer;
-import javaweb.my_project.entities.Image;
-import javaweb.my_project.entities.Ocop;
-import javaweb.my_project.entities.OcopImage;
-import javaweb.my_project.entities.Product;
+import javaweb.my_project.entities.*;
 import javaweb.my_project.enums.OcopStatus;
 import javaweb.my_project.enums.ProductStatus;
+import javaweb.my_project.enums.Role;
 import javaweb.my_project.exception.AppException;
 import javaweb.my_project.mapper.ProductMapper;
 import javaweb.my_project.repository.CategoryRepository;
@@ -137,13 +133,18 @@ public class ProductService {
         }
 
         // Validate required fields if OCOP is enabled
-//        if (ocopRequest.getStar() == null || ocopRequest.getStar() < 3 || ocopRequest.getStar() > 5 ||
-//                ocopRequest.getCertificateNumber() == null || ocopRequest.getCertificateNumber().isBlank() ||
-//                ocopRequest.getIssuedYear() == null || ocopRequest.getIssuer() == null || ocopRequest.getIssuer().isBlank() ||
-//                ocopRequest.getImagePaths() == null || ocopRequest.getImagePaths().isEmpty()) {
-//            throw new AppException(HttpStatus.BAD_REQUEST,
-//                    "OCOP star, certificate number, issued year, issuer, and images are required when OCOP is enabled", "ocop-e-01");
-//        }
+        // if (ocopRequest.getStar() == null || ocopRequest.getStar() < 3 ||
+        // ocopRequest.getStar() > 5 ||
+        // ocopRequest.getCertificateNumber() == null ||
+        // ocopRequest.getCertificateNumber().isBlank() ||
+        // ocopRequest.getIssuedYear() == null || ocopRequest.getIssuer() == null ||
+        // ocopRequest.getIssuer().isBlank() ||
+        // ocopRequest.getImagePaths() == null || ocopRequest.getImagePaths().isEmpty())
+        // {
+        // throw new AppException(HttpStatus.BAD_REQUEST,
+        // "OCOP star, certificate number, issued year, issuer, and images are required
+        // when OCOP is enabled", "ocop-e-01");
+        // }
 
         Ocop ocop = Ocop.builder()
                 .star(ocopRequest.getStar())
@@ -204,7 +205,8 @@ public class ProductService {
         }
 
         if (ocop.getStatus() != OcopStatus.REJECTED) {
-            throw new AppException(HttpStatus.FORBIDDEN, "OCOP information can only be updated if its status is REJECTED", "ocop-e-03");
+            throw new AppException(HttpStatus.FORBIDDEN,
+                    "OCOP information can only be updated if its status is REJECTED", "ocop-e-03");
         }
 
         // Update OCOP fields
@@ -222,7 +224,8 @@ public class ProductService {
         currentOcopImages.removeIf(image -> !newOcopImagePaths.contains(image.getUrl()));
 
         // Add new images
-        Set<String> existingOcopImageUrls = currentOcopImages.stream().map(OcopImage::getUrl).collect(Collectors.toSet());
+        Set<String> existingOcopImageUrls = currentOcopImages.stream().map(OcopImage::getUrl)
+                .collect(Collectors.toSet());
         for (String newImagePath : newOcopImagePaths) {
             if (!existingOcopImageUrls.contains(newImagePath)) {
                 OcopImage newOcopImage = OcopImage.builder()
@@ -271,6 +274,34 @@ public class ProductService {
 
     public ProductResponse getById(String id) {
         Product product = findProductById(id);
+
+        try {
+            Account account = securityUtil.getAccount();
+            Set<Role> roles = account.getRoles();
+
+            if (roles.contains(Role.ADMIN)) {
+                return productMapper.toProductResponse(product);
+            }
+
+            if (roles.contains(Role.FARMER)) {
+                if (product.getStatus() == ProductStatus.DELETED) {
+                    throw new AppException(HttpStatus.FORBIDDEN,
+                            "You don't have permission to access this product", "product-e-03");
+                }
+                return productMapper.toProductResponse(product);
+            }
+        } catch (AppException e) {
+            if (!"auth-e-00".equals(e.getCode())) {
+                throw e;
+            }
+        }
+
+        // Default for CONSUMER or unauthenticated
+        if (product.getStatus() != ProductStatus.ACTIVE) {
+            throw new AppException(HttpStatus.FORBIDDEN,
+                    "You don't have permission to access this product", "product-e-03");
+        }
+
         return productMapper.toProductResponse(product);
     }
 

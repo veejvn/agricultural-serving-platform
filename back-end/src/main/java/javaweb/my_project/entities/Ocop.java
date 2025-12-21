@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -42,6 +44,9 @@ public class Ocop {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     @MapsId
+    @JsonBackReference
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     Product product;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "ocop", orphanRemoval = true)

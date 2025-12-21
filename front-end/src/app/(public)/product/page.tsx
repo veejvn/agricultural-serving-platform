@@ -56,6 +56,8 @@ export default function ProductsPage() {
     fetchAllProducts();
   }, []);
 
+  console.log("All products:", allProducts);
+
   useEffect(() => {
     async function fetchCategories() {
       const [data, error] = await categoryService.getAllCategories();

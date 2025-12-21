@@ -40,18 +40,30 @@ import {
   Loader2,
   Save,
   RotateCcw,
+  Star,
+  Plus,
+  Check,
+  Maximize2,
 } from "lucide-react";
 import ProductService from "@/services/product.service";
 import categoryService from "@/services/category.service";
 import UploadService from "@/services/upload.service";
 import LoadingSpinner from "@/components/common/loading-spinner";
-import { ICategory, IProductResponse, ImageResponse } from "@/types/product";
+import { ICategory, ImageResponse } from "@/types/product";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-// interface ICategory {
-//   id: string;
-//   name: string;
-//   children?: ICategory[];
-// }
+interface OcopForm {
+  enabled: boolean;
+  star: string;
+  certificateNumber: string;
+  issuedYear: string;
+  issuer: string;
+  imagePaths: string[];
+  status?: string;
+  reason?: string;
+}
 
 interface ProductForm {
   name: string;
@@ -64,7 +76,33 @@ interface ProductForm {
   imagePaths: string[];
 }
 
-const units = ["kg", "bao", "gram", "lạng", "tấn", "quả", "bó", "túi", "hộp"];
+const units = [
+  "kg",
+  "gram",
+  "lạng",
+  "tấn",
+  "quả",
+  "bó",
+  "túi",
+  "hộp",
+  "chai",
+  "bao",
+];
+
+const stars = ["3", "4", "5"];
+
+const getOcopStatusLabel = (status?: string) => {
+  switch (status) {
+    case "PENDING_VERIFY":
+      return "Đang chờ xác thực";
+    case "VERIFIED":
+      return "Đã xác thực";
+    case "REJECTED":
+      return "Bị từ chối";
+    default:
+      return status || "Chưa có trạng thái";
+  }
+};
 
 export default function UpdateProductPage() {
   const router = useRouter();
@@ -77,6 +115,7 @@ export default function UpdateProductPage() {
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingOcopImages, setUploadingOcopImages] = useState(false);
   const [deletingImages, setDeletingImages] = useState<Set<number>>(new Set());
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
@@ -85,6 +124,7 @@ export default function UpdateProductPage() {
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const additionalImagesInputRef = useRef<HTMLInputElement>(null);
+  const ocopImagesInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<ProductForm>({
     name: "",
@@ -97,11 +137,28 @@ export default function UpdateProductPage() {
     imagePaths: [],
   });
 
+  const [ocopFormData, setOcopFormData] = useState<OcopForm>({
+    enabled: false,
+    star: "",
+    certificateNumber: "",
+    issuedYear: "",
+    issuer: "",
+    imagePaths: [],
+  });
+
+  const [initialData, setInitialData] = useState<{
+    product: ProductForm;
+    ocop: OcopForm;
+  } | null>(null);
+
   const [errors, setErrors] = useState<Partial<ProductForm>>({});
+  const [ocopErrors, setOcopErrors] = useState<Partial<OcopForm>>({});
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ProductForm> = {};
+    const newOcopErrors: Partial<OcopForm> = {};
 
     if (!formData.name.trim()) {
       newErrors.name = "Tên sản phẩm là bắt buộc";
@@ -127,8 +184,32 @@ export default function UpdateProductPage() {
       newErrors.thumbnail = "Ảnh đại diện là bắt buộc";
     }
 
+    if (ocopFormData.enabled) {
+      if (!ocopFormData.star) {
+        newOcopErrors.star = "Số sao OCOP là bắt buộc";
+      }
+      if (!ocopFormData.certificateNumber.trim()) {
+        newOcopErrors.certificateNumber = "Số chứng nhận OCOP là bắt buộc";
+      }
+      if (!ocopFormData.issuedYear) {
+        newOcopErrors.issuedYear = "Năm cấp chứng nhận là bắt buộc";
+      }
+      if (!ocopFormData.issuer.trim()) {
+        newOcopErrors.issuer = "Đơn vị cấp chứng nhận là bắt buộc";
+      }
+      if (ocopFormData.imagePaths.length === 0) {
+        newOcopErrors.imagePaths = [
+          "Cần ít nhất một ảnh chứng nhận OCOP",
+        ] as any;
+      }
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setOcopErrors(newOcopErrors);
+    return (
+      Object.keys(newErrors).length === 0 &&
+      Object.keys(newOcopErrors).length === 0
+    );
   };
 
   // Load product data
@@ -159,12 +240,10 @@ export default function UpdateProductPage() {
         }
 
         if (result) {
-          console.log("Product data from API:", result); // Debug log
+          console.log("Product data from API:", result);
 
-          // Xử lý categoryId - nếu category là tên thì tìm ID tương ứng
           let categoryId = result.category || "";
 
-          // Nếu có categories đã load và category từ API là tên, tìm ID
           if (categories.length > 0) {
             const foundCategory =
               findCategoryById(categories, result.category) ||
@@ -174,7 +253,7 @@ export default function UpdateProductPage() {
             }
           }
 
-          setFormData({
+          const productFormData: ProductForm = {
             name: result.name || "",
             description: result.description || "",
             price: result.price?.toString() || "",
@@ -184,6 +263,34 @@ export default function UpdateProductPage() {
             categoryId: categoryId,
             imagePaths:
               result.images?.map((img: ImageResponse) => img.path) || [],
+          };
+
+          const ocopData: OcopForm = result.ocop
+            ? {
+                enabled: true,
+                star: result.ocop.star?.toString() || "",
+                certificateNumber: result.ocop.certificateNumber || "",
+                issuedYear: result.ocop.issuedYear?.toString() || "",
+                issuer: result.ocop.issuer || "",
+                imagePaths:
+                  result.ocop.images?.map((img: any) => img.url) || [],
+                status: result.ocop.status,
+                reason: result.ocop.reason,
+              }
+            : {
+                enabled: false,
+                star: "",
+                certificateNumber: "",
+                issuedYear: "",
+                issuer: "",
+                imagePaths: [],
+              };
+
+          setFormData(productFormData);
+          setOcopFormData(ocopData);
+          setInitialData({
+            product: { ...productFormData },
+            ocop: { ...ocopData },
           });
         }
       } catch (error: any) {
@@ -200,7 +307,7 @@ export default function UpdateProductPage() {
     };
 
     loadProduct();
-  }, [productId, toast, router]);
+  }, [productId, categories, toast, router]);
 
   // Load categories từ API
   useEffect(() => {
@@ -218,7 +325,6 @@ export default function UpdateProductPage() {
         }
         if (result) {
           setCategories(result);
-          // Tự động mở rộng các danh mục cấp đầu tiên
           const rootCategoryIds = result.map((cat: ICategory) => cat.id);
           setExpandedCategories(new Set(rootCategoryIds));
         }
@@ -237,38 +343,6 @@ export default function UpdateProductPage() {
     loadCategories();
   }, [toast]);
 
-  // Reload product khi categories đã load để xử lý categoryId đúng
-  useEffect(() => {
-    if (
-      categories.length > 0 &&
-      formData.categoryId &&
-      !findCategoryById(categories, formData.categoryId)
-    ) {
-      // Nếu categoryId hiện tại không tìm thấy trong danh sách categories, thử tìm theo tên
-      const loadProductAgain = async () => {
-        try {
-          const [result, error] = await ProductService.getById(productId);
-          if (result && result.category) {
-            const foundCategory = findCategoryByName(
-              categories,
-              result.category
-            );
-            if (foundCategory) {
-              setFormData((prev) => ({
-                ...prev,
-                categoryId: foundCategory.id,
-              }));
-            }
-          }
-        } catch (error) {
-          console.warn("Failed to reload product for category mapping:", error);
-        }
-      };
-      loadProductAgain();
-    }
-  }, [categories, formData.categoryId, productId]);
-
-  // Hàm toggle mở/đóng category
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories((prev) => {
       const newSet = new Set(prev);
@@ -281,7 +355,6 @@ export default function UpdateProductPage() {
     });
   };
 
-  // Hàm tìm category theo ID hoặc tên
   const findCategoryById = (
     categories: ICategory[],
     id: string
@@ -296,7 +369,6 @@ export default function UpdateProductPage() {
     return null;
   };
 
-  // Hàm tìm category theo tên (fallback nếu API trả về tên thay vì ID)
   const findCategoryByName = (
     categories: ICategory[],
     name: string
@@ -311,13 +383,11 @@ export default function UpdateProductPage() {
     return null;
   };
 
-  // Hàm render từng category item
   const renderCategoryItem = (category: ICategory, level: number = 0) => {
     const hasChildren = category.children && category.children.length > 0;
     const isExpanded = expandedCategories.has(category.id);
     const isSelected = formData.categoryId === category.id;
 
-    // Tạo padding class based on level
     const paddingClass =
       level === 0
         ? "pl-2"
@@ -359,6 +429,7 @@ export default function UpdateProductPage() {
           {!hasChildren && <div className="w-6" />}
           <Folder className="h-4 w-4 mr-2 text-yellow-600" />
           <span className="text-sm">{category.name}</span>
+          {isSelected && <Check className="h-4 w-4 ml-auto text-blue-600" />}
         </div>
 
         {hasChildren && isExpanded && (
@@ -372,7 +443,6 @@ export default function UpdateProductPage() {
     );
   };
 
-  // Hàm render toàn bộ cây category
   const renderCategoryTree = () => {
     return (
       <div className="max-h-80 w-[512px] overflow-y-auto">
@@ -388,7 +458,16 @@ export default function UpdateProductPage() {
     }
   };
 
-  // Handle thumbnail file selection with upload
+  const handleOcopInputChange = (
+    field: keyof OcopForm,
+    value: string | boolean
+  ) => {
+    setOcopFormData((prev) => ({ ...prev, [field]: value }));
+    if (ocopErrors[field as keyof OcopForm]) {
+      setOcopErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   const handleThumbnailChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -406,10 +485,7 @@ export default function UpdateProductPage() {
       setUploadingThumbnail(true);
       try {
         const [imageUrl, error] = await UploadService.uploadImage(file);
-
-        if (error) {
-          throw new Error(error.message || "Upload failed");
-        }
+        if (error) throw new Error(error.message || "Upload failed");
 
         if (imageUrl) {
           setFormData((prev) => ({ ...prev, thumbnail: imageUrl }));
@@ -422,7 +498,6 @@ export default function UpdateProductPage() {
           });
         }
       } catch (error: any) {
-        console.error("Upload thumbnail error:", error);
         toast({
           title: "Lỗi upload",
           description: error.message || "Không thể tải ảnh lên server",
@@ -434,7 +509,6 @@ export default function UpdateProductPage() {
     }
   };
 
-  // Handle additional images file selection with upload
   const handleAdditionalImagesChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -454,13 +528,9 @@ export default function UpdateProductPage() {
     setUploadingImages(true);
     try {
       const [imageUrls, error] = await UploadService.uploadImages(imageFiles);
-
-      if (error) {
-        throw new Error(error.message || "Upload failed");
-      }
+      if (error) throw new Error(error.message || "Upload failed");
 
       if (imageUrls) {
-        // Thêm các URL mới vào danh sách, loại bỏ duplicate
         setFormData((prev) => {
           const existingPaths = new Set(prev.imagePaths);
           const newPaths = imageUrls.filter(
@@ -478,7 +548,6 @@ export default function UpdateProductPage() {
         });
       }
     } catch (error: any) {
-      console.error("Upload additional images error:", error);
       toast({
         title: "Lỗi upload",
         description: error.message || "Không thể tải ảnh lên server",
@@ -488,13 +557,64 @@ export default function UpdateProductPage() {
       setUploadingImages(false);
     }
 
-    // Reset input
     if (additionalImagesInputRef.current) {
       additionalImagesInputRef.current.value = "";
     }
   };
 
-  // Handle drag and drop for thumbnail
+  const handleOcopImagesChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter((file) => UploadService.isImageFile(file));
+
+    if (imageFiles.length !== files.length) {
+      toast({
+        title: "Một số file không hợp lệ",
+        description: "Chỉ các file ảnh được chấp nhận",
+        variant: "destructive",
+      });
+    }
+
+    if (imageFiles.length === 0) return;
+
+    setUploadingOcopImages(true);
+    try {
+      const [imageUrls, error] = await UploadService.uploadImages(imageFiles);
+      if (error) throw new Error(error.message || "Upload failed");
+
+      if (imageUrls) {
+        setOcopFormData((prev) => {
+          const newImagePaths = [...prev.imagePaths];
+          imageUrls.forEach((url: string) => {
+            if (!newImagePaths.includes(url)) {
+              newImagePaths.push(url);
+            }
+          });
+          return { ...prev, imagePaths: newImagePaths };
+        });
+
+        toast({
+          title: "Upload thành công",
+          description: `Đã tải lên ${imageUrls.length} ảnh chứng nhận OCOP`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Lỗi upload",
+        description:
+          error.message || "Không thể tải ảnh chứng nhận OCOP lên server",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingOcopImages(false);
+    }
+
+    if (ocopImagesInputRef.current) {
+      ocopImagesInputRef.current.value = "";
+    }
+  };
+
   const handleThumbnailDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(null);
@@ -514,10 +634,7 @@ export default function UpdateProductPage() {
     setUploadingThumbnail(true);
     try {
       const [imageUrl, error] = await UploadService.uploadImage(imageFile);
-
-      if (error) {
-        throw new Error(error.message || "Upload failed");
-      }
+      if (error) throw new Error(error.message || "Upload failed");
 
       if (imageUrl) {
         setFormData((prev) => ({ ...prev, thumbnail: imageUrl }));
@@ -530,7 +647,6 @@ export default function UpdateProductPage() {
         });
       }
     } catch (error: any) {
-      console.error("Upload thumbnail error:", error);
       toast({
         title: "Lỗi upload",
         description: error.message || "Không thể tải ảnh lên server",
@@ -541,7 +657,6 @@ export default function UpdateProductPage() {
     }
   };
 
-  // Handle drag and drop for additional images
   const handleAdditionalImagesDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(null);
@@ -550,25 +665,14 @@ export default function UpdateProductPage() {
       UploadService.isImageFile(file)
     );
 
-    if (files.length === 0) {
-      toast({
-        title: "File không hợp lệ",
-        description: "Vui lòng kéo thả file ảnh",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (files.length === 0) return;
 
     setUploadingImages(true);
     try {
       const [imageUrls, error] = await UploadService.uploadImages(files);
-
-      if (error) {
-        throw new Error(error.message || "Upload failed");
-      }
+      if (error) throw new Error(error.message || "Upload failed");
 
       if (imageUrls) {
-        // Thêm các URL mới vào danh sách, loại bỏ duplicate
         setFormData((prev) => {
           const existingPaths = new Set(prev.imagePaths);
           const newPaths = imageUrls.filter(
@@ -586,7 +690,6 @@ export default function UpdateProductPage() {
         });
       }
     } catch (error: any) {
-      console.error("Upload additional images error:", error);
       toast({
         title: "Lỗi upload",
         description: error.message || "Không thể tải ảnh lên server",
@@ -597,8 +700,58 @@ export default function UpdateProductPage() {
     }
   };
 
+  const handleOcopImagesDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(null);
+
+    const files = Array.from(e.dataTransfer.files).filter((file) =>
+      UploadService.isImageFile(file)
+    );
+
+    if (files.length === 0) return;
+
+    setUploadingOcopImages(true);
+    try {
+      const [imageUrls, error] = await UploadService.uploadImages(files);
+      if (error) throw new Error(error.message || "Upload failed");
+
+      if (imageUrls) {
+        setOcopFormData((prev) => {
+          const newImagePaths = [...prev.imagePaths];
+          imageUrls.forEach((url: string) => {
+            if (!newImagePaths.includes(url)) {
+              newImagePaths.push(url);
+            }
+          });
+          return { ...prev, imagePaths: newImagePaths };
+        });
+
+        toast({
+          title: "Upload thành công",
+          description: `Đã tải lên ${imageUrls.length} ảnh chứng nhận OCOP`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Lỗi upload",
+        description:
+          error.message || "Không thể tải ảnh chứng nhận OCOP lên server",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingOcopImages(false);
+    }
+  };
+
   const removeImagePath = (index: number) => {
     setFormData((prev) => ({
+      ...prev,
+      imagePaths: prev.imagePaths.filter((_, i) => i !== index),
+    }));
+  };
+
+  const removeOcopImagePath = (index: number) => {
+    setOcopFormData((prev) => ({
       ...prev,
       imagePaths: prev.imagePaths.filter((_, i) => i !== index),
     }));
@@ -617,25 +770,12 @@ export default function UpdateProductPage() {
 
   const removeThumbnail = async () => {
     const thumbnailToDelete = formData.thumbnail;
-
     setFormData((prev) => ({ ...prev, thumbnail: "" }));
-    if (thumbnailInputRef.current) {
-      thumbnailInputRef.current.value = "";
-    }
+    if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
 
-    // Call API to delete file from server
     if (thumbnailToDelete) {
       try {
-        const [result, error] = await UploadService.deleteFile(
-          thumbnailToDelete
-        );
-        console.log("Thumbnail deleted from server:", result);
-        if (error) {
-          console.warn("Failed to delete thumbnail from server:", error);
-          // Don't show error to user as the file might already be deleted or not exist
-        } else {
-          console.log("Thumbnail deleted from server successfully");
-        }
+        await UploadService.deleteFile(thumbnailToDelete);
       } catch (error) {
         console.warn("Error deleting thumbnail:", error);
       }
@@ -649,41 +789,22 @@ export default function UpdateProductPage() {
 
   const removeImagePathWithAPI = async (index: number) => {
     const imageToDelete = formData.imagePaths[index];
-
-    // Add to deleting set to show loading state
     setDeletingImages((prev) => new Set(prev).add(index));
 
     try {
-      // Remove from UI first
       setFormData((prev) => ({
         ...prev,
         imagePaths: prev.imagePaths.filter((_, i) => i !== index),
       }));
 
-      // Call API to delete file from server
-      const [result, error] = await UploadService.deleteFile(imageToDelete);
-      console.log("Image deleted from server:", result);
-      if (error) {
-        console.warn("Failed to delete image from server:", error);
-        // Don't show error to user as the file might already be deleted or not exist
-      } else {
-        console.log("Image deleted from server successfully");
-      }
-
+      await UploadService.deleteFile(imageToDelete);
       toast({
         title: "Đã xóa",
-        description: "Ảnh đã được xóa khỏi danh sách và server",
+        description: "Ảnh đã được xóa",
       });
     } catch (error) {
       console.warn("Error deleting image:", error);
-      toast({
-        title: "Cảnh báo",
-        description:
-          "Ảnh đã được xóa khỏi danh sách nhưng có thể chưa xóa khỏi server",
-        variant: "destructive",
-      });
     } finally {
-      // Remove from deleting set
       setDeletingImages((prev) => {
         const newSet = new Set(prev);
         newSet.delete(index);
@@ -693,34 +814,21 @@ export default function UpdateProductPage() {
   };
 
   const resetForm = async () => {
-    // Reload lại dữ liệu gốc từ server
     setIsLoadingProduct(true);
     try {
       const [result, error] = await ProductService.getById(productId);
-      if (error) {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tải lại thông tin sản phẩm",
-          variant: "destructive",
-        });
-        return;
-      }
+      if (error) throw new Error("Không thể tải lại thông tin sản phẩm");
 
       if (result) {
-        // Xử lý categoryId - nếu category là tên thì tìm ID tương ứng
         let categoryId = result.category || "";
-
-        // Nếu có categories đã load và category từ API là tên, tìm ID
         if (categories.length > 0) {
           const foundCategory =
             findCategoryById(categories, result.category) ||
             findCategoryByName(categories, result.category);
-          if (foundCategory) {
-            categoryId = foundCategory.id;
-          }
+          if (foundCategory) categoryId = foundCategory.id;
         }
 
-        setFormData({
+        const productFormData: ProductForm = {
           name: result.name || "",
           description: result.description || "",
           price: result.price?.toString() || "",
@@ -730,11 +838,41 @@ export default function UpdateProductPage() {
           categoryId: categoryId,
           imagePaths:
             result.images?.map((img: ImageResponse) => img.path) || [],
+        };
+
+        const ocopData: OcopForm = result.ocop
+          ? {
+              enabled: true,
+              star: result.ocop.star?.toString() || "",
+              certificateNumber: result.ocop.certificateNumber || "",
+              issuedYear: result.ocop.issuedYear?.toString() || "",
+              issuer: result.ocop.issuer || "",
+              imagePaths: result.ocop.images?.map((img: any) => img.url) || [],
+              status: result.ocop.status,
+              reason: result.ocop.reason,
+            }
+          : {
+              enabled: false,
+              star: "",
+              certificateNumber: "",
+              issuedYear: "",
+              issuer: "",
+              imagePaths: [],
+            };
+
+        setFormData(productFormData);
+        setOcopFormData(ocopData);
+        setInitialData({
+          product: { ...productFormData },
+          ocop: { ...ocopData },
         });
+
         setErrors({});
+        setOcopErrors({});
         if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
         if (additionalImagesInputRef.current)
           additionalImagesInputRef.current.value = "";
+        if (ocopImagesInputRef.current) ocopImagesInputRef.current.value = "";
 
         toast({
           title: "Đã khôi phục",
@@ -742,10 +880,9 @@ export default function UpdateProductPage() {
         });
       }
     } catch (error: any) {
-      console.error("Error reloading product:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể tải lại thông tin sản phẩm",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -768,53 +905,77 @@ export default function UpdateProductPage() {
     setIsLoading(true);
 
     try {
-      // Chuẩn bị dữ liệu gửi lên server
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseInt(formData.price),
-        inventory: parseInt(formData.inventory),
-        thumbnail: formData.thumbnail,
-        unitPrice: formData.unitPrice,
-        categoryId: formData.categoryId,
-        imagePaths: formData.imagePaths,
-      };
+      const isProductChanged =
+        JSON.stringify(formData) !== JSON.stringify(initialData?.product);
+      const isOcopChanged =
+        JSON.stringify(ocopFormData) !== JSON.stringify(initialData?.ocop);
 
-      console.log("Updating product data:", productData);
+      let productUpdated = false;
+      let ocopUpdated = false;
 
-      // Gọi API cập nhật sản phẩm
-      const [result, error] = await ProductService.updateProduct(
-        productId,
-        productData
-      );
+      if (isProductChanged) {
+        const productData = {
+          name: formData.name,
+          description: formData.description,
+          price: parseInt(formData.price),
+          inventory: parseInt(formData.inventory),
+          thumbnail: formData.thumbnail,
+          unitPrice: formData.unitPrice,
+          categoryId: formData.categoryId,
+          imagePaths: formData.imagePaths,
+        };
 
-      if (error) {
-        throw new Error(error.message || "Có lỗi xảy ra khi cập nhật sản phẩm");
+        const [result, error] = await ProductService.updateProduct(
+          productId,
+          productData
+        );
+        if (error) throw new Error(error.message);
+        productUpdated = true;
       }
 
-      if (result) {
-        toast({
-          title: "Cập nhật sản phẩm thành công!",
-          description: `Sản phẩm "${formData.name}" đã được cập nhật`,
-        });
+      const canUpdateOcop =
+        ocopFormData.enabled &&
+        (!initialData?.ocop.enabled || initialData?.ocop.status === "REJECTED");
 
-        // Redirect về trang danh sách sản phẩm
+      if (isOcopChanged && canUpdateOcop) {
+        const ocopData = {
+          star: parseInt(ocopFormData.star),
+          certificateNumber: ocopFormData.certificateNumber,
+          issuedYear: parseInt(ocopFormData.issuedYear),
+          issuer: ocopFormData.issuer,
+          imagePaths: ocopFormData.imagePaths,
+        };
+
+        const [result, error] = await ProductService.updateOcop(
+          productId,
+          ocopData
+        );
+        if (error) throw new Error(error.message);
+        ocopUpdated = true;
+      }
+
+      if (productUpdated || ocopUpdated) {
+        toast({
+          title: "Cập nhật thành công!",
+          description: "Thông tin sản phẩm đã được cập nhật",
+        });
         router.push("/farm/product");
+      } else {
+        toast({
+          title: "Thông báo",
+          description: "Không có thay đổi nào để cập nhật",
+        });
       }
     } catch (error: any) {
-      console.error("Error updating product:", error);
       toast({
         title: "Có lỗi xảy ra",
-        description:
-          error.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.",
+        description: error.message || "Không thể cập nhật sản phẩm.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  console.log(formData);
 
   if (isLoadingProduct) {
     return (
@@ -825,6 +986,9 @@ export default function UpdateProductPage() {
       </div>
     );
   }
+
+  const isOcopEditable =
+    !ocopFormData.status || ocopFormData.status === "REJECTED";
 
   return (
     <div className="container mx-auto p-6">
@@ -847,9 +1011,6 @@ export default function UpdateProductPage() {
               <Tag className="h-5 w-5" />
               Thông tin cơ bản
             </CardTitle>
-            <CardDescription>
-              Cập nhật thông tin cơ bản của sản phẩm
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -920,7 +1081,7 @@ export default function UpdateProductPage() {
                 onChange={(e) =>
                   handleInputChange("description", e.target.value)
                 }
-                placeholder="Nhập mô tả chi tiết về sản phẩm"
+                placeholder="Nhập mô tả"
                 rows={4}
                 className={errors.description ? "border-red-500" : ""}
               />
@@ -931,50 +1092,35 @@ export default function UpdateProductPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">
-                  Giá bán (VNĐ) <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="price">Giá bán (VNĐ) *</Label>
                 <Input
                   id="price"
                   type="number"
                   value={formData.price}
                   onChange={(e) => handleInputChange("price", e.target.value)}
-                  placeholder="0"
-                  min="0"
                   className={errors.price ? "border-red-500" : ""}
                 />
-                {errors.price && (
-                  <p className="text-sm text-red-500">{errors.price}</p>
-                )}
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="unitPrice">
-                  Đơn vị tính <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="unitPrice">Đơn vị tính *</Label>
                 <Select
                   value={formData.unitPrice}
-                  onValueChange={(value) =>
-                    handleInputChange("unitPrice", value)
-                  }
+                  onValueChange={(v) => handleInputChange("unitPrice", v)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn đơn vị" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {units.map((unit) => (
-                      <SelectItem key={unit} value={unit}>
-                        {unit}
+                    {units.map((u) => (
+                      <SelectItem key={u} value={u}>
+                        {u}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="inventory">
-                  Số lượng tồn kho <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="inventory">Số lượng tồn kho *</Label>
                 <Input
                   id="inventory"
                   type="number"
@@ -982,16 +1128,193 @@ export default function UpdateProductPage() {
                   onChange={(e) =>
                     handleInputChange("inventory", e.target.value)
                   }
-                  placeholder="0"
-                  min="0"
                   className={errors.inventory ? "border-red-500" : ""}
                 />
-                {errors.inventory && (
-                  <p className="text-sm text-red-500">{errors.inventory}</p>
-                )}
               </div>
             </div>
           </CardContent>
+        </Card>
+
+        {/* OCOP Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-500" />
+              Chứng nhận OCOP
+            </CardTitle>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="ocop-enabled">Sản phẩm có chứng nhận OCOP</Label>
+              <Switch
+                id="ocop-enabled"
+                checked={ocopFormData.enabled}
+                disabled={!isOcopEditable && initialData?.ocop.enabled}
+                onCheckedChange={(checked) =>
+                  handleOcopInputChange("enabled", checked)
+                }
+              />
+            </div>
+          </CardHeader>
+          {ocopFormData.enabled && (
+            <CardContent className="space-y-4">
+              {ocopFormData.status && (
+                <div className="mb-4 space-y-2">
+                  <Badge
+                    variant={
+                      ocopFormData.status === "REJECTED"
+                        ? "destructive"
+                        : "secondary"
+                    }
+                  >
+                    Trạng thái: {getOcopStatusLabel(ocopFormData.status)}
+                    {!isOcopEditable && " - Không thể chỉnh sửa"}
+                  </Badge>
+                  {ocopFormData.status === "REJECTED" &&
+                    ocopFormData.reason && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+                        <p className="font-semibold mb-1">Lý do từ chối:</p>
+                        <p>{ocopFormData.reason}</p>
+                      </div>
+                    )}
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Số sao OCOP *</Label>
+                  <Select
+                    disabled={!isOcopEditable}
+                    value={ocopFormData.star}
+                    onValueChange={(v) => handleOcopInputChange("star", v)}
+                  >
+                    <SelectTrigger
+                      className={ocopErrors.star ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Chọn số sao" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stars.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s} sao
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Số chứng nhận *</Label>
+                  <Input
+                    disabled={!isOcopEditable}
+                    value={ocopFormData.certificateNumber}
+                    onChange={(e) =>
+                      handleOcopInputChange("certificateNumber", e.target.value)
+                    }
+                    className={
+                      ocopErrors.certificateNumber ? "border-red-500" : ""
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Năm cấp *</Label>
+                  <Input
+                    disabled={!isOcopEditable}
+                    type="number"
+                    value={ocopFormData.issuedYear}
+                    onChange={(e) =>
+                      handleOcopInputChange("issuedYear", e.target.value)
+                    }
+                    className={ocopErrors.issuedYear ? "border-red-500" : ""}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Đơn vị cấp *</Label>
+                  <Input
+                    disabled={!isOcopEditable}
+                    value={ocopFormData.issuer}
+                    onChange={(e) =>
+                      handleOcopInputChange("issuer", e.target.value)
+                    }
+                    className={ocopErrors.issuer ? "border-red-500" : ""}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Ảnh chứng nhận OCOP *</Label>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    dragOver === "ocop"
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300"
+                  } ${
+                    !isOcopEditable
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
+                  onClick={() =>
+                    isOcopEditable && ocopImagesInputRef.current?.click()
+                  }
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    isOcopEditable && setDragOver("ocop");
+                  }}
+                  onDragLeave={() => setDragOver(null)}
+                  onDrop={(e) => isOcopEditable && handleOcopImagesDrop(e)}
+                >
+                  {uploadingOcopImages ? (
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                  ) : (
+                    <>
+                      <Plus className="h-8 w-8 mx-auto text-gray-400" />
+                      <p className="text-sm text-gray-500">
+                        Kéo thả hoặc click để tải ảnh
+                      </p>
+                    </>
+                  )}
+                  <input
+                    ref={ocopImagesInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleOcopImagesChange}
+                  />
+                </div>
+                {ocopFormData.imagePaths.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+                    {ocopFormData.imagePaths.map((path, idx) => (
+                      <div
+                        key={idx}
+                        className="group relative aspect-video rounded-lg overflow-hidden border cursor-zoom-in"
+                        onClick={() => setZoomedImage(path)}
+                      >
+                        <Image
+                          src={path}
+                          alt="OCOP"
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                          <Maximize2 className="text-white opacity-0 group-hover:opacity-100 h-6 w-6" />
+                        </div>
+                        {isOcopEditable && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeOcopImagePath(idx);
+                            }}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 z-10"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          )}
         </Card>
 
         {/* Hình ảnh sản phẩm */}
@@ -1001,255 +1324,174 @@ export default function UpdateProductPage() {
               <ImageIcon className="h-5 w-5" />
               Hình ảnh sản phẩm
             </CardTitle>
-            <CardDescription>
-              Tải lên ảnh đại diện và các ảnh mô tả sản phẩm
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Ảnh đại diện */}
             <div className="space-y-2">
-              <Label>
-                Ảnh đại diện <span className="text-red-500">*</span>
-              </Label>
+              <Label>Ảnh đại diện *</Label>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Upload area */}
                 <div
-                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    dragOver === "thumbnail"
-                      ? "border-blue-500 bg-blue-50"
-                      : errors.thumbnail
-                      ? "border-red-300"
-                      : "border-gray-300"
-                  } ${
-                    uploadingThumbnail ? "pointer-events-none opacity-50" : ""
-                  }`}
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer"
+                  onClick={() => thumbnailInputRef.current?.click()}
                   onDragOver={(e) => {
                     e.preventDefault();
-                    setDragOver("thumbnail");
+                    setDragOver("thumb");
                   }}
-                  onDragLeave={() => setDragOver(null)}
                   onDrop={handleThumbnailDrop}
                 >
                   {uploadingThumbnail ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                      <p className="text-sm text-gray-600">Đang tải lên...</p>
-                    </div>
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto" />
                   ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <ImageIcon className="h-8 w-8 text-gray-400" />
-                      <p className="text-sm text-gray-600">
-                        Kéo thả ảnh vào đây hoặc{" "}
-                        <button
-                          type="button"
-                          className="text-blue-500 hover:underline"
-                          onClick={() => thumbnailInputRef.current?.click()}
-                        >
-                          chọn file
-                        </button>
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG, GIF tối đa 10MB
-                      </p>
-                    </div>
+                    <ImageIcon className="h-8 w-8 mx-auto text-gray-400" />
                   )}
                   <input
                     ref={thumbnailInputRef}
                     type="file"
-                    accept="image/*"
-                    onChange={handleThumbnailChange}
                     className="hidden"
-                    title="Chọn ảnh đại diện cho sản phẩm"
+                    onChange={handleThumbnailChange}
                   />
                 </div>
-
-                {/* Preview */}
                 {formData.thumbnail && (
-                  <div className="space-y-2">
-                    <div className="relative aspect-square rounded-lg overflow-hidden border-2 border-green-200 bg-green-50">
-                      <Image
-                        src={formData.thumbnail}
-                        alt="Ảnh đại diện"
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute top-2 right-2 flex gap-1">
-                        <div className="px-2 py-1 bg-green-500 text-white text-xs rounded-full font-medium">
-                          Ảnh đại diện
-                        </div>
-                        <button
-                          type="button"
-                          onClick={removeThumbnail}
-                          className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                          title="Xóa ảnh đại diện"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
+                  <div
+                    className="group relative aspect-square rounded-lg overflow-hidden border cursor-zoom-in"
+                    onClick={() => setZoomedImage(formData.thumbnail)}
+                  >
+                    <Image
+                      src={formData.thumbnail}
+                      alt="thumb"
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                      <Maximize2 className="text-white opacity-0 group-hover:opacity-100 h-8 w-8" />
                     </div>
-                    <p className="text-sm text-center text-green-700 font-medium">
-                      Ảnh đại diện hiện tại
-                    </p>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeThumbnail();
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                 )}
               </div>
-              {errors.thumbnail && (
-                <p className="text-sm text-red-500">{errors.thumbnail}</p>
-              )}
             </div>
 
-            {/* Ảnh bổ sung */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Ảnh mô tả thêm</Label>
-                <span className="text-sm text-gray-500">
-                  {formData.imagePaths.length} ảnh
-                </span>
-              </div>
+              <Label>Ảnh mô tả thêm</Label>
               <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                  dragOver === "additional"
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-300"
-                } ${uploadingImages ? "pointer-events-none opacity-50" : ""}`}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragOver("additional");
-                }}
-                onDragLeave={() => setDragOver(null)}
+                className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer"
+                onClick={() => additionalImagesInputRef.current?.click()}
                 onDrop={handleAdditionalImagesDrop}
               >
                 {uploadingImages ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                    <p className="text-sm text-gray-600">Đang tải lên...</p>
-                  </div>
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto" />
                 ) : (
-                  <div className="flex flex-col items-center gap-2">
-                    <Upload className="h-8 w-8 text-gray-400" />
-                    <p className="text-sm text-gray-600">
-                      Kéo thả nhiều ảnh vào đây hoặc{" "}
-                      <button
-                        type="button"
-                        className="text-blue-500 hover:underline"
-                        onClick={() =>
-                          additionalImagesInputRef.current?.click()
-                        }
-                      >
-                        chọn files
-                      </button>
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Có thể chọn nhiều ảnh cùng lúc (PNG, JPG, GIF tối đa 10MB
-                      mỗi ảnh)
-                    </p>
-                  </div>
+                  <Upload className="h-8 w-8 mx-auto text-gray-400" />
                 )}
                 <input
                   ref={additionalImagesInputRef}
                   type="file"
-                  accept="image/*"
                   multiple
-                  onChange={handleAdditionalImagesChange}
                   className="hidden"
-                  aria-label="Chọn ảnh mô tả thêm"
+                  onChange={handleAdditionalImagesChange}
                 />
               </div>
-              {/* Additional Images Preview */}
-              {formData.imagePaths.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900">
-                      Ảnh mô tả ({formData.imagePaths.length})
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      Hover để xem các hành động
-                    </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {formData.imagePaths.map((path, idx) => (
+                  <div
+                    key={idx}
+                    className="group relative aspect-square rounded-lg overflow-hidden border cursor-zoom-in"
+                    onClick={() => setZoomedImage(path)}
+                  >
+                    <Image
+                      src={path}
+                      alt="extra"
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                      <Maximize2 className="text-white opacity-0 group-hover:opacity-100 h-6 w-6" />
+                    </div>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity z-10">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAsThumbnail(path);
+                        }}
+                        className="bg-green-500 text-white rounded-full p-1"
+                        title="Đặt làm ảnh đại diện"
+                      >
+                        <Tag className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeImagePathWithAPI(idx);
+                        }}
+                        className="bg-red-500 text-white rounded-full p-1"
+                        title="Xóa ảnh"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {formData.imagePaths.map((imagePath, index) => (
-                      <div key={index} className="relative group">
-                        <div className="relative aspect-square rounded-lg overflow-hidden border-2 border-blue-200 bg-blue-50">
-                          <Image
-                            src={imagePath}
-                            alt={`Ảnh mô tả ${index + 1}`}
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-80">
-                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setAsThumbnail(imagePath)}
-                                className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors shadow-lg"
-                                title="Đặt làm ảnh đại diện"
-                              >
-                                <Tag className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => removeImagePathWithAPI(index)}
-                                disabled={deletingImages.has(index)}
-                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                title={
-                                  deletingImages.has(index)
-                                    ? "Đang xóa..."
-                                    : "Xóa ảnh khỏi server"
-                                }
-                              >
-                                {deletingImages.has(index) ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <X className="h-4 w-4" />
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                          <div className="absolute top-2 left-2">
-                            <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full font-medium">
-                              {index + 1}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-center mt-1 text-gray-600 truncate">
-                          Ảnh mô tả {index + 1}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Nút hành động */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between">
+        <div className="flex justify-between">
           <Button
             type="button"
             variant="outline"
             onClick={resetForm}
-            disabled={isLoading || isLoadingProduct}
-            className="flex items-center gap-2"
+            disabled={isLoading}
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="mr-2 h-4 w-4" />
             Khôi phục
           </Button>
-
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="flex items-center gap-2"
-          >
+          <Button type="submit" disabled={isLoading}>
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Save className="h-4 w-4" />
+              <Save className="mr-2 h-4 w-4" />
             )}
-            {isLoading ? "Đang cập nhật..." : "Cập nhật sản phẩm"}
+            Cập nhật sản phẩm
           </Button>
         </div>
       </form>
+
+      {/* Full-screen Zoom Modal */}
+      <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-none bg-transparent shadow-none flex items-center justify-center">
+          <DialogTitle className="sr-only">Phóng to ảnh OCOP</DialogTitle>
+          <div className="relative w-full h-full flex items-center justify-center">
+            {zoomedImage && (
+              <div className="relative w-full h-full min-h-[80vh] min-w-[80vw]">
+                <Image
+                  src={zoomedImage}
+                  alt="Zoomed Certificate"
+                  fill
+                  className="object-contain"
+                  quality={100}
+                />
+              </div>
+            )}
+            <Button
+              className="absolute top-4 right-4 rounded-full bg-black/50 hover:bg-black/70 text-white border-none h-10 w-10 p-0"
+              onClick={() => setZoomedImage(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

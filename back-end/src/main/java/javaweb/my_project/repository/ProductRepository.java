@@ -20,4 +20,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findAllByStatus(ProductStatus status, Sort sort);
 
     List<Product> findByOcopStatus(OcopStatus status);
+
+    List<Product> findByOcopStatusNot(OcopStatus status);
+
+    List<Product> findByOcopStatusNotAndStatusNot(OcopStatus ocopStatus, ProductStatus productStatus);
 }

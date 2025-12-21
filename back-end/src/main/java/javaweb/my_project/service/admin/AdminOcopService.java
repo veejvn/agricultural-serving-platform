@@ -4,6 +4,7 @@ import javaweb.my_project.dto.product.ProductResponse;
 import javaweb.my_project.entities.Ocop;
 import javaweb.my_project.entities.Product;
 import javaweb.my_project.enums.OcopStatus;
+import javaweb.my_project.enums.ProductStatus;
 import javaweb.my_project.exception.AppException;
 import javaweb.my_project.mapper.ProductMapper;
 import javaweb.my_project.repository.ProductRepository;
@@ -33,8 +34,8 @@ public class AdminOcopService {
     }
 
     @Transactional
-    public List<ProductResponse> getPendingOcopProducts() {
-        List<Product> products = productRepository.findByOcopStatus(OcopStatus.PENDING_VERIFY);
+    public List<ProductResponse> getAllOcopProducts() {
+        List<Product> products = productRepository.findByOcopStatusNotAndStatusNot(OcopStatus.NONE, ProductStatus.DELETED);
         return products.stream()
                 .map(productMapper::toProductResponse)
                 .collect(Collectors.toList());

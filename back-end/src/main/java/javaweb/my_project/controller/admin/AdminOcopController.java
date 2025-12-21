@@ -1,6 +1,7 @@
 package javaweb.my_project.controller.admin;
 
 import javaweb.my_project.dto.api.ApiResponse;
+import javaweb.my_project.dto.ocop.OcopRejectRequest;
 import javaweb.my_project.dto.product.ProductResponse;
 import javaweb.my_project.service.admin.AdminOcopService;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +19,12 @@ import java.util.List;
 public class AdminOcopController {
     private final AdminOcopService adminOcopService;
 
-    @GetMapping("/pending")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getPendingOcopProducts() {
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllOcopProducts() {
         ApiResponse<List<ProductResponse>> apiResponse = ApiResponse.<List<ProductResponse>>builder()
                 .code("admin-ocop-s-01")
-                .message("Get pending OCOP products successfully")
-                .data(adminOcopService.getPendingOcopProducts())
+                .message("Get all OCOP products successfully")
+                .data(adminOcopService.getAllOcopProducts())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
@@ -39,11 +40,11 @@ public class AdminOcopController {
     }
 
     @PostMapping("/{productId}/reject")
-    public ResponseEntity<ApiResponse<ProductResponse>> rejectOcop(@PathVariable String productId, @RequestBody String reason) {
+    public ResponseEntity<ApiResponse<ProductResponse>> rejectOcop(@PathVariable String productId, @RequestBody OcopRejectRequest request) {
         ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
                 .code("admin-ocop-s-03")
                 .message("OCOP rejected successfully")
-                .data(adminOcopService.rejectOcop(productId, reason))
+                .data(adminOcopService.rejectOcop(productId, request.getReason()))
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
