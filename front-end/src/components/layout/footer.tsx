@@ -73,6 +73,14 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
+                  href="/product"
+                  className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
+                >
+                  Sản phẩm nông nghiệp
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/weather"
                   className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
                 >
@@ -87,7 +95,7 @@ export default function Footer() {
                   Giá cả thị trường
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   href="/forum"
                   className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
@@ -97,20 +105,12 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/product"
-                  className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
-                >
-                  Sản phẩm nông nghiệp
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/lich-canh-tac"
                   className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
                 >
                   Lịch canh tác
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -204,7 +204,7 @@ export default function Footer() {
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 text-green-600 dark:text-green-500" />
                 <span className="text-muted-foreground">
-                  Đường 3/2, phường Xuân Khánh, quận Ninh Kiều, TP. Cần Thơ.
+                  Ấp Tấn Thuận, xã Cù Lao Giêng, tỉnh An Giang
                 </span>
               </li>
               <li className="flex items-center gap-2">
@@ -214,15 +214,6 @@ export default function Footer() {
                   className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
                 >
                   0912 345 678
-                </Link>
-              </li>
-              <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-green-600 dark:text-green-500" />
-                <Link
-                  href="mailto:info@nongnghiepthongminh.vn"
-                  className="text-muted-foreground hover:text-green-600 dark:hover:text-green-500"
-                >
-                  agricultural.service.platform@gmail.com
                 </Link>
               </li>
             </ul>

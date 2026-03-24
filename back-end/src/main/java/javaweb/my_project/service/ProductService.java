@@ -274,34 +274,6 @@ public class ProductService {
 
     public ProductResponse getById(String id) {
         Product product = findProductById(id);
-
-        try {
-            Account account = securityUtil.getAccount();
-            Set<Role> roles = account.getRoles();
-
-            if (roles.contains(Role.ADMIN)) {
-                return productMapper.toProductResponse(product);
-            }
-
-            if (roles.contains(Role.FARMER)) {
-                if (product.getStatus() == ProductStatus.DELETED) {
-                    throw new AppException(HttpStatus.FORBIDDEN,
-                            "You don't have permission to access this product", "product-e-03");
-                }
-                return productMapper.toProductResponse(product);
-            }
-        } catch (AppException e) {
-            if (!"auth-e-00".equals(e.getCode())) {
-                throw e;
-            }
-        }
-
-        // Default for CONSUMER or unauthenticated
-        if (product.getStatus() != ProductStatus.ACTIVE) {
-            throw new AppException(HttpStatus.FORBIDDEN,
-                    "You don't have permission to access this product", "product-e-03");
-        }
-
         return productMapper.toProductResponse(product);
     }
 

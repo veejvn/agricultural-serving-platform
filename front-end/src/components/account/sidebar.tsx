@@ -66,16 +66,16 @@ const menuItems = [
   //   href: "/account/payment",
   //   icon: CreditCard,
   // },
-  {
-    title: "Thông báo",
-    href: "/account/notification",
-    icon: Bell,
-  },
-  {
-    title: "Cài đặt",
-    href: "/account/setting",
-    icon: Settings,
-  },
+  // {
+  //   title: "Thông báo",
+  //   href: "/account/notification",
+  //   icon: Bell,
+  // },
+  // {
+  //   title: "Cài đặt",
+  //   href: "/account/setting",
+  //   icon: Settings,
+  // },
 ];
 
 export function AccountSidebar() {
