@@ -115,6 +115,16 @@ export default function FarmerDetailPage() {
     return new Intl.NumberFormat("vi-VN").format(price) + " VNĐ";
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(date);
+  };
+
   const getStatusBadge = (status: IFarmerStatus) => {
     switch (status) {
       case "ACTIVE":
@@ -189,10 +199,9 @@ export default function FarmerDetailPage() {
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 text-yellow-500 fill-current" />
                         <span className="font-medium">{farmer.rating}</span>
-                        <span>
-                          ({products.reduce((sum, p) => sum + p.sold, 0)} đánh
-                          giá)
-                        </span>
+                        {/* <span>
+                          ({products.reduce((sum, p) => sum + p.sold, 0)} đánh giá)
+                        </span> */}
                       </div>
                       <div className="flex items-center gap-1">
                         <Package className="h-4 w-4" />
@@ -314,22 +323,9 @@ export default function FarmerDetailPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
-                      <Mail className="h-4 w-4" />
-                      <span>contact@trangtraihuu.co</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-600">
                       <Calendar className="h-4 w-4" />
-                      <span>Tham gia từ tháng 1, 2024</span>
+                      <span>Tham gia từ {formatDate(farmer.createdAt)}</span>
                     </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-2">Chứng nhận</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">Hữu cơ VietGAP</Badge>
-                    <Badge variant="outline">An toàn thực phẩm</Badge>
-                    <Badge variant="outline">Trang trại xanh</Badge>
                   </div>
                 </div>
               </CardContent>

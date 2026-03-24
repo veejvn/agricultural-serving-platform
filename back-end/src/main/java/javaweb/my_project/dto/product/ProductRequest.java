@@ -2,6 +2,7 @@ package javaweb.my_project.dto.product;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import javaweb.my_project.dto.ocop.OcopRequest;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -34,4 +35,6 @@ public class ProductRequest {
 
     @NotBlank(message = "Category is required")
     String categoryId;
+
+    OcopRequest ocopRequest;
 }

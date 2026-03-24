@@ -384,7 +384,7 @@ export default function MarketPricePage() {
         </div>
       </div>
 
-      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Giá hiện tại</CardDescription>
@@ -477,7 +477,7 @@ export default function MarketPricePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardHeader className="pb-2">
             <CardDescription>Dự báo xu hướng</CardDescription>
             <CardTitle className="text-2xl text-green-800 dark:text-green-300">
@@ -492,7 +492,7 @@ export default function MarketPricePage() {
               </span>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <Tabs defaultValue="chart" className="mb-8">

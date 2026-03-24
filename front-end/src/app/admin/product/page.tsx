@@ -33,7 +33,7 @@ import { IProductAdminResponse, ProductStatus } from "@/types/product";
 import ProductService from "@/services/product.service";
 import { format } from "date-fns";
 import Link from "next/link";
-import { ArrowUpDown, Eye, Edit } from "lucide-react";
+import { ArrowUpDown, Eye, Edit, Star } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +43,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -176,7 +175,6 @@ const ProductListPage = () => {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Tên
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => (
@@ -187,6 +185,7 @@ const ProductListPage = () => {
           {row.getValue("name")}
         </Link>
       ),
+      size: 250,
     },
     {
       accessorKey: "farmer.name",
@@ -206,7 +205,6 @@ const ProductListPage = () => {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Giá
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => (
@@ -223,22 +221,37 @@ const ProductListPage = () => {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Trạng thái
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => (
         <Badge
           className={`
-            ${row.original.status === "ACTIVE" && "bg-green-500"}
-            ${row.original.status === "PENDING" && "bg-yellow-500"}
-            ${row.original.status === "REJECTED" && "bg-red-500"}
-            ${row.original.status === "BLOCKED" && "bg-gray-500"}
-            ${row.original.status === "DELETED" && "bg-purple-500"}
+            ${
+              row.original.status === "ACTIVE" &&
+              "bg-green-600 hover:bg-green-800"
+            }
+            ${
+              row.original.status === "PENDING" &&
+              "bg-yellow-600 hover:bg-yellow-800"
+            }
+            ${
+              row.original.status === "REJECTED" &&
+              "bg-red-600 hover:bg-red-800"
+            }
+            ${
+              row.original.status === "BLOCKED" &&
+              "bg-gray-500 hover:bg-gray-700"
+            }
+            ${
+              row.original.status === "DELETED" &&
+              "bg-gray-700 hover:bg-gray-900"
+            }
           `}
         >
           {STATUS[row.original.status]}
         </Badge>
       ),
+      size: 200,
     },
     {
       accessorKey: "createdAt",
@@ -248,14 +261,13 @@ const ProductListPage = () => {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Ngày tạo
-          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => format(new Date(row.original.createdAt), "dd/MM/yyyy"),
     },
     {
       id: "actions",
-      header: "Hành động",
+      header: "Thao tác",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <Link href={`/admin/product/${row.original.id}`}>
@@ -263,6 +275,18 @@ const ProductListPage = () => {
               <Eye className="h-4 w-4" />
             </Button>
           </Link>
+          {row.original.ocop && (
+            <Link href={`/admin/ocop?productId=${row.original.id}`}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+                title="Xem chứng chỉ OCOP"
+              >
+                <Star className="h-4 w-4 fill-yellow-600" />
+              </Button>
+            </Link>
+          )}
           <Button
             variant="outline"
             size="icon"
@@ -343,7 +367,10 @@ const ProductListPage = () => {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      style={{ width: `${header.getSize()}px` }}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -364,7 +391,10 @@ const ProductListPage = () => {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      style={{ width: `${cell.column.getSize()}px` }}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

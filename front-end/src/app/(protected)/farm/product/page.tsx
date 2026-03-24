@@ -3,13 +3,30 @@
 import { DataTable } from "@/components/common/data-table";
 import { DeleteDialog } from "@/components/common/delete-dialog";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, FileEdit, Trash2, Eye } from "lucide-react";
+import {
+  PlusCircle,
+  FileEdit,
+  Trash2,
+  Eye,
+  ArrowUpDown,
+  Star,
+  Info,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import ProductService from "@/services/product.service";
 import { IProductResponse } from "@/types/product";
+import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { OcopStatus } from "@/types/OcopStatus";
 
 export default function FarmerProducts() {
   const router = useRouter();
@@ -126,56 +143,116 @@ export default function FarmerProducts() {
     }).format(price);
   };
 
-  // Format trạng thái
-  const getStatusBadge = (status: string) => {
+  // Format trạng thái chung của sản phẩm
+  const getProductStatusBadge = (status: string) => {
     switch (status?.toUpperCase()) {
       case "ACTIVE":
         return (
-          <Badge className="py-2 bg-green-100 text-green-600 hover:bg-green-100 dark:bg-green-700 dark:text-green-100 whitespace-nowrap">
+          <Badge className="py-1 bg-green-100 text-green-600 hover:bg-green-400 hover:text-black dark:bg-green-700 dark:text-green-100 whitespace-nowrap">
             Đang bán
           </Badge>
         );
       case "PENDING":
         return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
+          <Badge className="py-1 bg-yellow-100 text-yellow-800 hover:bg-yellow-400 hover:text-black dark:bg-yellow-900 dark:text-yellow-100">
             Chờ duyệt
           </Badge>
         );
       case "REJECTED":
         return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+          <Badge className="py-1 bg-red-100 text-red-800 hover:bg-red-400 hover:text-black dark:bg-red-900 dark:text-red-100">
             Bị từ chối
           </Badge>
         );
       case "BLOCKED":
         return (
-          <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100">
+          <Badge className="py-1 bg-orange-100 text-orange-800 hover:bg-orange-400 hover:text-black dark:bg-orange-900 dark:text-orange-100">
             Bị khóa
           </Badge>
         );
       case "DELETED":
         return (
-          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+          <Badge className="py-1 bg-gray-100 text-gray-800 hover:bg-gray-400 hover:text-black dark:bg-gray-900 dark:text-gray-100">
             Đã xóa
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+          <Badge className="py-1 bg-gray-100 text-gray-800 hover:bg-gray-400 hover:text-black dark:bg-gray-900 dark:text-gray-100">
             {status || "Không xác định"}
           </Badge>
         );
     }
   };
 
+  // Format trạng thái OCOP
+  const getOcopStatusBadge = (ocop?: any) => {
+    const status = ocop?.status;
+    if (!status) {
+      return (
+        <Badge className="py-1" variant="outline">
+          Không có
+        </Badge>
+      );
+    }
+    switch (status) {
+      case "PENDING_VERIFY":
+        return (
+          <Badge className="py-1 bg-yellow-100 text-yellow-800 hover:bg-yellow-400 hover:text-black dark:bg-yellow-900 dark:text-yellow-100">
+            Chờ duyệt
+          </Badge>
+        );
+      case "VERIFIED":
+        return (
+          <Badge className="py-1 bg-green-100 text-green-600 hover:bg-green-400 hover:text-black dark:bg-green-700 dark:text-green-100">
+            Đã duyệt
+          </Badge>
+        );
+      case "REJECTED":
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="py-1 bg-red-100 text-red-800 hover:bg-red-400 hover:text-black dark:bg-red-900 dark:text-red-100 cursor-help">
+                  <div className="flex items-center gap-1">
+                    Bị từ chối
+                  </div>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="font-semibold mb-1">Lý do từ chối:</p>
+                <p className="text-sm">
+                  {ocop.reason || "Không có lý do cụ thể."}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      case "NONE":
+      default:
+        return (
+          <Badge className="py-1" variant="outline">
+            Không có
+          </Badge>
+        );
+    }
+  };
+
   // Định nghĩa cột cho bảng
-  const columns = [
+  const columns: ColumnDef<IProductResponse>[] = [
     {
       accessorKey: "name",
-      header: "Tên sản phẩm",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên sản phẩm
+        </Button>
+      ),
     },
     {
-      accessorKey: "categoryName",
+      accessorKey: "category",
       header: "Danh mục",
       cell: ({ row }: { row: { original: IProductResponse } }) => {
         return row.original.category || "Chưa phân loại";
@@ -183,45 +260,95 @@ export default function FarmerProducts() {
     },
     {
       accessorKey: "price",
-      header: "Giá",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto"
+        >
+          Giá
+        </Button>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
         return `${formatPrice(row.original.price)}/${row.original.unitPrice}`;
       },
     },
     {
       accessorKey: "inventory",
-      header: "Tồn kho",
-    },
-    {
-      accessorKey: "sold",
-      header: "Đã bán",
-    },
-    {
-      accessorKey: "rating",
-      header: "Đánh giá",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto w-10"
+        >
+          Tồn kho
+        </Button>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
         return (
-          <div className="flex items-center">
-            <span className="mr-1">⭐</span>
-            <span>{row.original.rating.toFixed(1)}</span>
-          </div>
+          <div className="flex justify-center">{row.original.inventory}</div>
         );
       },
     },
     {
-      accessorKey: "status",
-      header: "Trạng thái",
+      accessorKey: "sold",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto w-10"
+        >
+          Đã bán
+        </Button>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
-        return getStatusBadge(row.original.status);
+        return <div className="flex justify-center">{row.original.sold}</div>;
+      },
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto w-10"
+        >
+          Ngày tạo
+        </Button>
+      ),
+      cell: ({ row }) => format(new Date(row.original.createdAt), "dd/MM/yyyy"),
+    },
+    {
+      accessorKey: "status",
+      header: "Trạng thái sản phẩm",
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
+        return getProductStatusBadge(row.original.status);
+      },
+    },
+    {
+      accessorKey: "ocop.status",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex mx-auto w-20"
+        >
+          Trạng thái OCOP
+        </Button>
+      ),
+      cell: ({ row }: { row: { original: IProductResponse } }) => {
+        return getOcopStatusBadge(row.original.ocop);
       },
     },
     {
       id: "actions",
-      header: "Thao tác",
+      header: () => (
+        <div className="flex justify-center">Thao tác</div>
+      ),
       cell: ({ row }: { row: { original: IProductResponse } }) => {
         const product = row.original;
         return (
-          <div className="flex space-x-2">
+          <div className="flex">
             <Button
               variant="ghost"
               size="icon"

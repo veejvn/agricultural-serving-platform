@@ -266,7 +266,7 @@ export default function Home() {
       </section> */}
 
       {/* Testimonials */}
-      <section className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      {/* <section className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold text-green-800 dark:text-green-300 sm:text-4xl">
             Nông Dân Nói Gì Về Chúng Tôi
@@ -367,7 +367,7 @@ export default function Home() {
             </CardContent>
           </Card>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

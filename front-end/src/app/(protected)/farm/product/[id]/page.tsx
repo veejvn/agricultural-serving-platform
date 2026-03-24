@@ -126,7 +126,7 @@ export default function FarmerProductDetailPage({
             title: "Lỗi",
             description:
               "Không thể tải thông tin sản phẩm. " + (error.message || ""),
-            variant: "destructive",
+            variant: "error",
           });
           notFound();
           return;
@@ -138,7 +138,7 @@ export default function FarmerProductDetailPage({
         toast({
           title: "Lỗi",
           description: "Có lỗi xảy ra khi tải sản phẩm",
-          variant: "destructive",
+          variant: "error",
         });
         notFound();
       } finally {
@@ -184,7 +184,7 @@ export default function FarmerProductDetailPage({
         toast({
           title: "Lỗi",
           description: "Không thể xóa sản phẩm. " + (error.message || ""),
-          variant: "destructive",
+          variant: "error",
         });
         return;
       }
@@ -201,7 +201,7 @@ export default function FarmerProductDetailPage({
       toast({
         title: "Lỗi",
         description: "Có lỗi xảy ra khi xóa sản phẩm",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsDeleting(false);
@@ -326,7 +326,6 @@ export default function FarmerProductDetailPage({
             </Button>
           </Link>
           <Button
-            variant="destructive"
             size="sm"
             onClick={() => setShowDeleteDialog(true)}
           >
@@ -355,9 +354,16 @@ export default function FarmerProductDetailPage({
                 </p>
                 <div className="mt-1">{getStatusBadge(product.status)}</div>
               </div>
-              <Button variant="outline" size="sm" onClick={handleToggleStatus}>
-                {product.status === "ACTIVE" ? "Tạm dừng" : "Kích hoạt"}
-              </Button>
+              {(product.status === "ACTIVE" ||
+                product.status === "BLOCKED") && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleStatus}
+                >
+                  {product.status === "ACTIVE" ? "Tạm dừng" : "Kích hoạt"}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -765,40 +771,6 @@ export default function FarmerProductDetailPage({
             </CardContent>
           </Card>
 
-          {/* Product Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Hiệu suất sản phẩm</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Lượt xem hôm nay
-                </span>
-                <span className="font-semibold">45</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Đơn hàng tuần này
-                </span>
-                <span className="font-semibold">12</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Doanh thu tháng này
-                </span>
-                <span className="font-semibold">{formatPrice(375000)}</span>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Xếp hạng trong danh mục
-                </span>
-                <Badge variant="outline">#3</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Product Info Summary */}
           <Card>
             <CardHeader>
@@ -822,35 +794,6 @@ export default function FarmerProductDetailPage({
                   Tổng hình ảnh
                 </span>
                 <span className="font-semibold">{product.images.length}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Hoạt động gần đây</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Có đơn hàng mới - 2 giờ trước
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Đánh giá mới - 5 giờ trước
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Cập nhật giá - 1 ngày trước
-                  </span>
-                </div>
               </div>
             </CardContent>
           </Card>

@@ -35,6 +35,7 @@ import {
   ArrowLeft,
   ChevronDown,
   Check,
+  Star,
 } from "lucide-react";
 import ProductService from "@/services/product.service";
 import UploadService from "@/services/upload.service";
@@ -43,6 +44,16 @@ import { ICategory } from "@/types/product";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Switch } from "@/components/ui/switch";
+
+interface OcopForm {
+  enabled: boolean;
+  star: string;
+  certificateNumber: string;
+  issuedYear: string;
+  issuer: string;
+  imagePaths: string[];
+}
 
 interface ProductForm {
   name: string;
@@ -53,6 +64,26 @@ interface ProductForm {
   unitPrice: string;
   categoryId: string;
   imagePaths: string[];
+  ocopRequest?: OcopForm;
+}
+
+interface OcopFormErrors {
+  star?: string;
+  certificateNumber?: string;
+  issuedYear?: string;
+  issuer?: string;
+  imagePaths?: string;
+}
+
+interface ProductFormErrors {
+  name?: string;
+  description?: string;
+  price?: string;
+  inventory?: string;
+  thumbnail?: string;
+  unitPrice?: string;
+  categoryId?: string;
+  imagePaths?: string;
 }
 
 const units = [
@@ -68,6 +99,8 @@ const units = [
   "bao",
 ];
 
+const stars = ["3", "4", "5"];
+
 export default function AddProductPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -75,6 +108,7 @@ export default function AddProductPage() {
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingOcopImages, setUploadingOcopImages] = useState(false);
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
@@ -82,6 +116,7 @@ export default function AddProductPage() {
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const additionalImagesInputRef = useRef<HTMLInputElement>(null);
+  const ocopImagesInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<ProductForm>({
     name: "",
@@ -94,11 +129,22 @@ export default function AddProductPage() {
     imagePaths: [],
   });
 
+  const [ocopFormData, setOcopFormData] = useState<OcopForm>({
+    enabled: false,
+    star: "",
+    certificateNumber: "",
+    issuedYear: "",
+    issuer: "",
+    imagePaths: [],
+  });
+
   const [errors, setErrors] = useState<Partial<ProductForm>>({});
+  const [ocopErrors, setOcopErrors] = useState<Partial<OcopFormErrors>>({});
   const [dragOver, setDragOver] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ProductForm> = {};
+    const newOcopErrors: OcopFormErrors = {};
 
     if (!formData.name.trim()) {
       newErrors.name = "Tên sản phẩm là bắt buộc";
@@ -124,8 +170,30 @@ export default function AddProductPage() {
       newErrors.thumbnail = "Ảnh đại diện là bắt buộc";
     }
 
+    if (ocopFormData.enabled) {
+      if (!ocopFormData.star) {
+        newOcopErrors.star = "Số sao OCOP là bắt buộc";
+      }
+      if (!ocopFormData.certificateNumber.trim()) {
+        newOcopErrors.certificateNumber = "Số chứng nhận OCOP là bắt buộc";
+      }
+      if (!ocopFormData.issuedYear) {
+        newOcopErrors.issuedYear = "Năm cấp chứng nhận là bắt buộc";
+      }
+      if (!ocopFormData.issuer.trim()) {
+        newOcopErrors.issuer = "Đơn vị cấp chứng nhận là bắt buộc";
+      }
+      if (ocopFormData.imagePaths.length === 0) {
+        newOcopErrors.imagePaths = "Cần ít nhất một ảnh chứng nhận OCOP";
+      }
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setOcopErrors(newOcopErrors);
+    return (
+      Object.keys(newErrors).length === 0 &&
+      Object.keys(newOcopErrors).length === 0
+    );
   };
 
   // Load categories từ API
@@ -138,7 +206,7 @@ export default function AddProductPage() {
           toast({
             title: "Lỗi",
             description: "Không thể tải danh mục. " + (error.message || ""),
-            variant: "destructive",
+            variant: "error",
           });
           return;
         }
@@ -153,7 +221,7 @@ export default function AddProductPage() {
         toast({
           title: "Lỗi",
           description: "Không thể tải danh mục",
-          variant: "destructive",
+          variant: "error",
         });
       } finally {
         setCategoriesLoading(false);
@@ -271,6 +339,16 @@ export default function AddProductPage() {
     }
   };
 
+  const handleOcopInputChange = (
+    field: keyof OcopForm,
+    value: string | boolean
+  ) => {
+    setOcopFormData((prev) => ({ ...prev, [field]: value }));
+    if (field in ocopErrors) {
+      setOcopErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   // Handle thumbnail file selection with upload
   const handleThumbnailChange = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -281,7 +359,7 @@ export default function AddProductPage() {
         toast({
           title: "File không hợp lệ",
           description: "Vui lòng chọn file ảnh (jpg, png, gif, etc.)",
-          variant: "destructive",
+          variant: "error",
         });
         return;
       }
@@ -309,7 +387,7 @@ export default function AddProductPage() {
         toast({
           title: "Lỗi upload",
           description: error.message || "Không thể tải ảnh lên server",
-          variant: "destructive",
+          variant: "error",
         });
       } finally {
         setUploadingThumbnail(false);
@@ -328,7 +406,7 @@ export default function AddProductPage() {
       toast({
         title: "Một số file không hợp lệ",
         description: "Chỉ các file ảnh được chấp nhận",
-        variant: "destructive",
+        variant: "error",
       });
     }
 
@@ -364,7 +442,7 @@ export default function AddProductPage() {
       toast({
         title: "Lỗi upload",
         description: error.message || "Không thể tải ảnh lên server",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setUploadingImages(false);
@@ -373,6 +451,66 @@ export default function AddProductPage() {
     // Reset input
     if (additionalImagesInputRef.current) {
       additionalImagesInputRef.current.value = "";
+    }
+  };
+
+  // Handle OCOP images file selection with upload
+  const handleOcopImagesChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter((file) => UploadService.isImageFile(file));
+
+    if (imageFiles.length !== files.length) {
+      toast({
+        title: "Một số file không hợp lệ",
+        description: "Chỉ các file ảnh được chấp nhận",
+        variant: "error",
+      });
+    }
+
+    if (imageFiles.length === 0) return;
+
+    setUploadingOcopImages(true);
+    try {
+      const [imageUrls, error] = await UploadService.uploadImages(imageFiles);
+
+      if (error) {
+        throw new Error(error.message || "Upload failed");
+      }
+
+      if (imageUrls) {
+        // Thêm các URL mới vào danh sách, loại bỏ duplicate
+        setOcopFormData((prev) => {
+          const newImagePaths = [...prev.imagePaths];
+          imageUrls.forEach((url: string) => {
+            if (!newImagePaths.includes(url)) {
+              newImagePaths.push(url);
+            }
+          });
+          return { ...prev, imagePaths: newImagePaths };
+        });
+
+        toast({
+          title: "Upload thành công",
+          description: `Đã tải lên ${imageUrls.length} ảnh chứng nhận OCOP`,
+        });
+      }
+    } catch (error: any) {
+      console.error("Upload OCOP images error:", error);
+      toast({
+        title: "Lỗi upload",
+        description:
+          error.message || "Không thể tải ảnh chứng nhận OCOP lên server",
+        variant: "error",
+      });
+    } finally {
+      setUploadingOcopImages(false);
+    }
+
+    // Reset input
+    if (ocopImagesInputRef.current) {
+      ocopImagesInputRef.current.value = "";
     }
   };
 
@@ -388,7 +526,7 @@ export default function AddProductPage() {
       toast({
         title: "File không hợp lệ",
         description: "Vui lòng kéo thả file ảnh",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -416,7 +554,7 @@ export default function AddProductPage() {
       toast({
         title: "Lỗi upload",
         description: error.message || "Không thể tải ảnh lên server",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setUploadingThumbnail(false);
@@ -436,7 +574,7 @@ export default function AddProductPage() {
       toast({
         title: "File không hợp lệ",
         description: "Vui lòng kéo thả file ảnh",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -471,15 +609,78 @@ export default function AddProductPage() {
       toast({
         title: "Lỗi upload",
         description: error.message || "Không thể tải ảnh lên server",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setUploadingImages(false);
     }
   };
 
+  // Handle drag and drop for OCOP images
+  const handleOcopImagesDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(null);
+
+    const files = Array.from(e.dataTransfer.files).filter((file) =>
+      UploadService.isImageFile(file)
+    );
+
+    if (files.length === 0) {
+      toast({
+        title: "File không hợp lệ",
+        description: "Vui lòng kéo thả file ảnh",
+        variant: "error",
+      });
+      return;
+    }
+
+    setUploadingOcopImages(true);
+    try {
+      const [imageUrls, error] = await UploadService.uploadImages(files);
+
+      if (error) {
+        throw new Error(error.message || "Upload failed");
+      }
+
+      if (imageUrls) {
+        // Thêm các URL mới vào danh sách, loại bỏ duplicate
+        setOcopFormData((prev) => {
+          const newImagePaths = [...prev.imagePaths];
+          imageUrls.forEach((url: string) => {
+            if (!newImagePaths.includes(url)) {
+              newImagePaths.push(url);
+            }
+          });
+          return { ...prev, imagePaths: newImagePaths };
+        });
+
+        toast({
+          title: "Upload thành công",
+          description: `Đã tải lên ${imageUrls.length} ảnh chứng nhận OCOP`,
+        });
+      }
+    } catch (error: any) {
+      console.error("Upload OCOP images error:", error);
+      toast({
+        title: "Lỗi upload",
+        description:
+          error.message || "Không thể tải ảnh chứng nhận OCOP lên server",
+        variant: "error",
+      });
+    } finally {
+      setUploadingOcopImages(false);
+    }
+  };
+
   const removeImagePath = (index: number) => {
     setFormData((prev) => ({
+      ...prev,
+      imagePaths: prev.imagePaths.filter((_, i) => i !== index),
+    }));
+  };
+
+  const removeOcopImagePath = (index: number) => {
+    setOcopFormData((prev) => ({
       ...prev,
       imagePaths: prev.imagePaths.filter((_, i) => i !== index),
     }));
@@ -501,20 +702,32 @@ export default function AddProductPage() {
     const sampleCategoryId = categories.length > 0 ? categories[0].id : "";
 
     setFormData({
-      name: "Vú sửa hoàng kim",
+      name: "Nấm linh chi thái lát",
       description:
-        "Vú sữa Hoàng Kim, còn gọi là vú sữa Abiu, là một loại trái cây có nguồn gốc từ Đài Loan và được du nhập vào Việt Nam",
-      price: "25000",
+        "Nấm Linh Chi là một dược liệu quý được nhiều người xem như một thần dược trong việc tẩm bổ và hỗ trợ điều trị bệnh từ lâu đời. Ngày nay, với trình độ khoa học kĩ thuật phát triển, người ta đã phân tích và tìm ra nhiều hơn nữa những dược tính tuyệt vời của nó cho sức khỏe con người.",
+      price: "390000",
       inventory: "100",
       thumbnail:
-        "https://bizweb.dktcdn.net/100/482/702/products/2.jpg?v=1750734146287",
+        "https://trucvufarm.com.vn/wp-content/uploads/2025/09/nam-linh-chi-la-gi-tac-dung-va-cach-dung-nam-linh-chi-hieu-qua-202110041309297361.jpg",
       unitPrice: "kg",
-      categoryId: sampleCategoryId,
+      categoryId: "01d1abe2-637a-4cdd-a63a-2fb24948acdb",
       imagePaths: [
-        "https://bizweb.dktcdn.net/100/482/702/products/2.jpg?v=1750734146287",
+        "https://sieuthisamnamhanquoc.com/images/companies/1/nam-linh-chi-han-quoc/nam-linh-chi-thai-lat-1kg-3.jpg?1592818006375",
+        "https://linhchinonglam.com/wp-content/uploads/2021/05/nam-linh-chi-tot-cho-suc-khoe-1024x683.jpg",
       ],
     });
+    setOcopFormData({
+      enabled: true,
+      star: "4",
+      certificateNumber: "3075/QĐ-UBND",
+      issuedYear: "2019",
+      issuer: "Ủy ban nhân dân tỉnh Sóc Trăng",
+      imagePaths: [
+        "https://vnce.vn/Uploads/images/chung-nhan-hop-chuan/chung-nhan-chuong-trinh-ocop.jpg"
+      ] as string[], // Explicitly cast to string[]
+    });
     setErrors({});
+    setOcopErrors({});
     toast({
       title: "Đã tải dữ liệu mẫu",
       description: "Dữ liệu mẫu đã được điền vào form",
@@ -532,10 +745,20 @@ export default function AddProductPage() {
       categoryId: "",
       imagePaths: [],
     });
+    setOcopFormData({
+      enabled: false,
+      star: "",
+      certificateNumber: "",
+      issuedYear: "",
+      issuer: "",
+      imagePaths: [],
+    });
     setErrors({});
+    setOcopErrors({});
     if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
     if (additionalImagesInputRef.current)
       additionalImagesInputRef.current.value = "";
+    if (ocopImagesInputRef.current) ocopImagesInputRef.current.value = "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -545,7 +768,7 @@ export default function AddProductPage() {
       toast({
         title: "Lỗi validation",
         description: "Vui lòng kiểm tra lại thông tin đã nhập",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -554,7 +777,7 @@ export default function AddProductPage() {
 
     try {
       // Chuẩn bị dữ liệu gửi lên server
-      const productData = {
+      const productData: any = {
         name: formData.name,
         description: formData.description,
         price: parseInt(formData.price),
@@ -564,6 +787,17 @@ export default function AddProductPage() {
         categoryId: formData.categoryId,
         imagePaths: formData.imagePaths,
       };
+
+      if (ocopFormData.enabled) {
+        productData.ocopRequest = {
+          enabled: ocopFormData.enabled,
+          star: parseInt(ocopFormData.star),
+          certificateNumber: ocopFormData.certificateNumber,
+          issuedYear: parseInt(ocopFormData.issuedYear),
+          issuer: ocopFormData.issuer,
+          imagePaths: ocopFormData.imagePaths,
+        };
+      }
 
       console.log("Sending product data:", productData);
 
@@ -581,13 +815,14 @@ export default function AddProductPage() {
         });
         resetForm();
       }
+      router.push("/farm/product");
     } catch (error: any) {
       console.error("Error creating product:", error);
       toast({
         title: "Có lỗi xảy ra",
         description:
           error.message || "Không thể thêm sản phẩm. Vui lòng thử lại.",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsLoading(false);
@@ -776,6 +1011,213 @@ export default function AddProductPage() {
           </CardContent>
         </Card>
 
+        {/* OCOP Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5" />
+              Chứng nhận OCOP
+            </CardTitle>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="ocop-enabled">Sản phẩm có chứng nhận OCOP</Label>
+              <Switch
+                id="ocop-enabled"
+                checked={ocopFormData.enabled}
+                onCheckedChange={(checked) =>
+                  handleOcopInputChange("enabled", checked)
+                }
+              />
+            </div>
+          </CardHeader>
+          {ocopFormData.enabled && (
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="ocop-star">
+                    Số sao OCOP <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={ocopFormData.star}
+                    onValueChange={(value) =>
+                      handleOcopInputChange("star", value)
+                    }
+                  >
+                    <SelectTrigger
+                      className={ocopErrors.star ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Chọn số sao" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stars.map((star) => (
+                        <SelectItem key={star} value={star}>
+                          {star} sao
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {ocopErrors.star && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {ocopErrors.star}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="ocop-cert-number">
+                    Số chứng nhận <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="ocop-cert-number"
+                    value={ocopFormData.certificateNumber}
+                    onChange={(e) =>
+                      handleOcopInputChange("certificateNumber", e.target.value)
+                    }
+                    placeholder="Nhập số chứng nhận OCOP"
+                    className={
+                      ocopErrors.certificateNumber ? "border-red-500" : ""
+                    }
+                  />
+                  {ocopErrors.certificateNumber && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {ocopErrors.certificateNumber}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="ocop-issued-year">
+                    Năm cấp <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="ocop-issued-year"
+                    type="number"
+                    value={ocopFormData.issuedYear}
+                    onChange={(e) =>
+                      handleOcopInputChange("issuedYear", e.target.value)
+                    }
+                    placeholder="VD: 2023"
+                    min="1900"
+                    max={new Date().getFullYear().toString()}
+                    className={ocopErrors.issuedYear ? "border-red-500" : ""}
+                  />
+                  {ocopErrors.issuedYear && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {ocopErrors.issuedYear}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="ocop-issuer">
+                    Đơn vị cấp <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="ocop-issuer"
+                    value={ocopFormData.issuer}
+                    onChange={(e) =>
+                      handleOcopInputChange("issuer", e.target.value)
+                    }
+                    placeholder="VD: Sở Nông nghiệp và PTNT TP.HCM"
+                    className={ocopErrors.issuer ? "border-red-500" : ""}
+                  />
+                  {ocopErrors.issuer && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {ocopErrors.issuer}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* OCOP Images */}
+              <div>
+                <Label>
+                  Ảnh chứng nhận OCOP <span className="text-red-500">*</span>
+                </Label>
+                <div className="mt-2">
+                  {uploadingOcopImages ? (
+                    <div className="w-full h-32 border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center bg-blue-50">
+                      <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2" />
+                      <p className="text-sm text-blue-600">
+                        Đang tải lên ảnh chứng nhận...
+                      </p>
+                    </div>
+                  ) : (
+                    <div
+                      className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                        dragOver === "ocop-additional"
+                          ? "border-blue-500 bg-blue-50"
+                          : ocopErrors.imagePaths
+                          ? "border-red-500 bg-red-50"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                      onClick={() => ocopImagesInputRef.current?.click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOver("ocop-additional");
+                      }}
+                      onDragLeave={() => setDragOver(null)}
+                      onDrop={handleOcopImagesDrop}
+                    >
+                      <Plus className="w-8 h-8 text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-500 text-center">
+                        Kéo thả nhiều ảnh chứng nhận vào đây hoặc click để chọn
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Hỗ trợ nhiều file ảnh cùng lúc
+                      </p>
+                    </div>
+                  )}
+
+                  <input
+                    ref={ocopImagesInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleOcopImagesChange}
+                    className="hidden"
+                    aria-label="Chọn ảnh chứng nhận OCOP"
+                  />
+
+                  {ocopErrors.imagePaths && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {ocopErrors.imagePaths}
+                    </p>
+                  )}
+
+                  {ocopFormData.imagePaths.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                      {ocopFormData.imagePaths.map((imagePath, index) => (
+                        <div key={index} className="relative group">
+                          <div className="relative w-full h-24 border rounded-lg overflow-hidden">
+                            <Image
+                              src={imagePath || "/placeholder.svg"}
+                              alt={`Ảnh chứng nhận OCOP ${index + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+
+                            <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                              <div className="opacity-0 group-hover:opacity-100 flex gap-1">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => removeOcopImagePath(index)}
+                                >
+                                  <X className="w-3 h-3 text-white" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
         {/* Hình ảnh */}
         <Card>
           <CardHeader>
@@ -818,7 +1260,6 @@ export default function AddProductPage() {
                           <Button
                             type="button"
                             size="sm"
-                            variant="destructive"
                             onClick={removeThumbnail}
                           >
                             <Trash2 className="w-4 h-4 text-white" />
@@ -943,7 +1384,6 @@ export default function AddProductPage() {
                               <Button
                                 type="button"
                                 size="sm"
-                                variant="destructive"
                                 onClick={() => removeImagePath(index)}
                               >
                                 <X className="w-3 h-3 text-white" />

@@ -1,6 +1,7 @@
 package javaweb.my_project.dto.product;
 
 import javaweb.my_project.dto.farmer.FarmerResponse;
+import javaweb.my_project.dto.ocop.OcopResponse;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -18,4 +19,5 @@ public class ProductTagResponse {
     String unitPrice;
     String categoryId;
     FarmerResponse farmer;
+    OcopResponse ocop;
 }

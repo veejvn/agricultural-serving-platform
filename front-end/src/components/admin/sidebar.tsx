@@ -68,6 +68,11 @@ const menuItems = [
     href: "/admin/market-price",
     icon: Table2,
     title: "Giá thị trường",
+  },
+  {
+    href: "/admin/ocop",
+    icon: Bell,
+    title: "Duyệt OCOP",
   }
   // {
   //   href: "/admin/forum",

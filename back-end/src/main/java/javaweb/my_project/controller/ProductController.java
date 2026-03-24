@@ -3,6 +3,7 @@ package javaweb.my_project.controller;
 import jakarta.validation.Valid;
 import javaweb.my_project.dto.api.ApiResponse;
 import javaweb.my_project.dto.api.PageResponse;
+import javaweb.my_project.dto.ocop.OcopUpdateRequest;
 import javaweb.my_project.dto.product.*;
 import javaweb.my_project.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class ProductController {
         private final ProductService productService;
 
         @PostMapping
-        @PreAuthorize("hasRole('FARMER')")
+        @PreAuthorize("hasRole(\"FARMER\")")
         public ResponseEntity<ApiResponse<ProductResponse>> create(@RequestBody @Valid ProductRequest request) {
                 ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
                                 .code("product-s-01")
@@ -52,7 +53,7 @@ public class ProductController {
         }
 
         @GetMapping("/admin")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasRole(\"ADMIN\")")
         public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllByAdmin() {
                 ApiResponse<List<ProductResponse>> apiResponse = ApiResponse.<List<ProductResponse>>builder()
                                 .code("product-s-03")
@@ -63,7 +64,7 @@ public class ProductController {
         }
 
         @GetMapping("/farmer")
-        @PreAuthorize("hasRole('FARMER')")
+        @PreAuthorize("hasRole(\"FARMER\")")
         public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllByFarmer() {
                 ApiResponse<List<ProductResponse>> apiResponse = ApiResponse.<List<ProductResponse>>builder()
                                 .code("product-s-04")
@@ -105,7 +106,7 @@ public class ProductController {
         }
 
         @PutMapping("/{id}")
-        @PreAuthorize("hasRole('FARMER')")
+        @PreAuthorize("hasRole(\"FARMER\")")
         public ResponseEntity<ApiResponse<ProductResponse>> update(@PathVariable String id,
                         @RequestBody @Valid ProductUpdateRequest request) {
                 ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
@@ -116,8 +117,20 @@ public class ProductController {
                 return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
         }
 
+        @PutMapping("/{id}/ocop")
+        @PreAuthorize("hasRole(\"FARMER\")")
+        public ResponseEntity<ApiResponse<ProductResponse>> updateOcop(@PathVariable String id,
+                        @RequestBody @Valid OcopUpdateRequest request) {
+                ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
+                                .code("ocop-s-01")
+                                .message("Update OCOP successfully")
+                                .data(productService.updateOcop(id, request))
+                                .build();
+                return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        }
+
         @DeleteMapping("/{id}")
-        @PreAuthorize("hasRole('FARMER')")
+        @PreAuthorize("hasRole(\"FARMER\")")
         public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
                 productService.delete(id);
                 ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
@@ -128,7 +141,7 @@ public class ProductController {
         }
 
         @PostMapping("/admin/change-status")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasRole(\"ADMIN\")")
         public ResponseEntity<ApiResponse<ProductResponse>> adminChangeProductStatus(
                         @RequestBody @Valid ChangeProductStatusRequest request) {
                 ApiResponse<ProductResponse> apiResponse = ApiResponse.<ProductResponse>builder()
